@@ -1,4 +1,5 @@
-require('dotenv').config();
+require('dotenv').config({path: './.env_bezalos'});
+
 const express = require('express');
 const app = express();
 const path = require('path');
@@ -20,7 +21,8 @@ app.use(hpp());
 app.use(credentials);
 app.use(cors(corsOptions));
 
-app.use('/', require('./routes/viewRoutes'));
+const viewRoutes = require('./routes/viewRoutes');
+app.use('/', viewRoutes);
 
 
 
@@ -28,4 +30,4 @@ app.use('/', require('./routes/viewRoutes'));
 
 
 
-app.listen(process.env.PORT || 3002);
+app.listen(process.env.PORT || 3003);
