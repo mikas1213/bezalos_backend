@@ -22,7 +22,7 @@ app.use(credentials);
 app.use(cors(corsOptions));
 
 const viewRoutes = require('./routes/viewRoutes');
-app.use('/', viewRoutes);
+app.use('/api', viewRoutes);
 
 
 
