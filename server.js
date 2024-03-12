@@ -1,4 +1,4 @@
-require('dotenv').config({path: './.env_bezalos'});
+require('dotenv').config();
 
 const express = require('express');
 const app = express();
