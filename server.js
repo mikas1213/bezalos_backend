@@ -21,8 +21,8 @@ app.use(hpp());
 app.use(credentials);
 app.use(cors(corsOptions));
 
-const viewRoutes = require('./routes/viewRoutes');
-app.use('/api', viewRoutes);
+const authRoutes = require('./routes/authRoutes');
+app.use('/api/v1/auth', authRoutes);
 
 
 
