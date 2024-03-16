@@ -2,8 +2,16 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 
-router.route('/signup').post(authController.signup);
-router.route('/login').post(authController.login);
+const { signupValidator, loginValidator, resetPasswordValidator } = require('../middleware/validators/authValidators');
+
+router.route('/signup').post(signupValidator, authController.signup);
+router.route('/login').post(loginValidator, authController.login);
+router.route('/logout').get(authController.logout);
+router.route('/refresh').get(authController.refresh);
+router.route('/forgot-password').post(authController.forgotPassword);
+router.route('/reset-password/:token').patch(resetPasswordValidator, authController.resetPassword);
+
+
 
 
 // router.post('/signup', authController.test, authController.signup);
