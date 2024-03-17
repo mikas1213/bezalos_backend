@@ -10,7 +10,7 @@ const { validationResult } = require('express-validator');
 exports.signup = async (req, res) => {
     const errors = validationResult(req);
     const { name, email, password } = req.body;
-
+    
     try {
         if(!errors.isEmpty() && errors.errors[0].path === 'email') {
             return res.status(400).json({ 'message': errors.errors[0].msg });
