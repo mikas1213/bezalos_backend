@@ -9,36 +9,42 @@ const { validationResult } = require('express-validator');
 
 exports.signup = async (req, res) => {
     const errors = validationResult(req);
-    const { name, email, password } = req.body;
+    const { name, email, initial_target, password } = req.body;
     
     try {
         if(!errors.isEmpty() && errors.errors[0].path === 'email') {
-            return res.status(400).json({ 'message': errors.errors[0].msg });
+            // console.log(errors)
+            // return res.status(400).json({ 'message': errors.errors[0].msg });
+            return res.status(400).json({ errors: errors.errors });
         }
         const data = await db.query('SELECT id FROM users WHERE email = $1', [req.body.email]);
 
         if(data.rows.length) {
-            return res.status(409).json({message: 'Toks vartotojas jau yra'});
+            // return res.status(409).json({message: 'Toks vartotojas jau yra'});
+            return res.status(409).json({ errors: [{msg:'Toks vartotojas jau yra', path:'email'}] });
         }
 
         if(!errors.isEmpty() && errors.errors[0].path === 'password') {
-            return res.status(400).json({ message: errors.errors[0].msg });
+            // return res.status(400).json({ message: errors.errors[0].msg });
+            return res.status(400).json({ errors: errors.errors });
         }
 
         if(!errors.isEmpty() && errors.errors[0].path === 'passwordConfirmed') {
-            return res.status(400).json({ message: errors.errors[0].msg });
+            // return res.status(400).json({ message: errors.errors[0].msg });
+            return res.status(400).json({ errors: errors.errors });
         }
         
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
-        await db.query('INSERT INTO users(name, email, password) values($1, $2, $3)', [name, email, hashedPassword/*, new Date().toISOString(), new Date().toISOString()*/]);
+        await db.query('INSERT INTO users(name, email, initial_target, password) values($1, $2, $3, $4)', [name, email, initial_target, hashedPassword/*, new Date().toISOString(), new Date().toISOString()*/]);
 
         res.status(201).json({
             status: 'success',
             message: 'New user successfully registered!'
         });
     } catch (err) {
-        res.status(500).json({ message: err.message });
+        // console.log(errors)
+        res.status(500).json({ msg: err.message });
     }
 };
 
