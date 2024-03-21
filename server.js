@@ -42,5 +42,5 @@ app.all('*', (req, res) => {
 });
 
 app.listen(process.env.PORT || 3003, function() {
-    console.log(`Server running on ${PORT}`)
+    console.log(`Server running on ${process.env.PORT }`)
 });
