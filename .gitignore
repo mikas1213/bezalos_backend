@@ -1,4 +1,4 @@
-.env
+.env_bezalos
 logs
 node_modules
 database/queries
