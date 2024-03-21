@@ -1,6 +1,6 @@
 const db = require('../database/db');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
 const Email = require('../utils/email');
