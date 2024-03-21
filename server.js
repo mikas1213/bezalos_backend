@@ -41,4 +41,6 @@ app.all('*', (req, res) => {
     });
 });
 
-app.listen(process.env.PORT || 3003);
+app.listen(process.env.PORT || 3003, function() {
+    console.log(`Server running on ${PORT}`)
+});
