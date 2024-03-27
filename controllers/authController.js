@@ -13,7 +13,6 @@ exports.signup = async (req, res) => {
     
     try {
         if(!errors.isEmpty() && errors.errors[0].path === 'email') {
-            // console.log(errors)
             // return res.status(400).json({ 'message': errors.errors[0].msg });
             return res.status(400).json({ errors: errors.errors });
         }
@@ -36,8 +35,7 @@ exports.signup = async (req, res) => {
         
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
-        console.log('Password: ');
-        console.log(password, hashedPassword);
+
         await db.query('INSERT INTO users(name, email, initial_target, password) values($1, $2, $3, $4)', [name, email, initial_target, hashedPassword/*, new Date().toISOString(), new Date().toISOString()*/]);
 
         res.status(201).json({
@@ -56,17 +54,26 @@ exports.login = async (req, res) => {
         const errors = validationResult(req);
 
         const { email, password } = req.body;
-        if(!errors.isEmpty()) return res.status(400).json({ message: errors.errors[0].msg});
+        // if(!errors.isEmpty()) return res.status(400).json({ message: errors.errors[0].msg});
+        if(!errors.isEmpty()) return res.status(400).json({ errors: errors.errors });
 
         const user = await db.query('SELECT id, role, email, password  FROM users WHERE email = $1', [email]);
-        if(!user.rows[0]) return res.status(401).json({message: "Netinkamas el. paštas arba slaptažodis!"}); 
+        // if(!user.rows[0]) return res.status(401).json({message: "Netinkamas el. paštas arba slaptažodis!"}); 
+        if(!user.rows[0]) return res.status(401).json({errors: [{path: 'auth', type: 'server', msg: 'Netinkamas el. paštas arba slaptažodis!'}]}); 
         
         const validPassword = await bcrypt.compare(password, user.rows[0].password);
-        if(!validPassword) return res.status(401).json({message: "Netinkamas el. paštas arba slaptažodis!"});
+        // if(!validPassword) return res.status(401).json({message: "Netinkamas el. paštas arba slaptažodis!"});
+        if(!validPassword) return res.status(401).json({errors: [{path: 'auth', type: 'server', msg: 'Netinkamas el. paštas arba slaptažodis!'}]});
 
-        const accessToken = jwt.sign({ user_id: user.rows[0].id }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: process.env.ACCESS_TOKEN_EXPIRES});
+        const accessToken = jwt.sign({ 
+            user_id: user.rows[0].id,
+            user_name: user.rows[0].email
+        }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: process.env.ACCESS_TOKEN_EXPIRES});
 
-        const refreshToken = jwt.sign({ user_id: user.rows[0].id }, process.env.REFRESH_TOKEN_SECRET, {
+        const refreshToken = jwt.sign({ 
+            user_id: user.rows[0].id,
+            user_name: user.rows[0].email
+        }, process.env.REFRESH_TOKEN_SECRET, {
             expiresIn: user.rows[0].role == process.env.ADMIN_ROLE ? process.env.REFRESH_TOKEN_EXPIRES_LONG : process.env.REFRESH_TOKEN_EXPIRES
         });
 
@@ -103,7 +110,9 @@ exports.logout  = async (req, res) => {
 
 exports.refresh = async (req, res) => {
     const cookies = req.cookies;
+    
     if(!cookies?.jwt) return res.sendStatus(401);
+    // if(!cookies?.jwt) return res.json({status: false});
 
     const refreshToken = cookies.jwt;
     const user = await db.query('SELECT id, "refresh_token" FROM users WHERE "refresh_token" = $1', [refreshToken]);
@@ -114,9 +123,13 @@ exports.refresh = async (req, res) => {
         refreshToken,
         process.env.REFRESH_TOKEN_SECRET,
         (err, decoded) => {
+        
             if(err || user.rows[0].id !== decoded.user_id) return res.sendStatus(403);
-            const accessToken = jwt.sign({ user_id: decoded.user_id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES});
-            res.json({ accessToken });
+            const accessToken = jwt.sign({ 
+                user_id: decoded.user_id,
+                user_name: decoded.user_name
+            }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES});
+            res.json({ accessToken, status: true });
         }
     );
 }
@@ -127,7 +140,7 @@ exports.protect = (req, res, next) => {
     if(!authHeader?.startsWith('Bearer ')) return res.sendStatus(401);
     
     const token = authHeader.split(' ').pop();
-    console.log('token', token);
+    
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
 
         if(err) return res.sendStatus(403); 
@@ -144,7 +157,11 @@ exports.forgotPassword = async (req, res) => {
         const user = await db.query('SELECT email FROM users WHERE email = $1', [req.body.email]);
         if(!user.rows.length) {
             return res.status(404).json({
-                message: 'Tokio vartotojo nėra'
+                errors: [{
+                    path: 'auth', 
+                    type: 'server', 
+                    msg: 'Toks vartotojas sistemoje nerastas'
+                }]
             });
         }
         
@@ -166,8 +183,6 @@ exports.forgotPassword = async (req, res) => {
             message: 'Token sent to email!'
         });
         
-
-
     } catch (err) {
         await db.query('UPDATE users SET password_reset_token = $1, password_reset_expires = $2 WHERE email = $3', [null, null, req.body.email]);
         res.status(500).json({
