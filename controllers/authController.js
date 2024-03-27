@@ -93,12 +93,13 @@ exports.login = async (req, res) => {
 
 exports.logout  = async (req, res) => {
     const cookies = req.cookies;
+    
     if(!cookies.jwt) return res.sendStatus(204); // No content
     
     const refreshToken = cookies.jwt;
     const user = await db.query('SELECT id, "refresh_token" FROM users WHERE "refresh_token" = $1', [refreshToken]);
-
-    if(!user.rows[0]) {
+    
+    if(!user.rows[0]) {        
         res.clearCookie('jwt', { httpOnly: true, secure: true, sameSite: 'None' });
         return res.sendStatus(204);
     }
