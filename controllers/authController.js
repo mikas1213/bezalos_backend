@@ -49,7 +49,7 @@ exports.signup = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-    
+    console.log(req.body)
     try {
         const errors = validationResult(req);
 
