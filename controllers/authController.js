@@ -176,12 +176,8 @@ exports.forgotPassword = async (req, res) => {
         await db.query('UPDATE users SET password_reset_token = $1, password_reset_expires = $2 WHERE email = $3', [encryptedToken, (new Date(Date.now()+10*60*1000).toISOString()), req.body.email]);
 
         // V - Send rest url to user's email
-        // const resetUrl = `${req.protocol}://${req.get('host')}/api/v1/auth/forgot-password/${resetToken}`; 
-        const resetUrl_2 = `${req.protocol}://${req.get('host')}/keisti-slaptazodi/${resetToken}`;
-        await new Email(user.rows[0], resetUrl_2).resetPassword();
-
-        
-        console.log('resetUrl', resetUrl_2)
+        const resetUrl = `${req.protocol}://${req.get('host')}/keisti-slaptazodi/${resetToken}`;
+        await new Email(user.rows[0], resetUrl).resetPassword();
 
         res.status(200).json({
             status: 'success',
