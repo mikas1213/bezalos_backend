@@ -177,7 +177,7 @@ exports.forgotPassword = async (req, res) => {
 
         // V - Send rest url to user's email
         // const resetUrl = `${req.protocol}://${req.get('host')}/api/v1/auth/forgot-password/${resetToken}`; 
-        const resetUrl_2 = `${req.protocol}://www.${req.get('host')}/keisti-slaptazodi/${resetToken}`;
+        const resetUrl_2 = `${req.protocol}://${req.get('host')}/keisti-slaptazodi/${resetToken}`;
         await new Email(user.rows[0], resetUrl_2).resetPassword();
 
         
