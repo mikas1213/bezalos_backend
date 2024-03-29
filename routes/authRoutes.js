@@ -9,8 +9,10 @@ router.route('/login').post(loginValidator, authController.login);
 router.route('/logout').get(authController.logout);
 router.route('/refresh').get(authController.refresh);
 router.route('/forgot-password').post(authController.forgotPassword);
-router.route('/reset-password/:token').patch(resetPasswordValidator, authController.resetPassword);
-
+router.route('/reset-password/:token')
+    .get(authController.resetPassword)
+    .patch(resetPasswordValidator, authController.updatePassword);
+    
 
 
 

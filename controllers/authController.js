@@ -49,7 +49,7 @@ exports.signup = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-    console.log(req.body)
+    
     try {
         const errors = validationResult(req);
 
@@ -177,7 +177,11 @@ exports.forgotPassword = async (req, res) => {
 
         // V - Send rest url to user's email
         const resetUrl = `${req.protocol}://${req.get('host')}/api/v1/auth/forgot-password/${resetToken}`; 
-        await new Email(user.rows[0], resetUrl).resetPassword();
+        const resetUrl_2 = `${req.protocol}://www.${req.get('host')}/keisti-slaptazodi/${resetToken}`;
+        // await new Email(user.rows[0], resetUrl).resetPassword();
+
+        
+        console.log('resetUrl', resetUrl_2)
 
         res.status(200).json({
             status: 'success',
@@ -192,7 +196,22 @@ exports.forgotPassword = async (req, res) => {
     }
 };
 
-exports.resetPassword = async (req, res, next) => {
+exports.resetPassword = async (req, res) => {
+    
+    const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+    const user = await db.query('SELECT email FROM users WHERE "password_reset_token" = $1 AND password_reset_expires > $2', [hashedToken, new Date(Date.now()).toISOString()]);
+
+    if(!user.rows.length) {
+        return res.status(500).json({
+            status: 'error',
+            message: 'Nuoroda neteisinga, arba nebegaliojanti.'
+        });
+    }
+
+    res.json({data: user.rows[0]});
+};
+
+exports.updatePassword = async (req, res, next) => {
     const errors = validationResult(req);
 
     // I Get user based on the token
@@ -217,7 +236,6 @@ exports.resetPassword = async (req, res, next) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
-    
     await db.query(queries.resetPasswordUpdate, [hashedPassword, null, null, user.rows[0].email]);
     
     res.status(200).json({
