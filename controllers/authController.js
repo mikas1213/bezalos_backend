@@ -37,6 +37,7 @@ exports.signup = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         await db.query('INSERT INTO users(name, email, initial_target, password) values($1, $2, $3, $4)', [name, email, initial_target, hashedPassword/*, new Date().toISOString(), new Date().toISOString()*/]);
+        await new Email({ email }, initial_target, 'resetUrl').welcome();
 
         res.status(201).json({
             status: 'success',
@@ -153,7 +154,6 @@ exports.protect = (req, res, next) => {
 
 exports.forgotPassword = async (req, res) => {
     try {
-        
         // I - Get suer based on POSTed email
         const user = await db.query('SELECT email FROM users WHERE email = $1', [req.body.email]);
         if(!user.rows.length) {
