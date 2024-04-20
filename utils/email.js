@@ -6,7 +6,11 @@ const messages = {
 
 module.exports = class Email {
     constructor(user, initial_target, token) {
-        console.log('TEST r: ', initial_target)
+        console.log('==========================================\n');
+        console.log('email: ', user.email);
+        console.log('initial_target:', initial_target);
+        console.log('token: ', token);
+
         this.email = user.email;
         this.initial_target = initial_target;
         this.token = token;
