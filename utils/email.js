@@ -11,7 +11,7 @@ const messages = {
     },
     abu: {
         text: 'Jungiantis į bendruomenę pasirinkai, kad tave domina išmokti sveikatai palankios mitybos pagrindų bei sveikai sumažinti savo kūno svorį, šį tikslą lengviausiai tau padės pasiekti narystė "MAXI"',
-        bth: 'Narystė'        
+        btn: 'Narystė'        
     },
     nezinau: {
         text: 'Jungiantis į bendruomenę pasirinkai, kad dar nežinai kas tave šiame projekte domina, tad kviečiu pasižvalgyti',
@@ -20,13 +20,8 @@ const messages = {
 }
 
 module.exports = class Email {
-    constructor(user, initial_target, token) {
-        // console.log('==========================================\n');
-        // console.log('email: ', user.email);
-        // console.log('initial_target:', initial_target);
-        // console.log('token: ', token);
-
-        this.email = user.email;
+    constructor(email, initial_target, token) {
+        this.email = email;
         this.initial_target = initial_target;
         this.token = token;
     }
@@ -44,8 +39,8 @@ module.exports = class Email {
                 dynamic_template_data: {
                     "token": this.token,
                     "subject": "Tavo registracija sėkminga 🥳",
-                    "message": messages[this.initial_target].text,
-                    "button": messages[this.initial_target].btn
+                    "message": messages[this.initial_target]?.text,
+                    "button": messages[this.initial_target]?.btn
                 }
             }],
             template_id: template
@@ -53,17 +48,11 @@ module.exports = class Email {
         await sgMail.send(message);
     }
 
-    async welcome() {
-        // console.log('SENDGRID_WELCOME_TEMPLATE_ID: ', process.env.SENDGRID_WELCOME_TEMPLATE_ID);
-        // console.log('SENDGRID_RESET_PSW_TEMPLATE_ID: ', process.env.SENDGRID_RESET_PSW_TEMPLATE_ID);
-        // console.log('check: ', 'd-87d1d111a55d4f3597d8cca5f7b9b406');
-        // await this.sendEmail(process.env.SENDGRID_WELCOME_TEMPLATE_ID);
+    async sendWelcome() {
         await this.sendEmail('d-87d1d111a55d4f3597d8cca5f7b9b406');
     }
 
-    async resetPassword() {
+    async sendForgotPassword() {
         await this.sendEmail(process.env.SENDGRID_RESET_PSW_TEMPLATE_ID);
     }
-
-    
 }

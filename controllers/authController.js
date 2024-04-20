@@ -37,7 +37,7 @@ exports.signup = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         await db.query('INSERT INTO users(name, email, initial_target, password) values($1, $2, $3, $4)', [name, email, initial_target, hashedPassword/*, new Date().toISOString(), new Date().toISOString()*/]);
-        await new Email({ email }, initial_target, 'resetUrl').welcome();
+        await new Email(email, initial_target, '').sendWelcome();
 
         res.status(201).json({
             status: 'success',
@@ -177,8 +177,8 @@ exports.forgotPassword = async (req, res) => {
 
         // V - Send rest url to user's email
         const resetUrl = `${req.protocol}://${req.get('host')}/keisti-slaptazodi/${resetToken}`;
-        await new Email(user.rows[0], resetUrl).resetPassword();
-        console.log(resetUrl)
+        await new Email(user.rows[0].email, '', resetUrl).sendForgotPassword();
+        console.log(resetUrl);
 
         res.status(200).json({
             status: 'success',
