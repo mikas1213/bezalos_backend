@@ -35,7 +35,7 @@ module.exports = class Email {
 
     async welcome() {
         // await this.sendEmail(process.env.SENDGRID_WELCOME_TEMPLATE_ID);
-        await this.sendEmail(process.env.SENDGRID_RESET_PSW_TEMPLATE_ID);
+        await this.sendEmail('d-87d1d111a55d4f3597d8cca5f7b9b406');
     }
 
     async resetPassword() {
