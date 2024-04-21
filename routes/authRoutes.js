@@ -13,9 +13,6 @@ router.route('/reset-password/:token')
     .get(authController.resetPassword)
     .patch(resetPasswordValidator, authController.updatePassword);
     
-
-
-
 // router.post('/signup', authController.test, authController.signup);
 // router.route('/virtuve').get(authController.getVirtuve);
 

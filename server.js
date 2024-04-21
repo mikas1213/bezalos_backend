@@ -17,6 +17,7 @@ const credentials = require('./middleware/credentials');
 
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const mailerRoutes = require('./routes/mailerRoutes');
 
 app.use(logger);
 app.use(express.urlencoded({ extended: false }));
@@ -29,10 +30,10 @@ app.use(hpp());
 app.use(credentials);
 app.use(cors(corsOptions));
 
-
 app.use(errorHandler);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/user', userRoutes);
+app.use('/api/v1/mailer', mailerRoutes);
 
 app.all('*', (req, res) => {
     res.status(404).json({

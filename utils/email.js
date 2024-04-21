@@ -27,15 +27,19 @@ module.exports = class Email {
     }
 
     async sendEmail(template) {
+        
         sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
+        
         const message = {
             from: { 
                 email: process.env.SENDGRID_EMAIL_FROM,
                 name: "Sandra | Valgau be žalos",
             },
             personalizations: [{ 
-                to: [{ email: this.email }],
+                to: [
+                    { email: this.email },
+                    // { email: 'mikas1213@yahoo.com', name: 'Mikas Yahoo' }
+                ],
                 dynamic_template_data: {
                     "token": this.token,
                     "subject": "Tavo registracija sėkminga 🥳",
@@ -45,7 +49,7 @@ module.exports = class Email {
             }],
             template_id: template
         };
-        await sgMail.send(message);
+        console.log('tets', await sgMail.send(message));
     }
 
     async sendWelcome() {
@@ -54,5 +58,9 @@ module.exports = class Email {
 
     async sendForgotPassword() {
         await this.sendEmail(process.env.SENDGRID_RESET_PSW_TEMPLATE_ID);
+    }
+
+    async sendNewsletter() {
+        await this.sendEmail('d-e90319811c064d779cad4776b9d4fb7e');
     }
 }
