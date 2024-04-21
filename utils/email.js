@@ -49,7 +49,7 @@ module.exports = class Email {
             }],
             template_id: template
         };
-        console.log('tets', await sgMail.send(message));
+        await sgMail.send(message);
     }
 
     async sendWelcome() {

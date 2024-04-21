@@ -17,7 +17,7 @@ exports.addMail = async (req, res) => {
         }
         
         await db.query('INSERT INTO mailer_list(email) values($1)', [email]);
-        // await new Email(email, '', '').sendNewsletter();
+        await new Email(email, '', '').sendNewsletter();
 
         res.status(201).json({
             status: 'success',
