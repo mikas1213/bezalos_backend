@@ -38,7 +38,7 @@ module.exports = class Email {
             personalizations: [{ 
                 to: [
                     { email: this.email },
-                    // { email: 'mikas1213@yahoo.com', name: 'Mikas Yahoo' }
+                    // { email: 'mikas1213@yahoo.com', name: 'Grybas' }
                 ],
                 dynamic_template_data: {
                     "token": this.token,
