@@ -2,3 +2,4 @@
 logs
 node_modules
 database/queries
+*_key.pem
