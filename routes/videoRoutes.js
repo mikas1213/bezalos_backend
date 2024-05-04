@@ -2,11 +2,11 @@ const express = require('express');
 const router = express.Router();
 
 const authController = require('../controllers/authController');
-const userController = require('../controllers/userController');
+const videoController = require('../controllers/videoController');
 
 router.route('/').get(
     // authController.protect, 
-    userController.getAllUsers
+    videoController.getKitchenVideos
 );
 
 module.exports = router;

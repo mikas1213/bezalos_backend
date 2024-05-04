@@ -7,6 +7,7 @@ const path = require('path');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const hpp = require('hpp');
+// const sanitizer = require('sanitize')();
 // const xss = require("xss");
 
 const { logger } = require('./middleware/logsMiddleware/logEvents');
@@ -16,7 +17,7 @@ const corsOptions = require('./config/corsOptions');
 const credentials = require('./middleware/credentials');
 
 const authRoutes = require('./routes/authRoutes');
-const userRoutes = require('./routes/userRoutes');
+const videoRoutes = require('./routes/videoRoutes');
 const mailerRoutes = require('./routes/mailerRoutes');
 
 app.use(logger);
@@ -25,6 +26,7 @@ app.use(express.json());
 
 app.use(cookieParser());
 app.use(hpp());
+app.use(require('sanitize').middleware);
 // app.use(xss());
 
 app.use(credentials);
@@ -32,7 +34,7 @@ app.use(cors(corsOptions));
 
 app.use(errorHandler);
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/user', userRoutes);
+app.use('/api/v1/video', videoRoutes);
 app.use('/api/v1/mailer', mailerRoutes);
 
 app.all('*', (req, res) => {
