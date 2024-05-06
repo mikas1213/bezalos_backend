@@ -9,4 +9,9 @@ router.route('/').get(
     videoController.getKitchenVideos
 );
 
+router.route('/:video').get(
+    // authController.protect,
+    videoController.getKitchenVideo
+);
+
 module.exports = router;
