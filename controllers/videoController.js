@@ -34,7 +34,8 @@ exports.getKitchenVideo = async (req, res) => {
             dateLessThan: new Date(Date.now() + 1000 * 60 * 60 * 24 * 1),
             privateKey,
           });
-        console.log('signedUrl: ', signedUrl)
+        console.log('signedUrl: ', signedUrl);
+        console.log('key: ', process.env.CLOUD_FRONT_KEY_PAIR_ID)
         res.status(200).json({
             // users: data.rows,
             url: signedUrl,
