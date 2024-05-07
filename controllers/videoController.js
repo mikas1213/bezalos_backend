@@ -30,11 +30,11 @@ exports.getKitchenVideo = async (req, res) => {
         const url = `https://d1cupj4wyzfq3d.cloudfront.net/videos/${s3_url}`;
         const signedUrl = getSignedUrl({
             url,
-            keyPairId: process.env.CLOUD_FRONT_KEY_PAIR_ID,
+            keyPairId: process.env.CLOUD_FRONT_KEY_PAIR_ID || 'KPQGMPR9KLNK4',
             dateLessThan: new Date(Date.now() + 1000 * 60 * 60 * 24 * 1),
             privateKey,
           });
-        console.log('signedUrl: ', signedUrl);
+        console.log('privateKey: ', privateKey);
         console.log('key: ', process.env.CLOUD_FRONT_KEY_PAIR_ID)
         res.status(200).json({
             // users: data.rows,
