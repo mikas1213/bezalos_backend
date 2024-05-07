@@ -25,6 +25,7 @@ exports.getKitchenVideo = async (req, res) => {
         const data = await db.query('SELECT * FROM videos WHERE video_url = $1', [req.params.video]);
         let s3_url = '';
         if(data.rows[0]) s3_url = data.rows[0].s3_file_name;
+        console.log('s3_url: ', s3_url)
         const privateKey = fs.readFileSync('./private_key.pem', { encoding: 'ascii' });
         const url = `https://d1cupj4wyzfq3d.cloudfront.net/videos/${s3_url}`;
         const signedUrl = getSignedUrl({
@@ -33,6 +34,7 @@ exports.getKitchenVideo = async (req, res) => {
             dateLessThan: new Date(Date.now() + 1000 * 60 * 60 * 24 * 1),
             privateKey,
           });
+        console.log('signedUrl: ', signedUrl)
         res.status(200).json({
             // users: data.rows,
             url: signedUrl,
