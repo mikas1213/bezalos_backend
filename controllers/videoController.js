@@ -35,7 +35,8 @@ exports.getKitchenVideo = async (req, res) => {
             privateKey,
           });
         console.log('privateKey: ', privateKey);
-        console.log('key: ', process.env.CLOUD_FRONT_KEY_PAIR_ID)
+        console.log('key: ', process.env.CLOUD_FRONT_KEY_PAIR_ID);
+        console.log('mail: ', process.env.SENDGRID_API_KEY)
         res.status(200).json({
             // users: data.rows,
             url: signedUrl,
