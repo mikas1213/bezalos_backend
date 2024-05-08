@@ -77,7 +77,7 @@ exports.login = async (req, res) => {
         }, process.env.REFRESH_TOKEN_SECRET, {
             expiresIn: user.rows[0].role == process.env.ADMIN_ROLE ? process.env.REFRESH_TOKEN_EXPIRES_LONG : process.env.REFRESH_TOKEN_EXPIRES
         });
-
+        console.log('TOKENS EXPIRE: ', process.env.ACCESS_TOKEN_EXPIRES, process.env.REFRESH_TOKEN_EXPIRES_LONG, process.env.REFRESH_TOKEN_EXPIRES)
         await db.query('UPDATE "users" SET "refresh_token" = $1 WHERE "id" = $2', [refreshToken, user.rows[0].id]);
         res.cookie('jwt', refreshToken, { httpOnly: true, secure: true, maxAge: 24 * 60 * 60 * 1000 });
 
