@@ -4,15 +4,17 @@ const fs = require('fs');
 const { getSignedUrl, getSignedCookies } = require("@aws-sdk/cloudfront-signer");
 
 exports.getKitchenVideos = async (req, res) => {
-    
     const { cat = '', search = ''} = req.query;
     
     try {
         const data = await db.query('SELECT * FROM videos WHERE video_type = $1 AND search_tag ILIKE $2 AND title ILIKE $3', ['virtuve', `%${cat}%`, `%${search}%`]);
+        // const test_data = await db.query('SELECT * FROM videos LEFT JOIN comments ON videos.id = comments.video_id;');
+        // const test_data = await db.query('SELECT id, video_url, title, json_agg(comments) as kamentarai FROM videos LEFT JOIN comments ON comments.video_id = videos.id GROUP BY videos.id');
         
         res.status(200).json({
             status: 'success',
-            videos: data.rows
+            videos: data.rows,
+            // test: test_data.rows
         });
     } catch(err) {
         console.log(err.message)
