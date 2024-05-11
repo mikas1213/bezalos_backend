@@ -69,13 +69,17 @@ exports.login = async (req, res) => {
         const accessToken = jwt.sign({ 
             user_id: user.rows[0].id,
             user_name: user.rows[0].email
-        }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: process.env.ACCESS_TOKEN_EXPIRES});
+        }, process.env.ACCESS_TOKEN_SECRET, {
+            // expiresIn: process.env.ACCESS_TOKEN_EXPIRES
+            expiresIn: '10s'
+        });
 
         const refreshToken = jwt.sign({ 
             user_id: user.rows[0].id,
             user_name: user.rows[0].email
         }, process.env.REFRESH_TOKEN_SECRET, {
-            expiresIn: user.rows[0].role == process.env.ADMIN_ROLE ? process.env.REFRESH_TOKEN_EXPIRES_LONG : process.env.REFRESH_TOKEN_EXPIRES
+            // expiresIn: user.rows[0].role == process.env.ADMIN_ROLE ? process.env.REFRESH_TOKEN_EXPIRES_LONG : process.env.REFRESH_TOKEN_EXPIRES
+            expiresIn: '3d'
         });
         
         await db.query('UPDATE "users" SET "refresh_token" = $1 WHERE "id" = $2', [refreshToken, user.rows[0].id]);
