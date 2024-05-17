@@ -14,4 +14,9 @@ router.route('/:video').get(
     videoController.getKitchenVideo
 );
 
+router.route('/add_comment').post(
+    // authController.protect,
+    videoController.addVideoComment
+);
+
 module.exports = router;
