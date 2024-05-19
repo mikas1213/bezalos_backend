@@ -141,8 +141,9 @@ exports.refresh = async (req, res) => {
 }
 
 exports.protect = (req, res, next) => {
-    
+    console.log(req.headers)
     const authHeader = req.headers['authorization'] || req.headers.Authorization;
+    console.log('authHeader: ', authHeader)
     if(!authHeader?.startsWith('Bearer ')) return res.sendStatus(401);
     
     const token = authHeader.split(' ').pop();
@@ -150,7 +151,7 @@ exports.protect = (req, res, next) => {
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
 
         if(err) return res.sendStatus(403); 
-        
+        console.log('decoded: ', decoded)
         req.user_id = decoded.user_id;
         next();
     });
