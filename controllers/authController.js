@@ -58,17 +58,18 @@ exports.login = async (req, res) => {
         // if(!errors.isEmpty()) return res.status(400).json({ message: errors.errors[0].msg});
         if(!errors.isEmpty()) return res.status(400).json({ errors: errors.errors });
 
-        const user = await db.query('SELECT id, role, email, password  FROM users WHERE email = $1', [email]);
+        const user = await db.query('SELECT id, role, email, password, subscription_expires  FROM users WHERE email = $1', [email]);
         // if(!user.rows[0]) return res.status(401).json({message: "Netinkamas el. paštas arba slaptažodis!"}); 
         if(!user.rows[0]) return res.status(401).json({errors: [{path: 'auth', type: 'server', msg: 'Netinkamas el. paštas arba slaptažodis!'}]}); 
         
         const validPassword = await bcrypt.compare(password, user.rows[0].password);
         // if(!validPassword) return res.status(401).json({message: "Netinkamas el. paštas arba slaptažodis!"});
         if(!validPassword) return res.status(401).json({errors: [{path: 'auth', type: 'server', msg: 'Netinkamas el. paštas arba slaptažodis!'}]});
-
+        
         const accessToken = jwt.sign({ 
             user_id: user.rows[0].id,
-            user_name: user.rows[0].email
+            user_name: user.rows[0].email,
+            user_subscription: Date.parse(user.rows[0].subscription_expires) > Date.now()
         }, process.env.ACCESS_TOKEN_SECRET, {
             // expiresIn: process.env.ACCESS_TOKEN_EXPIRES
             expiresIn: '10s'
@@ -76,19 +77,21 @@ exports.login = async (req, res) => {
 
         const refreshToken = jwt.sign({ 
             user_id: user.rows[0].id,
-            user_name: user.rows[0].email
+            user_name: user.rows[0].email,
+            user_subscription: Date.parse(user.rows[0].subscription_expires) > Date.now()
         }, process.env.REFRESH_TOKEN_SECRET, {
             // expiresIn: user.rows[0].role == process.env.ADMIN_ROLE ? process.env.REFRESH_TOKEN_EXPIRES_LONG : process.env.REFRESH_TOKEN_EXPIRES
             expiresIn: '3d'
         });
         
-        await db.query('UPDATE "users" SET "refresh_token" = $1 WHERE "id" = $2', [refreshToken, user.rows[0].id]);
+        await db.query('UPDATE users SET refresh_token = $1 WHERE id = $2', [refreshToken, user.rows[0].id]);
         res.cookie('jwt', refreshToken, { httpOnly: true, secure: true, maxAge: 24 * 60 * 60 * 1000 });
 
         res.status(200).json({
             status: 'success',
             message: 'Logged in!',
             accessToken,
+
         });
         
     } catch (err) {
@@ -133,7 +136,8 @@ exports.refresh = async (req, res) => {
             if(err || user.rows[0].id !== decoded.user_id) return res.sendStatus(403);
             const accessToken = jwt.sign({ 
                 user_id: decoded.user_id,
-                user_name: decoded.user_name
+                user_name: decoded.user_name,
+                user_subscription: decoded.user_subscription
             }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES});
             res.json({ accessToken, status: true });
         }
@@ -143,7 +147,7 @@ exports.refresh = async (req, res) => {
 exports.protect = (req, res, next) => {
     
     const authHeader = req.headers['authorization'] || req.headers.Authorization;
-    console.log('authHeader: ', authHeader)
+    
     if(!authHeader?.startsWith('Bearer ')) return res.sendStatus(401);
     
     const token = authHeader.split(' ').pop();
@@ -151,10 +155,16 @@ exports.protect = (req, res, next) => {
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
 
         if(err) return res.sendStatus(403); 
-        console.log('decoded: ', decoded)
+        
         req.user_id = decoded.user_id;
+        req.user_subscription = decoded.user_subscription;
         next();
     });
+};
+
+exports.isSubscription = async (req, res, next) => {
+    if(!req.user_subscription) return res.sendStatus(403); 
+    next();
 };
 
 exports.forgotPassword = async (req, res) => {

@@ -5,12 +5,13 @@ const authController = require('../controllers/authController');
 const videoController = require('../controllers/videoController');
 
 router.route('/').get(
-    authController.protect, 
+    // authController.protect, 
     videoController.getKitchenVideos
 );
 
 router.route('/:video').get(
     authController.protect,
+    authController.isSubscription,
     videoController.getKitchenVideo
 );
 
