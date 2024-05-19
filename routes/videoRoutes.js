@@ -10,7 +10,7 @@ router.route('/').get(
 );
 
 router.route('/:video').get(
-    // authController.protect,
+    authController.protect,
     videoController.getKitchenVideo
 );
 
