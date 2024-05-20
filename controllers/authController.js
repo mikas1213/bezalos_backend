@@ -225,7 +225,7 @@ exports.resetPassword = async (req, res) => {
 
 exports.updatePassword = async (req, res, next) => {
     const errors = validationResult(req);
-
+    console.log(req.params.token)
     // I Get user based on the token
     const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
     const user = await db.query('SELECT email FROM users WHERE "password_reset_token" = $1 AND password_reset_expires > $2', [hashedToken, new Date(Date.now()).toISOString()]);
