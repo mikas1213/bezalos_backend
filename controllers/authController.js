@@ -154,7 +154,7 @@ exports.protect = (req, res, next) => {
     
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
 
-        if(err) return res.sendStatus(403); 
+        if(err) return res.sendStatus(403);
         
         req.user_id = decoded.user_id;
         req.user_subscription = decoded.user_subscription;
@@ -163,7 +163,7 @@ exports.protect = (req, res, next) => {
 };
 
 exports.isSubscription = async (req, res, next) => {
-    if(!req.user_subscription) return res.sendStatus(403); 
+    if(!req.user_subscription) return res.sendStatus(402);
     next();
 };
 

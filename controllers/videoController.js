@@ -49,6 +49,7 @@ exports.getKitchenVideo = async (req, res) => {
             // users: users.rows
         })
     } catch (err) {
+        console.log(err)
         res.status(500).json({message: err.message});
     }
 };
