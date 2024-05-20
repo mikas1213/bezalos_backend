@@ -15,9 +15,16 @@ router.route('/:video').get(
     videoController.getKitchenVideo
 );
 
-router.route('/add_comment').post(
-    // authController.protect,
+router.route('/comment').post(
+    authController.protect,
+    authController.isSubscription,
     videoController.addVideoComment
+);
+
+router.route('/comment/:id').delete(
+    // authController.protect,
+    // authController.isSubscription,
+    videoController.deleteVideoComment
 );
 
 module.exports = router;

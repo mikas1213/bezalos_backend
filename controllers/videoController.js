@@ -21,11 +21,8 @@ exports.getKitchenVideo = async (req, res) => {
     
     try {
         // const data = await db.query('SELECT id, video_type, video_url, s3_file_name, search_tag, title, description, category, duration, videos.created_at, json_agg(comments) as video_comments FROM videos LEFT JOIN comments ON comments.video_id = videos.id where video_type = $1  GROUP BY videos.id ORDER BY videos.created_at DESC;', ['virtuve']);
-        const data = await db.query('SELECT videos.id, video_type, video_url, s3_file_name, title, description, category, duration, videos.created_at, json_agg(comments) AS video_comments FROM videos LEFT JOIN comments ON videos.id = comments.video_id WHERE video_type = $1 AND videos.video_url = $2 GROUP BY videos.id;', ['virtuve', req.params.video]);
-        // console.log(data.rows[0].s3_file_name)
-        // const video = data.rows.find(video => video.video_url === req.params.video);
-        // const video_id = video.id;
-        // const users = await db.query('SELECT id, name FROM users WHERE id IN (SELECT comments.user_id FROM comments WHERE id = comments.user_id AND comments.video_id = $1)', [video_id]);
+        const data = await db.query('SELECT videos.id, video_type, video_url, s3_file_name, title, description, category, duration, videos.created_at, json_agg(comments ORDER BY comments.created_at DESC) AS video_comments FROM videos LEFT JOIN comments ON videos.id = comments.video_id WHERE video_type = $1 AND videos.video_url = $2 GROUP BY videos.id;', ['virtuve', req.params.video]);
+    
         
         let s3_url = '';
         if(data.rows.length > 0) {
@@ -55,7 +52,7 @@ exports.getKitchenVideo = async (req, res) => {
 };
 
 exports.addVideoComment = async (req, res) => {
-    
+    console.log(req.body)
     const {video_id, user_id, user_name, comment} = req.body;
     try {
         await db.query('INSERT INTO comments(video_id, user_id, user_name, comment) values($1, $2, $3, $4)', [video_id, user_id, user_name, comment]);
@@ -67,3 +64,11 @@ exports.addVideoComment = async (req, res) => {
         console.log('Error from addVideoComment', err.message)
     }
 }
+
+exports.deleteVideoComment = async (req, res) => {
+    console.log('delete: ', req.params);
+    
+    await db.query('DELETE FROM comments WHERE id = $1', [req.params.id]);
+    return res.sendStatus(204);
+    
+};
