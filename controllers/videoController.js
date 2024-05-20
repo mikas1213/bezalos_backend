@@ -55,9 +55,10 @@ exports.getKitchenVideo = async (req, res) => {
 };
 
 exports.addVideoComment = async (req, res) => {
-    const {video_id, user_id, comment} = req.body
+    
+    const {video_id, user_id, user_name, comment} = req.body;
     try {
-        await db.query('INSERT INTO comments(video_id, user_id, comment) values($1, $2, $3)', [video_id, user_id, comment]);
+        await db.query('INSERT INTO comments(video_id, user_id, user_name, comment) values($1, $2, $3, $4)', [video_id, user_id, user_name, comment]);
         res.status(201).json({
             status: 'success',
         });
