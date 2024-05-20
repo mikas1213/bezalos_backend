@@ -1,1 +1,1 @@
-// exports.resetPasswordUpdate = 'UPDATE users SET password = $1, password_reset_token = $2, password_reset_expires = $3 WHERE email = $4';
+exports.resetPasswordUpdate = 'UPDATE users SET password = $1, password_reset_token = $2, password_reset_expires = $3 WHERE email = $4';
