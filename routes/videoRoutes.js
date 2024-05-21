@@ -21,10 +21,18 @@ router.route('/comment').post(
     videoController.addVideoComment
 );
 
-router.route('/comment/:id').delete(
-    // authController.protect,
-    // authController.isSubscription,
+router.route('/comment/:id/:user_id').delete(
+    authController.protect,
+    authController.isSubscription,
+    videoController.protectDelete,
     videoController.deleteVideoComment
+);
+
+router.route('/like/:video_id/:user_id').post(
+    authController.protect,
+    authController.isSubscription,
+    videoController.protectDelete,
+    videoController.toggleLikes
 );
 
 module.exports = router;

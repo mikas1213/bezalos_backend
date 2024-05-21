@@ -162,7 +162,7 @@ exports.protect = (req, res, next) => {
     });
 };
 
-exports.isSubscription = async (req, res, next) => {
+exports.isSubscription = (req, res, next) => {
     if(!req.user_subscription) return res.sendStatus(402);
     next();
 };

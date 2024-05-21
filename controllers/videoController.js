@@ -20,9 +20,19 @@ exports.getKitchenVideos = async (req, res) => {
 exports.getKitchenVideo = async (req, res) => {
     
     try {
-        // const data = await db.query('SELECT id, video_type, video_url, s3_file_name, search_tag, title, description, category, duration, videos.created_at, json_agg(comments) as video_comments FROM videos LEFT JOIN comments ON comments.video_id = videos.id where video_type = $1  GROUP BY videos.id ORDER BY videos.created_at DESC;', ['virtuve']);
+
         const data = await db.query('SELECT videos.id, video_type, video_url, s3_file_name, title, description, category, duration, videos.created_at, json_agg(comments ORDER BY comments.created_at DESC) AS video_comments FROM videos LEFT JOIN comments ON videos.id = comments.video_id WHERE video_type = $1 AND videos.video_url = $2 GROUP BY videos.id;', ['virtuve', req.params.video]);
-    
+        let likes_count = 0;
+        let is_liked = false;
+
+        if(data.rows[0]) {
+            const likes_c = await db.query('SELECT COUNT(*) FROM likes WHERE video_id = $1', [data.rows[0].id]);
+            likes_count = likes_c.rows[0].count;
+
+            const is_l = await db.query('SELECT COUNT(*) FROM likes WHERE video_id = $1 AND user_id = $2', [data.rows[0].id, req.user_id]);
+            is_liked = !!+is_l.rows[0].count; // + convert from string to integer, !! convert to boolean
+        }
+        
         
         let s3_url = '';
         if(data.rows.length > 0) {
@@ -43,7 +53,8 @@ exports.getKitchenVideo = async (req, res) => {
         res.status(200).json({
             url: signedUrl,
             video: data.rows[0],
-            // users: users.rows
+            likes_count,
+            is_liked
         })
     } catch (err) {
         console.log(err)
@@ -52,7 +63,6 @@ exports.getKitchenVideo = async (req, res) => {
 };
 
 exports.addVideoComment = async (req, res) => {
-    
     const {id, video_id, user_id, user_name, comment} = req.body;
     try {
         await db.query('INSERT INTO comments(id, video_id, user_id, user_name, comment) values($1, $2, $3, $4, $5)', [id, video_id, user_id, user_name, comment]);
@@ -72,5 +82,22 @@ exports.deleteVideoComment = async (req, res) => {
     } catch (err) {
         console.log(err)
     }
-    
 };
+
+exports.protectDelete = (req, res, next) => {
+    if(!(req.user_id === req.params.user_id)) return res.sendStatus(401);
+    next();
+};
+
+exports.toggleLikes = async (req, res) => {
+    try {
+        const like = await db.query('SELECT toggle_likes($1, $2)', [req.params.user_id, req.params.video_id]);
+        const likes = await db.query('SELECT COUNT(*) FROM likes WHERE video_id = $1', [req.params.video_id]);
+        return res.status(201).json({
+            isLiked: !!+like.rows[0].toggle_likes,
+            likesCount: likes.rows[0].count
+        });
+    } catch (err) {
+        console.log('from toggleLikes: ', err.message);
+    }
+}
