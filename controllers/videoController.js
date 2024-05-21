@@ -52,10 +52,10 @@ exports.getKitchenVideo = async (req, res) => {
 };
 
 exports.addVideoComment = async (req, res) => {
-    console.log(req.body)
-    const {video_id, user_id, user_name, comment} = req.body;
+    
+    const {id, video_id, user_id, user_name, comment} = req.body;
     try {
-        await db.query('INSERT INTO comments(video_id, user_id, user_name, comment) values($1, $2, $3, $4)', [video_id, user_id, user_name, comment]);
+        await db.query('INSERT INTO comments(id, video_id, user_id, user_name, comment) values($1, $2, $3, $4, $5)', [id, video_id, user_id, user_name, comment]);
         res.status(201).json({
             status: 'success',
         });
@@ -66,9 +66,11 @@ exports.addVideoComment = async (req, res) => {
 }
 
 exports.deleteVideoComment = async (req, res) => {
-    console.log('delete: ', req.params);
-    
-    await db.query('DELETE FROM comments WHERE id = $1', [req.params.id]);
-    return res.sendStatus(204);
+    try {
+        await db.query('DELETE FROM comments WHERE id = $1', [req.params.id]);
+        return res.sendStatus(204);
+    } catch (err) {
+        console.log(err)
+    }
     
 };
