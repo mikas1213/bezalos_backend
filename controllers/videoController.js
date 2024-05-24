@@ -1,5 +1,7 @@
 const db = require('../database/db');
 const fs = require('fs');
+const path = require('path');
+
 
 const { getSignedUrl, getSignedCookies } = require("@aws-sdk/cloudfront-signer");
 
@@ -40,8 +42,9 @@ exports.getKitchenVideo = async (req, res) => {
         } else {
             return res.status(500).json({message: 'Tokio video rasti nepavyko', videos: data.rows});
         }
+        const file_path = path.join(__dirname, '..', 'private_key.pem');
+        const privateKey = fs.readFileSync(file_path, { encoding: 'ascii' });
         
-        const privateKey = fs.readFileSync('./private_key.pem', { encoding: 'ascii' });
         const url = `https://d1cupj4wyzfq3d.cloudfront.net/videos/${s3_url}`;
         const signedUrl = getSignedUrl({
             url,
