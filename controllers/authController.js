@@ -69,6 +69,7 @@ exports.login = async (req, res) => {
         const accessToken = jwt.sign({ 
             user_id: user.rows[0].id,
             user_name: user.rows[0].email,
+            user_role: user.rows[0].role,
             user_subscription: Date.parse(user.rows[0].subscription_expires) > Date.now()
         }, process.env.ACCESS_TOKEN_SECRET, {
             // expiresIn: process.env.ACCESS_TOKEN_EXPIRES
@@ -78,6 +79,7 @@ exports.login = async (req, res) => {
         const refreshToken = jwt.sign({ 
             user_id: user.rows[0].id,
             user_name: user.rows[0].email,
+            user_role: user.rows[0].role,
             user_subscription: Date.parse(user.rows[0].subscription_expires) > Date.now()
         }, process.env.REFRESH_TOKEN_SECRET, {
             // expiresIn: user.rows[0].role == process.env.ADMIN_ROLE ? process.env.REFRESH_TOKEN_EXPIRES_LONG : process.env.REFRESH_TOKEN_EXPIRES
@@ -88,10 +90,7 @@ exports.login = async (req, res) => {
         res.cookie('jwt', refreshToken, { httpOnly: true, secure: true, maxAge: 24 * 60 * 60 * 1000 });
 
         res.status(200).json({
-            status: 'success',
-            message: 'Logged in!',
-            accessToken,
-
+            accessToken
         });
         
     } catch (err) {
@@ -116,56 +115,6 @@ exports.logout  = async (req, res) => {
     res.clearCookie('jwt', { httpOnly: true, secure: true, sameSite: 'None' });
     res.sendStatus(204);
 }
-
-exports.refresh = async (req, res) => {
-    const cookies = req.cookies;
-    
-    if(!cookies?.jwt) return res.sendStatus(401);
-    // if(!cookies?.jwt) return res.json({status: false});
-
-    const refreshToken = cookies.jwt;
-    const user = await db.query('SELECT id, "refresh_token" FROM users WHERE "refresh_token" = $1', [refreshToken]);
-    
-    if(!user.rows[0]) return res.sendStatus(403); // Forbidden
-
-    jwt.verify(
-        refreshToken,
-        process.env.REFRESH_TOKEN_SECRET,
-        (err, decoded) => {
-        
-            if(err || user.rows[0].id !== decoded.user_id) return res.sendStatus(403);
-            const accessToken = jwt.sign({ 
-                user_id: decoded.user_id,
-                user_name: decoded.user_name,
-                user_subscription: decoded.user_subscription
-            }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES});
-            res.json({ accessToken, status: true });
-        }
-    );
-}
-
-exports.protect = (req, res, next) => {
-    
-    const authHeader = req.headers['authorization'] || req.headers.Authorization;
-    
-    if(!authHeader?.startsWith('Bearer ')) return res.sendStatus(401);
-    
-    const token = authHeader.split(' ').pop();
-    
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-
-        if(err) return res.sendStatus(403);
-        
-        req.user_id = decoded.user_id;
-        req.user_subscription = decoded.user_subscription;
-        next();
-    });
-};
-
-exports.isSubscription = (req, res, next) => {
-    if(!req.user_subscription) return res.sendStatus(402);
-    next();
-};
 
 exports.forgotPassword = async (req, res) => {
     try {
@@ -261,3 +210,60 @@ exports.updatePassword = async (req, res, next) => {
     // IV Log the user in, setn JWT
     
 };
+
+exports.refresh = async (req, res) => {
+    const cookies = req.cookies;    
+    if(!cookies?.jwt) return res.sendStatus(401);
+
+    const refreshToken = cookies.jwt;
+    const user = await db.query('SELECT id, "refresh_token" FROM users WHERE "refresh_token" = $1', [refreshToken]);
+    
+    if(!user.rows[0]) return res.sendStatus(403); // Forbidden
+
+    jwt.verify(
+        refreshToken,
+        process.env.REFRESH_TOKEN_SECRET,
+        (err, decoded) => {
+        
+            if(err || user.rows[0].id !== decoded.user_id) return res.sendStatus(403);
+            const accessToken = jwt.sign({ 
+                user_id: decoded.user_id,
+                user_name: decoded.user_name,
+                user_role: decoded.user_role,
+                user_subscription: decoded.user_subscription
+            }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES});
+            res.json({ accessToken });
+        }
+    );
+}
+
+exports.protect = (req, res, next) => {
+    
+    const authHeader = req.headers['authorization'] || req.headers.Authorization;
+    if(!authHeader?.startsWith('Bearer ')) return res.sendStatus(401);
+    
+    const token = authHeader.split(' ').pop();
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+
+        if(err) return res.sendStatus(403);
+        
+        req.user_id = decoded.user_id;
+        req.user_name = decoded.user_name;
+        req.user_role = decoded.user_role;
+        req.user_subscription = decoded.user_subscription;
+        next();
+    });
+};
+
+exports.isSubscription = (req, res, next) => {
+    if(!req.user_subscription) return res.sendStatus(402);
+    next();
+};
+
+exports.verifyRoles = (...allowedRoles) => {
+    return (req, res, next) => {
+        if(!req.user_role) return res.sendStatus(401);
+        if(!allowedRoles.includes(req.user_role)) return res.sendStatus(401);
+        next();
+    }
+}

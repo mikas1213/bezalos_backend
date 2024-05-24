@@ -19,6 +19,7 @@ const credentials = require('./middleware/credentials');
 const authRoutes = require('./routes/authRoutes');
 const videoRoutes = require('./routes/videoRoutes');
 const mailerRoutes = require('./routes/mailerRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 app.use(logger);
 app.use(express.urlencoded({ extended: false }));
@@ -36,6 +37,7 @@ app.use(errorHandler);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/videos', videoRoutes);
 app.use('/api/v1/mailer', mailerRoutes);
+app.use('/api/v1/admin', adminRoutes);
 
 app.all('*', (req, res) => {
     res.status(404).json({

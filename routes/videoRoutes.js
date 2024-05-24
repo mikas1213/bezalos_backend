@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-
+const roles = require('../utils/roles');
 const authController = require('../controllers/authController');
 const videoController = require('../controllers/videoController');
 
@@ -12,6 +12,7 @@ router.route('/').get(
 router.route('/:video').get(
     authController.protect,
     authController.isSubscription,
+    // authController.verifyRoles(roles.admin),
     videoController.getKitchenVideo
 );
 
