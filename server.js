@@ -31,9 +31,9 @@ app.use(require('sanitize').middleware);
 // app.use(xss());
 
 app.use(credentials);
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
+// app.use(errorHandler);
 
-app.use(errorHandler);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/videos', videoRoutes);
 app.use('/api/v1/mailer', mailerRoutes);
