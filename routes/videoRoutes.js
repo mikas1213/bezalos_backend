@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const roles = require('../utils/roles');
+// const roles = require('../utils/roles');
 const authController = require('../controllers/authController');
 const videoController = require('../controllers/videoController');
 
