@@ -18,7 +18,7 @@ exports.updateUser = async (req, res) => {
     let queryParams = [value, req.params.id];
     
     if(column === 'nutrition_tracking') {
-        value === '' ? queryParams[0] = null : queryParams[0] = `${value} 23:59:59`;
+        value === '' ? queryParams[0] = null : queryParams[0] = `${value}`;
     }
 
     if(column === 'subscription_expires') {
