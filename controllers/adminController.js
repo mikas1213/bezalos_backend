@@ -22,7 +22,7 @@ exports.updateUser = async (req, res) => {
     }
 
     if(column === 'subscription_expires') {
-        value === '' ? queryParams[0] = null : queryParams[0] = `${value} 23:59:59`;
+        value === '' ? queryParams[0] = null : queryParams[0] = `${value}`;
         queryString = `UPDATE users SET ${column} = $1, subscription = $3, subscription_type = $4 WHERE id = $2;`;
         queryParams[2] = !!value;
         queryParams[3] = !!value ? 'Virtuvė' : 'free';
