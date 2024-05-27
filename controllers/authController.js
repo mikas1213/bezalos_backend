@@ -66,11 +66,13 @@ exports.login = async (req, res) => {
         // if(!validPassword) return res.status(401).json({message: "Netinkamas el. paštas arba slaptažodis!"});
         if(!validPassword) return res.status(401).json({errors: [{path: 'auth', type: 'server', msg: 'Netinkamas el. paštas arba slaptažodis!'}]});
         
+        const today = Date.parse(new Date().toLocaleString('lt-LT', {dateStyle: 'short'}));
+        const subs_exp = Date.parse(new Date(user.rows[0].subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
         const accessToken = jwt.sign({ 
             user_id: user.rows[0].id,
             user_name: user.rows[0].email,
             user_role: user.rows[0].role,
-            user_subscription: Date.parse(user.rows[0].subscription_expires) > Date.now()
+            user_subscription: subs_exp >= today
         }, process.env.ACCESS_TOKEN_SECRET, {
             // expiresIn: process.env.ACCESS_TOKEN_EXPIRES
             expiresIn: '10s'
@@ -80,7 +82,7 @@ exports.login = async (req, res) => {
             user_id: user.rows[0].id,
             user_name: user.rows[0].email,
             user_role: user.rows[0].role,
-            user_subscription: Date.parse(user.rows[0].subscription_expires) > Date.now()
+            user_subscription: subs_exp >= today
         }, process.env.REFRESH_TOKEN_SECRET, {
             // expiresIn: user.rows[0].role == process.env.ADMIN_ROLE ? process.env.REFRESH_TOKEN_EXPIRES_LONG : process.env.REFRESH_TOKEN_EXPIRES
             expiresIn: '3d'
