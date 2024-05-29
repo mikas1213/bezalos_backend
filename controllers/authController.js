@@ -88,7 +88,7 @@ exports.login = async (req, res) => {
             expiresIn: '3d'
         });
         
-        await db.query('UPDATE users SET refresh_token = $1 WHERE id = $2', [refreshToken, user.rows[0].id]);
+        await db.query('UPDATE users SET refresh_token = $1, last_activity = $2 WHERE id = $3', [refreshToken, new Date().toISOString(), user.rows[0].id]);
         res.cookie('jwt', refreshToken, { httpOnly: true, secure: true, maxAge: 24 * 60 * 60 * 1000 });
 
         res.status(200).json({
@@ -99,6 +99,32 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+
+exports.refresh = async (req, res) => {
+    const cookies = req.cookies;    
+    if(!cookies?.jwt) return res.sendStatus(401);
+
+    const refreshToken = cookies.jwt;
+    const user = await db.query('SELECT id, "refresh_token" FROM users WHERE "refresh_token" = $1', [refreshToken]);
+    
+    if(!user.rows[0]) return res.sendStatus(403); // Forbidden
+
+    jwt.verify(
+        refreshToken,
+        process.env.REFRESH_TOKEN_SECRET,
+        (err, decoded) => {
+        
+            if(err || user.rows[0].id !== decoded.user_id) return res.sendStatus(403);
+            const accessToken = jwt.sign({ 
+                user_id: decoded.user_id,
+                user_name: decoded.user_name,
+                user_role: decoded.user_role,
+                user_subscription: decoded.user_subscription
+            }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES});
+            res.json({ accessToken });
+        }
+    );
+}
 
 exports.logout  = async (req, res) => {
     const cookies = req.cookies;
@@ -212,32 +238,6 @@ exports.updatePassword = async (req, res, next) => {
     // IV Log the user in, setn JWT
     
 };
-
-exports.refresh = async (req, res) => {
-    const cookies = req.cookies;    
-    if(!cookies?.jwt) return res.sendStatus(401);
-
-    const refreshToken = cookies.jwt;
-    const user = await db.query('SELECT id, "refresh_token" FROM users WHERE "refresh_token" = $1', [refreshToken]);
-    
-    if(!user.rows[0]) return res.sendStatus(403); // Forbidden
-
-    jwt.verify(
-        refreshToken,
-        process.env.REFRESH_TOKEN_SECRET,
-        (err, decoded) => {
-        
-            if(err || user.rows[0].id !== decoded.user_id) return res.sendStatus(403);
-            const accessToken = jwt.sign({ 
-                user_id: decoded.user_id,
-                user_name: decoded.user_name,
-                user_role: decoded.user_role,
-                user_subscription: decoded.user_subscription
-            }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES});
-            res.json({ accessToken });
-        }
-    );
-}
 
 exports.protect = (req, res, next) => {
     
