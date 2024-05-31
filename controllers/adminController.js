@@ -1,13 +1,19 @@
 const db = require('../database/db');
 
 exports.getUsers = async (req, res) => {
-    
+    console.log(req.query)
     const { column = 'subscription_expires', sort = 'ASC'} = req.query;
+    let queryString = `SELECT * from users where role = $1 ORDER BY ${column} ${sort} NULLS LAST;`;
+    let queryParams = [2324];
+
+    if(column === 'subscription_type') {
+        queryString = `SELECT * from users where role = $1 AND ${column} = $2;`;
+        queryParams = [2324, 'free'];
+    }
 
     try {
-        // const data = await db.query('SELECT * from users where role = 2324 ORDER BY subscription_expires ASC;');
-        // const data = await db.query(`SELECT * from users where role = 2324 ORDER BY ${column} ${value} NULLS LAST;`);
-        const data = await db.query(`SELECT * from users where role = 2324 ORDER BY ${column} ${sort} NULLS LAST;`);
+        const data = await db.query(queryString, queryParams);
+        
         res.status(200).json({
             users: data.rows
         });
