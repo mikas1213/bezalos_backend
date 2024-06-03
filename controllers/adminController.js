@@ -1,13 +1,15 @@
 const db = require('../database/db');
 
-exports.getUsers = async (req, res) => {
-    console.log(req.query)
+exports.getAllUsers = async (req, res) => {
+    
     const { column = 'subscription_expires', sort = 'ASC'} = req.query;
-    let queryString = `SELECT * from users where role = $1 ORDER BY ${column} ${sort} NULLS LAST;`;
+    const columns = 'id, name, email, role, subscription, subscription_type, initial_target, subscription_expires, assigned_plan, nutrition_tracking, nutrition_plan_status, support_over, last_activity';
+
+    let queryString = `SELECT ${columns} from users where role = $1 ORDER BY ${column} ${sort} NULLS LAST;`;
     let queryParams = [2324];
 
     if(column === 'subscription_type') {
-        queryString = `SELECT * from users where role = $1 AND ${column} = $2;`;
+        queryString = `SELECT ${columns} from users where role = $1 AND ${column} = $2;`;
         queryParams = [2324, 'free'];
     }
 
@@ -35,6 +37,10 @@ exports.updateUser = async (req, res) => {
         queryParams[3] = !!value ? 'Virtuvė' : 'free';
     }
 
+    if(column === 'assigned_plan' && value === null) {
+        queryString = `UPDATE users SET ${column} = $1, support_over = $3 WHERE id = $2;`;
+        queryParams[2] = 'none';
+    }
     try {
         await db.query(queryString, queryParams);
         res.sendStatus(204);
@@ -42,3 +48,18 @@ exports.updateUser = async (req, res) => {
         console.log(err.message);
     }
 };
+
+exports.getAllVideos = async (req, res) => {
+    let queryString = 'SELECT * FROM videos';
+    let queryParams = [];
+
+    try {
+        const data = await db.query(queryString);
+        res.status(200).json({
+            videos: data.rows
+        });
+    } catch (err) {
+        console.log(err.message);
+    }
+};
+

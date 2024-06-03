@@ -7,13 +7,19 @@ const adminController = require('../controllers/adminController');
 router.route('/users').get(
     authController.protect,
     authController.verifyRoles(roles.admin),
-    adminController.getUsers
+    adminController.getAllUsers
 );
 
 router.route('/user/:id').patch(
     authController.protect,
     authController.verifyRoles(roles.admin),
     adminController.updateUser
+);
+
+router.route('/videos').get(
+    authController.protect,
+    authController.verifyRoles(roles.admin),
+    adminController.getAllVideos
 );
 
 module.exports = router;
