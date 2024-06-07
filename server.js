@@ -20,6 +20,7 @@ const authRoutes = require('./routes/authRoutes');
 const videoRoutes = require('./routes/videoRoutes');
 const mailerRoutes = require('./routes/mailerRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 
 app.use(logger);
 app.use(express.urlencoded({ extended: false }));
@@ -38,6 +39,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/videos', videoRoutes);
 app.use('/api/v1/mailer', mailerRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/payments', paymentRoutes);
 
 app.all('*', (req, res) => {
     res.status(404).json({

@@ -14,6 +14,15 @@ const allowedOrigins = [
     'http://www.naujas.bezalos.lt',
     'https://www.naujas.bezalos.lt',
 
+    'http://stripe.com',
+    'https://stripe.com',
+    'http://www.stripe.com',
+    'https://www.stripe.com',
+    'http://checkout.stripe.com',
+    'https://checkout.stripe.com',
+    'http://www.checkout.stripe.com',
+    'https://www.checkout.stripe.com',
+
     'http://127.0.0.1:5173',
     'http://localhost:5173'
 ];
