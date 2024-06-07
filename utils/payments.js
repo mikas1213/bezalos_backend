@@ -1,8 +1,8 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-// const stripe = require('stripe')('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');
+// const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe = require('stripe')('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');
 
 exports.stripeSession = async (user_id, user_email, priceId, plan_name) => {
-    console.log('from stripeSession: KEY: ', process.env.STRIPE_SECRET_KEY)
+    
     try {
         const session = await stripe.checkout.sessions.create({
             mode: 'subscription',
