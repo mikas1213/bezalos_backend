@@ -1,4 +1,5 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+// const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe = require('stripe')('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');
 const db = require('../database/db');
 const { stripeSession } = require('../utils/payments');
 
@@ -10,6 +11,7 @@ const prices_ids = {
 };
 
 exports.createCheckoutSession = async (req, res, next) => {
+    console.log('from createCheckoutSession: ', prices_ids);
     const {
         user_id, 
         plan_price, 
