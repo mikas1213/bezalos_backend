@@ -1,13 +1,20 @@
-// const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-const stripe = require('stripe')('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');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+// const stripe = require('stripe')('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');
 const db = require('../database/db');
 const { stripeSession } = require('../utils/payments');
 
+// const prices_ids = {
+//     virtuve_month: process.env.STRIPE_VIRTUVE_PRICE_MONTH || 'price_1POz5RAXc9J1oascpD0OMQ4u',
+//     virtuve_year: process.env.STRIPE_VIRTUVE_PRICE_YEAR || 'price_1POz6EAXc9J1oascDmMAVsGm',
+//     profilis_month: process.env.STRIPE_PROFILIS_PRICE_MONTH || 'price_1POz7PAXc9J1oascaNme3Vp3',
+//     profilis_year: process.env.STRIPE_PROFILIS_PRICE_YEAR || 'price_1POz7lAXc9J1oasccewzqaTY'
+// };
+
 const prices_ids = {
-    virtuve_month: process.env.STRIPE_VIRTUVE_PRICE_MONTH || 'price_1POz5RAXc9J1oascpD0OMQ4u',
-    virtuve_year: process.env.STRIPE_VIRTUVE_PRICE_YEAR || 'price_1POz6EAXc9J1oascDmMAVsGm',
-    profilis_month: process.env.STRIPE_PROFILIS_PRICE_MONTH || 'price_1POz7PAXc9J1oascaNme3Vp3',
-    profilis_year: process.env.STRIPE_PROFILIS_PRICE_YEAR || 'price_1POz7lAXc9J1oasccewzqaTY'
+    virtuve_month: process.env.STRIPE_VIRTUVE_PRICE_MONTH,
+    virtuve_year: process.env.STRIPE_VIRTUVE_PRICE_YEAR,
+    profilis_month: process.env.STRIPE_PROFILIS_PRICE_MONTH,
+    profilis_year: process.env.STRIPE_PROFILIS_PRICE_YEAR
 };
 
 exports.createCheckoutSession = async (req, res, next) => {
