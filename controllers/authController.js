@@ -55,24 +55,26 @@ exports.login = async (req, res) => {
         const errors = validationResult(req);
 
         const { email, password } = req.body;
-        // if(!errors.isEmpty()) return res.status(400).json({ message: errors.errors[0].msg});
         if(!errors.isEmpty()) return res.status(400).json({ errors: errors.errors });
 
-        const user = await db.query('SELECT id, role, email, password, subscription_expires  FROM users WHERE email = $1', [email]);
-        // if(!user.rows[0]) return res.status(401).json({message: "Netinkamas el. paštas arba slaptažodis!"}); 
+        const user = await db.query('SELECT users.id, stripe_customer_id, role, email, password, subscription_expires, s.status AS s_status, s.current_period_end AS s_subscription_expires FROM users LEFT JOIN subscriptions as s ON s.user_id = users.id WHERE email = $1', [email]);
         if(!user.rows[0]) return res.status(401).json({errors: [{path: 'auth', type: 'server', msg: 'Netinkamas el. paštas arba slaptažodis!'}]}); 
         
         const validPassword = await bcrypt.compare(password, user.rows[0].password);
-        // if(!validPassword) return res.status(401).json({message: "Netinkamas el. paštas arba slaptažodis!"});
         if(!validPassword) return res.status(401).json({errors: [{path: 'auth', type: 'server', msg: 'Netinkamas el. paštas arba slaptažodis!'}]});
         
         const today = Date.parse(new Date().toLocaleString('lt-LT', {dateStyle: 'short'}));
         const subs_exp = Date.parse(new Date(user.rows[0].subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
+        const s_subs_exp = Date.parse(new Date(user.rows[0].s_subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
+
         const accessToken = jwt.sign({ 
             user_id: user.rows[0].id,
             user_name: user.rows[0].email,
             user_role: user.rows[0].role,
-            user_subscription: subs_exp >= today
+            str_cus_id: user.rows[0].stripe_customer_id,
+            user_subscription: subs_exp >= today,
+            user_s_subscription: s_subs_exp >= today,
+            s_status: user.rows[0].s_status
         }, process.env.ACCESS_TOKEN_SECRET, {
             // expiresIn: process.env.ACCESS_TOKEN_EXPIRES
             expiresIn: '10s'
@@ -82,7 +84,10 @@ exports.login = async (req, res) => {
             user_id: user.rows[0].id,
             user_name: user.rows[0].email,
             user_role: user.rows[0].role,
-            user_subscription: subs_exp >= today
+            str_cus_id: user.rows[0].stripe_customer_id,
+            user_subscription: subs_exp >= today,
+            user_s_subscription: s_subs_exp >= today,
+            s_status: user.rows[0].s_status
         }, process.env.REFRESH_TOKEN_SECRET, {
             // expiresIn: user.rows[0].role == process.env.ADMIN_ROLE ? process.env.REFRESH_TOKEN_EXPIRES_LONG : process.env.REFRESH_TOKEN_EXPIRES
             expiresIn: '3d'
@@ -105,7 +110,7 @@ exports.refresh = async (req, res) => {
     if(!cookies?.jwt) return res.sendStatus(401);
 
     const refreshToken = cookies.jwt;
-    const user = await db.query('SELECT id, "refresh_token" FROM users WHERE "refresh_token" = $1', [refreshToken]);
+    const user = await db.query('SELECT id, refresh_token FROM users WHERE refresh_token = $1', [refreshToken]);
     
     if(!user.rows[0]) return res.sendStatus(403); // Forbidden
 
@@ -113,13 +118,16 @@ exports.refresh = async (req, res) => {
         refreshToken,
         process.env.REFRESH_TOKEN_SECRET,
         (err, decoded) => {
-        
+            
             if(err || user.rows[0].id !== decoded.user_id) return res.sendStatus(403);
             const accessToken = jwt.sign({ 
                 user_id: decoded.user_id,
                 user_name: decoded.user_name,
                 user_role: decoded.user_role,
-                user_subscription: decoded.user_subscription
+                str_cus_id: decoded.str_cus_id,
+                user_subscription: decoded.user_subscription,
+                user_s_subscription: decoded.user_s_subscription,
+                s_status: decoded.s_status
             }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES});
             res.json({ accessToken });
         }
@@ -253,14 +261,28 @@ exports.protect = (req, res, next) => {
         req.user_name = decoded.user_name;
         req.user_role = decoded.user_role;
         req.user_subscription = decoded.user_subscription;
+        req.str_cus_id = decoded.str_cus_id;
+        req.user_s_subscription = decoded.user_s_subscription
+        req.s_status = decoded.s_status
         next();
     });
 };
 
-exports.isSubscription = (req, res, next) => {
-    if(!req.user_subscription) return res.sendStatus(402);
-    next();
-};
+// exports.isSubscription = (req, res, next) => {
+//     const {user_subscription, user_s_subscription, s_status} = req;
+//     console.log(user_subscription, user_s_subscription, s_status)
+    
+//     if(!req.user_subscription) return res.sendStatus(402);
+//     next();
+// };
+
+exports.isSubscription = plan => {
+    return (req, res, next) => {
+        const {user_subscription, user_s_subscription, s_status} = req;       
+        if(!req.user_subscription && s_status !== plan) return res.sendStatus(402);
+        next();
+    };
+}
 
 exports.verifyRoles = (...allowedRoles) => {
     return (req, res, next) => {

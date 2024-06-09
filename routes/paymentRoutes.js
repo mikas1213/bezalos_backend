@@ -13,11 +13,14 @@ router.route('/payment-success').post(
     paymentController.paymentSuccess
 );
 
+router.route('/service-checkout-session').post(
+    authController.protect, 
+    paymentController.createServiceSession,
+);
 
-// stripe webhooks
-router.route('/payment-success-webhook').post(
-    express.raw({type: 'application/json'}), 
-    paymentController.paymentSuccessWebHook,
+router.route('/customer-portal-session').post(
+    authController.protect, 
+    paymentController.customerPortal
 );
 
 module.exports = router;

@@ -11,27 +11,27 @@ router.route('/').get(
 
 router.route('/:video').get(
     authController.protect,
-    authController.isSubscription,
+    authController.isSubscription('virtuve'),
     // authController.verifyRoles(roles.admin),
     videoController.getKitchenVideo
 );
 
 router.route('/comment').post(
     authController.protect,
-    authController.isSubscription,
+    authController.isSubscription('virtuve'),
     videoController.addVideoComment
 );
 
 router.route('/comment/:id/:user_id').delete(
     authController.protect,
-    authController.isSubscription,
+    authController.isSubscription('virtuve'),
     videoController.protectDelete,
     videoController.deleteVideoComment
 );
 
 router.route('/like/:video_id/:user_id').post(
     authController.protect,
-    authController.isSubscription,
+    authController.isSubscription('virtuve'),
     videoController.protectDelete,
     videoController.toggleLikes
 );

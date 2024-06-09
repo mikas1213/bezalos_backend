@@ -1,8 +1,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-// const stripe = require('stripe')('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');
 
-exports.stripeSession = async (user_id, user_email, priceId, plan_name) => {
-    console.log('FROM stripeSession: ', user_id, user_email, priceId, plan_name)
+exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_name) => {
+    
     try {
         const session = await stripe.checkout.sessions.create({
             mode: 'subscription',
@@ -12,7 +11,13 @@ exports.stripeSession = async (user_id, user_email, priceId, plan_name) => {
                 price: priceId,
                 quantity: 1
             }],
-            success_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/apmoketa-sekmingai?session_id={CHECKOUT_SESSION_ID}' : 'https://bezalos.dulevicius.dev/paslaugos/apmoketa-sekmingai?session_id={CHECKOUT_SESSION_ID}'}`,
+            allow_promotion_codes: true,
+                        // discounts: [
+                        //     {
+                        //         coupon: 'promo_1PPVUZAXc9J1oascXnitYSBM',
+                        //     },
+                        // ],
+            success_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/apmoketa-sekmingai?session_id={CHECKOUT_SESSION_ID}' : 'https://bezalos.dulevicius.dev/apmoketa-sekmingai?session_id={CHECKOUT_SESSION_ID}'}`,
             cancel_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://bezalos.dulevicius.dev/paslaugos'}`,
             metadata: { user_id, subscription_status: plan_name }
         });
@@ -23,3 +28,32 @@ exports.stripeSession = async (user_id, user_email, priceId, plan_name) => {
         return err;
     }
 };
+
+exports.stripeServiceSession = async (title, price) => {
+    try {
+        const session = await stripe.checkout.sessions.create({
+            line_items: [{
+                price_data: {
+                    currency: 'eur',
+                    product_data: {
+                        name: title
+                    },
+                    unit_amount: price,
+                },
+                quantity: 1,
+            }],
+            // allow_promotion_codes: true,
+            // discounts: [
+            //     {
+            //         coupon: 'promo_1PPVUZAXc9J1oascXnitYSBM',
+            //     },
+            // ],
+            mode: 'payment',
+            success_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslauga-apmoketa' : 'https://bezalos.dulevicius.dev/paslauga-apmoketa'}`,
+            cancel_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://bezalos.dulevicius.dev/paslaugos'}`,
+        });
+        return session;
+    } catch (err) {
+        return err;
+    }
+}
