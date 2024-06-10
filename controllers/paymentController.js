@@ -16,7 +16,7 @@ const prices_ids = {
     profilis_year: process.env.STRIPE_PROFILIS_PRICE_YEAR,
 };
 
-exports.createCheckoutSession = async (req, res, next) => {
+exports.createCheckoutSession = async (req, res) => {
     const { user_id, plan_price, plan_name, } = req.body;
     try {
         const session = await stripeSubscriptionSession(user_id, req.user_name, prices_ids[plan_price], plan_name);
@@ -44,18 +44,17 @@ exports.paymentSuccess = async (req, res) => {
         await db.query('INSERT INTO subscriptions(user_id, stripe_subscription_id, status, current_period_start, current_period_end) VALUES ($1, $2, $3, $4, $5);', [userId, subscription.id, data.object.metadata.subscription_status, subs_start, subs_end]);
     }
 
+    if(event_type === 'customer.subscription.updated') {
+        const subs_start = new Date(data.object.current_period_start*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' }); 
+        const subs_end = new Date(data.object.current_period_end*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' });
+        await db.query('UPDATE subscriptions SET current_period_start = $1, current_period_end = $2 WHERE stripe_subscription_id = $3', [subs_start, subs_end, data.object.id]);
+    }
+
     if(event_type === 'invoice.payment_failed') {
         const subscription = await stripe.subscriptions.retrieve(data.object.subscription);
         const subs_start = new Date(subscription.current_period_start*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' }); 
         const subs_end = new Date(subscription.current_period_end*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' });
         await db.query('INSERT INTO subscriptions(user_id, stripe_subscription_id, status, current_period_start, current_period_end) VALUES ($1, $2, $3, $4, $5);', [userId, subscription.id, data.object.metadata.subscription_status, subs_start, subs_end]);
-    }
-
-    if(event_type === 'customer.subscription.updated') {
-        const subs_start = new Date(data.object.current_period_start*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' }); 
-        const subs_end = new Date(data.object.current_period_end*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' });
-        
-        await db.query('UPDATE subscriptions SET current_period_start = $1, current_period_end = $2 WHERE stripe_subscription_id = $3', [subs_start, subs_end, data.object.subscription]);
     }
 
     if(event_type === 'customer.subscription.deleted') {
