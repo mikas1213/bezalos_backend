@@ -35,15 +35,15 @@ exports.paymentSuccess = async (req, res) => {
         let type = 'free';
         if(data.object.metadata.subscription_status === 'virtuve') type = 'Virtuvė';
         if(data.object.metadata.subscription_status === 'profilis') type = 'Profilis';
-        // await db.query('UPDATE users SET subscription = $2, stripe_customer_id = $3, subscription_type = $4 WHERE id = $1', [userId, true, data.object.customer, type]);
-        await db.query('UPDATE users SET stripe_customer_id = $2 WHERE id = $1', [userId, data.object.customer]);
+        await db.query('UPDATE users SET subscription = $2, stripe_customer_id = $3, subscription_type = $4 WHERE id = $1', [userId, true, data.object.customer, type]);
+        // await db.query('UPDATE users SET stripe_customer_id = $2 WHERE id = $1', [userId, data.object.customer]);
 
         const subscription = await stripe.subscriptions.retrieve(data.object.subscription);
         const subs_start = new Date(subscription.current_period_start*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' }); 
         const subs_end = new Date(subscription.current_period_end*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' });
         await db.query('INSERT INTO subscriptions(user_id, stripe_subscription_id, status, current_period_start, current_period_end) VALUES ($1, $2, $3, $4, $5);', [userId, subscription.id, data.object.metadata.subscription_status, subs_start, subs_end]);
     }
-    
+
     if(event_type === 'invoice.payment_failed') {
         const subscription = await stripe.subscriptions.retrieve(data.object.subscription);
         const subs_start = new Date(subscription.current_period_start*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' }); 
@@ -59,7 +59,7 @@ exports.paymentSuccess = async (req, res) => {
     }
 
     if(event_type === 'customer.subscription.deleted') {
-        // await db.query('UPDATE users SET subscription = $1, subscription_type = $2, subscription_expires = $3  WHERE stripe_customer_id = $4', ['false', 'free', null, data.object.customer]);
+        await db.query('UPDATE users SET subscription = $1, subscription_type = $2, subscription_expires = $3  WHERE stripe_customer_id = $4', ['false', 'free', null, data.object.customer]);
         await db.query('DELETE from subscriptions WHERE stripe_subscription_id = $1', [data.object.id]);
     }
     res.sendStatus(200);
