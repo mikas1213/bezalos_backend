@@ -29,9 +29,8 @@ exports.createCheckoutSession = async (req, res, next) => {
 exports.paymentSuccess = async (req, res) => {
     const event_type = req.body.type;
     const data = req.body.data;
-    // console.log(event_type, data)
+    
     if(event_type === 'checkout.session.completed' && data.object.payment_status === 'paid') {
-
         const userId = data.object.metadata.user_id;
         let type = 'free';
         if(data.object.metadata.subscription_status === 'virtuve') type = 'Virtuvė';
@@ -44,9 +43,15 @@ exports.paymentSuccess = async (req, res) => {
         const subs_end = new Date(subscription.current_period_end*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' });
         await db.query('INSERT INTO subscriptions(user_id, stripe_subscription_id, status, current_period_start, current_period_end) VALUES ($1, $2, $3, $4, $5);', [userId, subscription.id, data.object.metadata.subscription_status, subs_start, subs_end]);
     }
+    
+    if(event_type === 'invoice.payment_failed') {
+        const subscription = await stripe.subscriptions.retrieve(data.object.subscription);
+        const subs_start = new Date(subscription.current_period_start*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' }); 
+        const subs_end = new Date(subscription.current_period_end*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' });
+        await db.query('INSERT INTO subscriptions(user_id, stripe_subscription_id, status, current_period_start, current_period_end) VALUES ($1, $2, $3, $4, $5);', [userId, subscription.id, data.object.metadata.subscription_status, subs_start, subs_end]);
+    }
 
     if(event_type === 'customer.subscription.updated') {
-
         const subs_start = new Date(data.object.current_period_start*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' }); 
         const subs_end = new Date(data.object.current_period_end*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' });
         
