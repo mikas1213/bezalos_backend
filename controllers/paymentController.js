@@ -10,10 +10,10 @@ const { stripeSubscriptionSession, stripeServiceSession } = require('../utils/pa
 // };
 
 const prices_ids = {
-    virtuve_month: process.env.STRIPE_VIRTUVE_PRICE_MONTH,
-    virtuve_year: process.env.STRIPE_VIRTUVE_PRICE_YEAR,
     profilis_month: process.env.STRIPE_PROFILIS_PRICE_MONTH,
     profilis_year: process.env.STRIPE_PROFILIS_PRICE_YEAR,
+    virtuve_month: process.env.STRIPE_VIRTUVE_PRICE_MONTH,
+    virtuve_year: process.env.STRIPE_VIRTUVE_PRICE_YEAR
 };
 
 exports.createCheckoutSession = async (req, res) => {
@@ -45,6 +45,7 @@ exports.paymentSuccess = async (req, res) => {
     }
 
     if(event_type === 'customer.subscription.updated') {
+        console.log('CIA:', data.object)
         const subs_start = new Date(data.object.current_period_start*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' }); 
         const subs_end = new Date(data.object.current_period_end*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' });
         await db.query('UPDATE subscriptions SET current_period_start = $1, current_period_end = $2 WHERE stripe_subscription_id = $3', [subs_start, subs_end, data.object.id]);
