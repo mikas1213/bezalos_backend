@@ -18,6 +18,7 @@ const prices_ids = {
 
 exports.createCheckoutSession = async (req, res) => {
     const { user_id, plan_price, plan_name, } = req.body;
+    
     try {
         const session = await stripeSubscriptionSession(user_id, req.user_name, prices_ids[plan_price], plan_name);
         res.status(200).json({session});
@@ -45,7 +46,7 @@ exports.paymentSuccess = async (req, res) => {
     }
 
     if(event_type === 'customer.subscription.updated') {
-        console.log('CIA:', data.object)
+        
         const subs_start = new Date(data.object.current_period_start*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' }); 
         const subs_end = new Date(data.object.current_period_end*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' });
         await db.query('UPDATE subscriptions SET current_period_start = $1, current_period_end = $2 WHERE stripe_subscription_id = $3', [subs_start, subs_end, data.object.id]);
@@ -81,18 +82,21 @@ exports.customerPortal = async (req, res) => {
     try {
         const session = await stripe.billingPortal.sessions.create({
             customer: req.str_cus_id,
-            return_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/profilis' : 'https://bezalos.dulevicius.dev/profilis'}`,
-            flow_data: {
+            // customer: 'cus_QSM2UfjjQSVX9V',
+            locale: 'lt',
+            return_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://bezalos.dulevicius.dev/paslaugos'}`,
+            // flow_data: {
                 // type: 'payment_method_update',
-                type: 'subscription_update',
+                // type: 'subscription_update',
                 // type: 'subscription_cancel',
-                subscription_update: {
-                    subscription: 'sub_1PPOxvAXc9J1oascm4bNSAiu',
-                },
-                // subscription_cancel: {
-                //     subscription: 'sub_1PPOxvAXc9J1oascm4bNSAiu',
+                
+                // subscription_update: {
+                //     subscription: 'sub_1PbRK3AXc9J1oascQhAtnZyK',
                 // },
-            },
+                // subscription_cancel: {
+                //     subscription: 'sub_1PbRK3AXc9J1oascQhAtnZyK',
+                // },
+            // },
             
         });
 

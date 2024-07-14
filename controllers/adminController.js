@@ -13,13 +13,6 @@ exports.getAllUsers = async (req, res) => {
     // }
 
 
-
-
-
-
-
-
-    
     const columns = 'users.id, name, email, role, subscription, subscription_type, initial_target, subscription_expires, assigned_plan, nutrition_tracking, nutrition_plan_status, support_over, last_activity, subscriptions.status as s_status, subscriptions.current_period_end as s_subscription_expires';
     let queryString = `SELECT ${columns} from users LEFT JOIN subscriptions ON users.id = subscriptions.user_id where role = $1 ORDER BY ${column} ${sort} NULLS LAST;`;
     let queryParams = [2324];
@@ -28,16 +21,6 @@ exports.getAllUsers = async (req, res) => {
         queryString = `SELECT ${columns} from users LEFT JOIN subscriptions ON users.id = subscriptions.user_id where role = $1 AND ${column} = $2;`;
         queryParams = [2324, 'free'];
     }
-
-
-
-
-
-
-
-
-
-
 
     try {
         const data = await db.query(queryString, queryParams);

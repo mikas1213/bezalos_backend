@@ -17,7 +17,7 @@ exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_na
             cancel_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://bezalos.dulevicius.dev/paslaugos'}`,
             metadata: { user_id, subscription_status: plan_name }
         });
-        console.log('Session: ', session)
+        
         return session;
 
     } catch (err) {
