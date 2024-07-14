@@ -58,6 +58,7 @@ exports.login = async (req, res) => {
         if(!errors.isEmpty()) return res.status(400).json({ errors: errors.errors });
 
         const user = await db.query('SELECT users.id, stripe_customer_id, role, email, password, subscription_expires, s.status AS s_status, s.current_period_end AS s_subscription_expires FROM users LEFT JOIN subscriptions as s ON s.user_id = users.id WHERE email = $1', [email]);
+        console.log('login: ', user.rows)
         if(!user.rows[0]) return res.status(401).json({errors: [{path: 'auth', type: 'server', msg: 'Netinkamas el. paštas arba slaptažodis!'}]}); 
         
         const validPassword = await bcrypt.compare(password, user.rows[0].password);
@@ -110,10 +111,14 @@ exports.refresh = async (req, res) => {
     if(!cookies?.jwt) return res.sendStatus(401);
 
     const refreshToken = cookies.jwt;
-    const user = await db.query('SELECT id, refresh_token FROM users WHERE refresh_token = $1', [refreshToken]);
-    
-    if(!user.rows[0]) return res.sendStatus(403); // Forbidden
+    // const user = await db.query('SELECT id, stripe_customer_id, refresh_token FROM users WHERE refresh_token = $1', [refreshToken]);
+    const user = await db.query('SELECT users.id, stripe_customer_id, subscription, subscription_expires, refresh_token, s.status AS s_status, s.current_period_end AS s_subscription_expires FROM users LEFT JOIN subscriptions as s ON s.user_id = users.id WHERE refresh_token = $1', [refreshToken]);
+    const today = Date.parse(new Date().toLocaleString('lt-LT', {dateStyle: 'short'}));
+    const subs_exp = Date.parse(new Date(user.rows[0].subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
+    const s_subs_exp = Date.parse(new Date(user.rows[0].s_subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
 
+    if(!user.rows[0]) return res.sendStatus(403); // Forbidden
+    console.log(user.rows[0])
     jwt.verify(
         refreshToken,
         process.env.REFRESH_TOKEN_SECRET,
@@ -124,10 +129,16 @@ exports.refresh = async (req, res) => {
                 user_id: decoded.user_id,
                 user_name: decoded.user_name,
                 user_role: decoded.user_role,
-                str_cus_id: decoded.str_cus_id,
-                user_subscription: decoded.user_subscription,
-                user_s_subscription: decoded.user_s_subscription,
-                s_status: decoded.s_status
+
+                // str_cus_id: decoded.str_cus_id,
+                // user_subscription: decoded.user_subscription,
+                // user_s_subscription: decoded.user_s_subscription,
+                // s_status: decoded.s_status,
+
+                str_cus_id: user.rows[0].stripe_customer_id,
+                user_subscription: subs_exp >= today,
+                user_s_subscription: s_subs_exp >= today,
+                s_status: user.rows[0].s_status,
             }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES});
             res.json({ accessToken });
         }

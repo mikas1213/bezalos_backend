@@ -60,7 +60,8 @@ exports.paymentSuccess = async (req, res) => {
     }
 
     if(event_type === 'customer.subscription.deleted') {
-        await db.query('UPDATE users SET subscription = $1, subscription_type = $2, subscription_expires = $3  WHERE stripe_customer_id = $4', ['false', 'free', null, data.object.customer]);
+        // await db.query('UPDATE users SET subscription = $1, subscription_type = $2, subscription_expires = $3  WHERE stripe_customer_id = $4', ['false', 'free', null, data.object.customer]);
+        await db.query('UPDATE users SET subscription = $1, subscription_type = $2, subscription_expires = $3, stripe_customer_id = $4  WHERE stripe_customer_id = $5', ['false', 'free', null, null, data.object.customer]);
         await db.query('DELETE from subscriptions WHERE stripe_subscription_id = $1', [data.object.id]);
     }
     res.sendStatus(200);
@@ -82,7 +83,6 @@ exports.customerPortal = async (req, res) => {
     try {
         const session = await stripe.billingPortal.sessions.create({
             customer: req.str_cus_id,
-            // customer: 'cus_QSM2UfjjQSVX9V',
             locale: 'lt',
             return_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://bezalos.dulevicius.dev/paslaugos'}`,
             // flow_data: {
