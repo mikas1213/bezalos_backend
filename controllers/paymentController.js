@@ -2,12 +2,6 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const db = require('../database/db');
 const { stripeSubscriptionSession, stripeServiceSession } = require('../utils/payments');
 
-// const prices_ids = {
-//     virtuve_month: process.env.STRIPE_VIRTUVE_PRICE_MONTH || 'price_1POz5RAXc9J1oascpD0OMQ4u',
-//     virtuve_year: process.env.STRIPE_VIRTUVE_PRICE_YEAR || 'price_1POz6EAXc9J1oascDmMAVsGm',
-//     profilis_month: process.env.STRIPE_PROFILIS_PRICE_MONTH || 'price_1POz7PAXc9J1oascaNme3Vp3',
-//     profilis_year: process.env.STRIPE_PROFILIS_PRICE_YEAR || 'price_1POz7lAXc9J1oasccewzqaTY'
-// };
 
 const prices_ids = {
     profilis_month: process.env.STRIPE_PROFILIS_PRICE_MONTH,
@@ -84,7 +78,7 @@ exports.customerPortal = async (req, res) => {
         const session = await stripe.billingPortal.sessions.create({
             customer: req.str_cus_id,
             locale: 'lt',
-            return_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://naujas.bezalos.lt/paslaugos'}`,
+            return_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://bezalos.dulevicius.dev/paslaugos'}`,
             // flow_data: {
                 // type: 'payment_method_update',
                 // type: 'subscription_update',
