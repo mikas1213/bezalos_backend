@@ -1,16 +1,8 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 let = hostname = 'http://localhost:5173';
-
-// switch(process.env.PROJECT) {
-//     case x:
-//       // code block
-//       break;
-//     case y:
-//       // code block
-//       break;
-//     default:
-//       // code block
-//   }
+if(process.env.PROJECT === 'DULEVICIUS') hostname = 'https://bezalos.dulevicius.dev';
+if(process.env.PROJECT === 'BEZALOS') hostname = 'https://naujas.bezalos.lt';
+console.log('payments: ', hostname);
 
 exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_name, plan_price) => {
     
@@ -25,8 +17,10 @@ exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_na
                 quantity: 1
             }],
             allow_promotion_codes: plan_price === 'virtuve_month',
-            success_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/apmoketa-sekmingai?session_id={CHECKOUT_SESSION_ID}' : 'https://bezalos.dulevicius.dev/apmoketa-sekmingai?session_id={CHECKOUT_SESSION_ID}'}`,
-            cancel_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://bezalos.dulevicius.dev/paslaugos'}`,
+            // success_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/apmoketa-sekmingai?session_id={CHECKOUT_SESSION_ID}' : 'https://bezalos.dulevicius.dev/apmoketa-sekmingai?session_id={CHECKOUT_SESSION_ID}'}`,
+            // cancel_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://bezalos.dulevicius.dev/paslaugos'}`,
+            success_url: `${hostname}/apmoketa-sekmingai?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${hostname}/paslaugos`,
             metadata: { user_id, subscription_status: plan_name }
         });
         
@@ -57,8 +51,10 @@ exports.stripeServiceSession = async (title, price) => {
             //     },
             // ],
             mode: 'payment',
-            success_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslauga-apmoketa' : 'https://bezalos.dulevicius.dev/paslauga-apmoketa'}`,
-            cancel_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://bezalos.dulevicius.dev/paslaugos'}`,
+            // success_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslauga-apmoketa' : 'https://bezalos.dulevicius.dev/paslauga-apmoketa'}`,
+            // cancel_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://bezalos.dulevicius.dev/paslaugos'}`,
+            success_url: `${hostname}/paslauga-apmoketa`,
+            cancel_url: `${hostname}/paslaugos`,
         });
         return session;
     } catch (err) {

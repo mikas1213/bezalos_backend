@@ -10,6 +10,11 @@ const prices_ids = {
     virtuve_year: process.env.STRIPE_VIRTUVE_PRICE_YEAR
 };
 
+let = hostname = 'http://localhost:5173';
+if(process.env.PROJECT === 'DULEVICIUS') hostname = 'https://bezalos.dulevicius.dev';
+if(process.env.PROJECT === 'BEZALOS') hostname = 'https://naujas.bezalos.lt';
+console.log('paymentController: ', hostname);
+
 exports.createCheckoutSession = async (req, res) => {
     
     const { user_id, plan_price, plan_name, } = req.body;
@@ -78,7 +83,8 @@ exports.customerPortal = async (req, res) => {
         const session = await stripe.billingPortal.sessions.create({
             customer: req.str_cus_id,
             locale: 'lt',
-            return_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://bezalos.dulevicius.dev/paslaugos'}`,
+            // return_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://bezalos.dulevicius.dev/paslaugos'}`,
+            return_url: `${hostname}/paslaugos`,
             // flow_data: {
                 // type: 'payment_method_update',
                 // type: 'subscription_update',
