@@ -16,8 +16,7 @@ exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_na
                 price: priceId,
                 quantity: 1
             }],
-            // allow_promotion_codes: plan_price === 'virtuve_month',
-            allow_promotion_codes: true,
+            allow_promotion_codes: plan_price === 'virtuve_month',
             // success_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/apmoketa-sekmingai?session_id={CHECKOUT_SESSION_ID}' : 'https://bezalos.dulevicius.dev/apmoketa-sekmingai?session_id={CHECKOUT_SESSION_ID}'}`,
             // cancel_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://bezalos.dulevicius.dev/paslaugos'}`,
             success_url: `${hostname}/apmoketa-sekmingai?session_id={CHECKOUT_SESSION_ID}`,
