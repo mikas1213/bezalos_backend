@@ -17,10 +17,11 @@ const prices_ids = {
 };
 
 exports.createCheckoutSession = async (req, res) => {
+    
     const { user_id, plan_price, plan_name, } = req.body;
     
     try {
-        const session = await stripeSubscriptionSession(user_id, req.user_name, prices_ids[plan_price], plan_name);
+        const session = await stripeSubscriptionSession(user_id, req.user_name, prices_ids[plan_price], plan_name, plan_price);
         res.status(200).json({session});
     } catch (err) {
         console.log(err.message)
@@ -79,12 +80,11 @@ exports.createServiceSession = async (req, res) => {
 };
 
 exports.customerPortal = async (req, res) => {
-    console.log('Session: ', req.user_id, req.user_name, req.user_role, req.str_cus_id)
     try {
         const session = await stripe.billingPortal.sessions.create({
             customer: req.str_cus_id,
             locale: 'lt',
-            return_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://bezalos.dulevicius.dev/paslaugos'}`,
+            return_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://naujas.bezalos.lt/paslaugos'}`,
             // flow_data: {
                 // type: 'payment_method_update',
                 // type: 'subscription_update',
