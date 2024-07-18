@@ -13,7 +13,6 @@ const prices_ids = {
 let = hostname = 'http://localhost:5173';
 if(process.env.PROJECT === 'DULEVICIUS') hostname = 'https://bezalos.dulevicius.dev';
 if(process.env.PROJECT === 'BEZALOS') hostname = 'https://naujas.bezalos.lt';
-console.log('paymentController: ', hostname);
 
 exports.createCheckoutSession = async (req, res) => {
     
@@ -72,7 +71,7 @@ exports.paymentSuccess = async (req, res) => {
 
 exports.createServiceSession = async (req, res) => {
     const { title, price } = req.body;
-    console.log(title, price);
+    
     try {
         const session = await stripeServiceSession(title, price);
         res.status(200).json({session});

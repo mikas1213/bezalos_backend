@@ -2,7 +2,7 @@ const db = require('../database/db');
 const Email = require('../utils/email');
 const { validationResult } = require('express-validator');
 
-exports.addMail = async (req, res) => {
+exports.addMailToMailerList = async (req, res) => {
     const errors = validationResult(req);
     const { email } = req.body;
     
@@ -22,6 +22,25 @@ exports.addMail = async (req, res) => {
         res.status(201).json({
             status: 'success',
             message: 'Newsletter successfully subscribed!'
+        });
+    } catch (err) {
+        res.status(500).json({ msg: err.message });
+    }
+}
+
+exports.sendOfferMail = async (req, res) => {
+    const errors = validationResult(req);
+    const { email } = req.body;
+
+    try {
+        if(!errors.isEmpty() && errors.errors[0].path === 'email') {
+            return res.status(400).json({ errors: errors.errors });
+        }
+
+        await new Email(email, '', '').sendOffer();
+        res.status(201).json({
+            status: 'success',
+            message: 'Offer successfully sent!'
         });
     } catch (err) {
         res.status(500).json({ msg: err.message });

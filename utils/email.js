@@ -26,14 +26,14 @@ module.exports = class Email {
         this.token = token;
     }
 
-    async sendEmail(template) {
+    async sendEmail(template, subject) {
         
         sgMail.setApiKey(process.env.SENDGRID_API_KEY);
         
         const message = {
             from: { 
                 email: process.env.SENDGRID_EMAIL_FROM,
-                name: "Sandra | Valgau be žalos",
+                name: 'Sandra | Be žalos',
             },
             personalizations: [{ 
                 to: [
@@ -41,10 +41,10 @@ module.exports = class Email {
                     // { email: 'mikas1213@yahoo.com', name: 'Grybas' }
                 ],
                 dynamic_template_data: {
-                    "token": this.token,
-                    "subject": "Tavo registracija sėkminga 🥳",
-                    "message": messages[this.initial_target]?.text,
-                    "button": messages[this.initial_target]?.btn
+                    'token': this.token,
+                    'subject': subject,
+                    'message': messages[this.initial_target]?.text,
+                    'button': messages[this.initial_target]?.btn
                 }
             }],
             template_id: template
@@ -53,14 +53,18 @@ module.exports = class Email {
     }
 
     async sendWelcome() {
-        await this.sendEmail('d-87d1d111a55d4f3597d8cca5f7b9b406');
-    }
-
-    async sendForgotPassword() {
-        await this.sendEmail(process.env.SENDGRID_RESET_PSW_TEMPLATE_ID);
+        await this.sendEmail(process.env.SENDGRID_TEMPLATE_WELCOME, 'Tavo registracija sėkminga 🥳');
     }
 
     async sendNewsletter() {
-        await this.sendEmail('d-e90319811c064d779cad4776b9d4fb7e');
+        await this.sendEmail(process.env.SENDGRID_TEMPLATE_NEWSLETTER, 'Tavo prenumerata sėkminga 💌');
+    }
+
+    async sendForgotPassword() {
+        await this.sendEmail(process.env.SENDGRID_TEMPLATE_FORGOT_PASSWORD, 'Tavo slaptadžodis jau čia 👀');
+    }
+
+    async sendOffer() {
+        await this.sendEmail(process.env.SENDGRID_TEMPLATE_OFFER, 'Video padėjęs šimtams 💚');
     }
 }

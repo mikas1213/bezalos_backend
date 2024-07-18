@@ -11,7 +11,8 @@ const mailerValidator = [
 
 const mailerController = require('../controllers/mailerController');
 
-router.route('/add').post(mailerValidator, mailerController.addMail);
+router.route('/add').post(mailerValidator, mailerController.addMailToMailerList);
+router.route('/send-offer').post(mailerValidator, mailerController.sendOfferMail);
 
 module.exports = router;
 

@@ -2,7 +2,6 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 let = hostname = 'http://localhost:5173';
 if(process.env.PROJECT === 'DULEVICIUS') hostname = 'https://bezalos.dulevicius.dev';
 if(process.env.PROJECT === 'BEZALOS') hostname = 'https://naujas.bezalos.lt';
-console.log('payments: ', hostname);
 
 exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_name, plan_price) => {
     
