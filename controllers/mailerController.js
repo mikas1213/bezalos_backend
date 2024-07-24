@@ -31,16 +31,34 @@ exports.addMailToMailerList = async (req, res) => {
 exports.sendOfferMail = async (req, res) => {
     const errors = validationResult(req);
     const { email } = req.body;
+    const video = 'https://youtu.be/7AyRYZ6oKb8';
+    const today = new Date();
+    today.setDate(today.getDate() + 10);
 
     try {
         if(!errors.isEmpty() && errors.errors[0].path === 'email') {
             return res.status(400).json({ errors: errors.errors });
         }
 
-        await new Email(email, '', '').sendOffer();
+        const data = await db.query('SELECT email, video, expires_to FROM offers WHERE email = $1', [email]);
+        
+        if(data.rows.length) {
+            
+            if(video === data.rows[0].video && Date.parse(data.rows[0].expires_to) > Date.now()) {
+                return res.status(409).json({ errors: [{ msg:'Jūs jau pasinaudojote pasiūlymu', path:'email' }] });
+            } else {
+                await db.query('UPDATE offers SET video = $1, expires_to = $2 WHERE email = $3', [video, today.toISOString(), email]);
+            }
+            
+        } else {
+            await db.query('INSERT INTO offers(email, video, expires_to) values($1, $2, $3)', [email, video, today.toISOString()]);
+            await new Email(email, 'offer', video).sendOffer();
+        }
+
         res.status(201).json({
             status: 'success',
-            message: 'Offer successfully sent!'
+            message: 'Offer successfully sent!',
+            // data: data.rows
         });
     } catch (err) {
         res.status(500).json({ msg: err.message });

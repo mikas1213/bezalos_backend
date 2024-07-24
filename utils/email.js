@@ -16,6 +16,10 @@ const messages = {
     nezinau: {
         text: 'Jungiantis į bendruomenę pasirinkai, kad dar nežinai kas tave šiame projekte domina, tad kviečiu pasižvalgyti',
         btn: 'Pasižvalgyti'
+    },
+    offer: {
+        text: '',
+        btn: 'ŽIŪRĖTI ĮRAŠĄ'
     }
 }
 

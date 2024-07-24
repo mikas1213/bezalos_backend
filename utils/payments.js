@@ -1,7 +1,7 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 let = hostname = 'http://localhost:5173';
 if(process.env.PROJECT === 'DULEVICIUS') hostname = 'https://bezalos.dulevicius.dev';
-if(process.env.PROJECT === 'BEZALOS') hostname = 'https://naujas.bezalos.lt';
+if(process.env.PROJECT === 'BEZALOS') hostname = 'https://bezalos.lt';
 
 exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_name, plan_price) => {
     
@@ -11,6 +11,7 @@ exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_na
             mode: 'subscription',
             payment_method_types: ['card'],
             customer_email: user_email,
+            // customer: 'cus_QWSmPP402ifTdq',
             line_items: [{
                 price: priceId,
                 quantity: 1
@@ -20,7 +21,8 @@ exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_na
             // cancel_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://bezalos.dulevicius.dev/paslaugos'}`,
             success_url: `${hostname}/apmoketa-sekmingai?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${hostname}/paslaugos`,
-            metadata: { user_id, subscription_status: plan_name }
+            metadata: { user_id, subscription_status: plan_name },
+            // customer_creation: 'if_required' in payment mode only
         });
         
         return session;

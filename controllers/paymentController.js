@@ -12,7 +12,7 @@ const prices_ids = {
 
 let = hostname = 'http://localhost:5173';
 if(process.env.PROJECT === 'DULEVICIUS') hostname = 'https://bezalos.dulevicius.dev';
-if(process.env.PROJECT === 'BEZALOS') hostname = 'https://naujas.bezalos.lt';
+if(process.env.PROJECT === 'BEZALOS') hostname = 'https://bezalos.lt';
 
 exports.createCheckoutSession = async (req, res) => {
     

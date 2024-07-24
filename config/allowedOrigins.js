@@ -9,10 +9,10 @@ const allowedOrigins = [
     'http://www.bezalos.dulevicius.dev',
     'https://www.bezalos.dulevicius.dev',
     
-    'http://naujas.bezalos.lt',
-    'https://naujas.bezalos.lt',
-    'http://www.naujas.bezalos.lt',
-    'https://www.naujas.bezalos.lt',
+    'http://bezalos.lt',
+    'https://bezalos.lt',
+    'http://www.bezalos.lt',
+    'https://www.bezalos.lt',
 
     'http://stripe.com',
     'https://stripe.com',
