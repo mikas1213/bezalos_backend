@@ -33,7 +33,7 @@ exports.sendOfferMail = async (req, res) => {
     const { email } = req.body;
     const video = 'https://youtu.be/7AyRYZ6oKb8';
     const today = new Date();
-    today.setDate(today.getDate() + 10);
+    today.setDate(today.getDate() + 30);
 
     try {
         if(!errors.isEmpty() && errors.errors[0].path === 'email') {
