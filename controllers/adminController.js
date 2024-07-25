@@ -24,7 +24,7 @@ exports.getAllUsers = async (req, res) => {
 
     try {
         const data = await db.query(queryString, queryParams);
-        
+        // console.log(data.rows)
         res.status(200).json({
             users: data.rows
         });
@@ -59,16 +59,34 @@ exports.updateUser = async (req, res) => {
 };
 
 exports.getAllVideos = async (req, res) => {
-    let queryString = 'SELECT * FROM videos';
-    let queryParams = [];
-
     try {
-        const data = await db.query(queryString);
+        const data = await db.query('SELECT * FROM videos');
         res.status(200).json({
             videos: data.rows
         });
     } catch (err) {
         console.log(err.message);
+    }
+};
+
+exports.getAllRows = table => {
+    return async (req, res) => {
+        try {
+            const data = await db.query(`SELECT * FROM ${table}`);
+            res.status(200).json({
+                [`${table}`]: data.rows
+            });
+        } catch (err) {
+            console.log(err.message)
+        }
+    };
+}
+
+exports.getOffers = async (req, res) => {
+    try {
+
+    } catch (err) {
+
     }
 };
 

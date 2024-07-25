@@ -19,7 +19,13 @@ router.route('/user/:id').patch(
 router.route('/videos').get(
     authController.protect,
     authController.verifyRoles(roles.admin),
-    adminController.getAllVideos
+    adminController.getAllRows('videos')
+);
+
+router.route('/offers').get(
+    authController.protect,
+    authController.verifyRoles(roles.admin),
+    adminController.getAllRows('offers')
 );
 
 module.exports = router;
