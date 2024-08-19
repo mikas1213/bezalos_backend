@@ -28,4 +28,12 @@ router.route('/offers').get(
     adminController.getAllRows('offers')
 );
 
+router.route('/stats').get(
+    authController.protect,
+    authController.verifyRoles(roles.admin),
+    adminController.getStats
+);
+
+
+
 module.exports = router;
