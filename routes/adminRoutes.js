@@ -4,7 +4,13 @@ const roles = require('../utils/roles');
 const authController = require('../controllers/authController');
 const adminController = require('../controllers/adminController');
 
-router.route('/users').get(
+// router.route('/users').get(
+//     authController.protect,
+//     authController.verifyRoles(roles.admin),
+//     adminController.getAllUsers
+// );
+
+router.route('/users').post(
     authController.protect,
     authController.verifyRoles(roles.admin),
     adminController.getAllUsers
@@ -33,6 +39,12 @@ router.route('/stats').get(
     authController.verifyRoles(roles.admin),
     adminController.getStats
 );
+
+// router.route('/plans').get(
+//     authController.protect,
+//     authController.verifyRoles(roles.admin),
+//     adminController.getPlans
+// );
 
 
 
