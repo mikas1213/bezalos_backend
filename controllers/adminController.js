@@ -29,13 +29,13 @@ exports.getAllUsers = async (req, res) => {
     } else if(month) {
         from.setDate(from.getDate() - 28);
         queryParams[1] = from.toLocaleString('lt-LT');
-        where = `where role = $1 AND assigned_plan < $2`;
+        queryParams[2] = 'none';
+        where = `where role = $1 AND assigned_plan < $2 AND support_over = $3`;
     }
         
     let queryString = `SELECT ${columns} from users LEFT JOIN subscriptions ON users.id = subscriptions.user_id ${where} ORDER BY ${column} ${sort} NULLS LAST;`;
 
     try {
-        console.log(queryParams)
         const data = await db.query(queryString, queryParams);        
         res.status(200).json({
             users: data.rows
@@ -47,7 +47,6 @@ exports.getAllUsers = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
     try {
-        console.log(req.body)
         let { column, value } = req.body;
         if(value === '') value = null;
         let queryString = `UPDATE users SET ${column} = $1 WHERE id = $2;`;
