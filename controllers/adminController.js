@@ -7,40 +7,35 @@ const { trys_lentos }  = require('../utils/sqlQueries');
 exports.getAllUsers = async (req, res) => {
 
     try {
-    const { column, sort, week, month } = req.body;
-    
-    const columns = 'users.id, name, email, role, subscription, subscription_type, initial_target, subscription_expires, assigned_plan, nutrition_tracking, nutrition_plan_status, support_over, last_activity, subscriptions.status as s_status, subscriptions.current_period_end as s_subscription_expires';
-    let where = 'where role = $1';
-    let queryParams = [2324];
-
-    var from = new Date();
-    var to = new Date();
-
-    if(week && month) {
-        from.setDate(from.getDate() - 14);
-        queryParams[1] = from.toLocaleString('lt-LT');
-        queryParams[2] = 'month';
-        where = `where role = $1 AND assigned_plan < $2 AND support_over NOT LIKE $3`;
-    } else if(week) {
-        from.setDate(from.getDate() - 28);
-        to.setDate(to.getDate() - 14);
-        queryParams[1] = from.toLocaleString('lt-LT');
-        queryParams[2] = to.toLocaleString('lt-LT');
-        where = `where role = $1 AND assigned_plan BETWEEN $2 AND $3`;
-
-    } else if(month) {
-        from.setDate(from.getDate() - 28);
-        queryParams[1] = from.toLocaleString('lt-LT');
-        queryParams[2] = 'month';
-        where = `where role = $1 AND assigned_plan < $2 AND support_over NOT LIKE $3`;
-    }
+        const { column, sort, week, month } = req.body;
         
-    let queryString = `SELECT ${columns} from users LEFT JOIN subscriptions ON users.id = subscriptions.user_id ${where} ORDER BY ${column} ${sort} NULLS LAST;`;
+        const columns = 'users.id, name, email, role, subscription, subscription_type, initial_target, subscription_expires, plan_assign, plan_prepare, plan_prepare_status, plan_assign_status, last_activity, subscriptions.status as s_status, subscriptions.current_period_end as s_subscription_expires';
+        let where = 'where role = $1';
+        let queryParams = [2324];
 
-    // try {
-        console.log(queryString);
-        console.log('- - - - -');
-        console.log(queryParams);
+        var from = new Date();
+        var to = new Date();
+
+        if(week && month) {
+            from.setDate(from.getDate() - 14);
+            queryParams[1] = from.toLocaleString('lt-LT');
+            queryParams[2] = 'month';
+            where = `where role = $1 AND plan_assign < $2 AND plan_assign_status NOT LIKE $3`;
+        } else if(week) {
+            from.setDate(from.getDate() - 28);
+            to.setDate(to.getDate() - 14);
+            queryParams[1] = from.toLocaleString('lt-LT');
+            queryParams[2] = to.toLocaleString('lt-LT');
+            where = `where role = $1 AND plan_assign BETWEEN $2 AND $3`;
+
+        } else if(month) {
+            from.setDate(from.getDate() - 28);
+            queryParams[1] = from.toLocaleString('lt-LT');
+            queryParams[2] = 'month';
+            where = `where role = $1 AND plan_assign < $2 AND plan_assign_status NOT LIKE $3`;
+        }
+        
+        let queryString = `SELECT ${columns} from users LEFT JOIN subscriptions ON users.id = subscriptions.user_id ${where} ORDER BY ${column} ${sort} NULLS LAST;`;
         const data = await db.query(queryString, queryParams);        
         res.status(200).json({
             users: data.rows
@@ -71,8 +66,8 @@ exports.updateUser = async (req, res) => {
             }
         }
 
-        if(column === 'assigned_plan' && value === null) {
-            queryString = `UPDATE users SET ${column} = $1, support_over = $3 WHERE id = $2;`;
+        if(column === 'plan_assign' && value === null) {
+            queryString = `UPDATE users SET ${column} = $1, plan_assign_status = $3 WHERE id = $2;`;
             queryParams[2] = 'none';
         }
 
