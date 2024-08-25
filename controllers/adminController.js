@@ -5,7 +5,8 @@ const path = require('node:path');
 const { trys_lentos }  = require('../utils/sqlQueries');
 
 exports.getAllUsers = async (req, res) => {
-    
+
+    try {
     const { column, sort, week, month } = req.body;
     
     const columns = 'users.id, name, email, role, subscription, subscription_type, initial_target, subscription_expires, assigned_plan, nutrition_tracking, nutrition_plan_status, support_over, last_activity, subscriptions.status as s_status, subscriptions.current_period_end as s_subscription_expires';
@@ -18,7 +19,8 @@ exports.getAllUsers = async (req, res) => {
     if(week && month) {
         from.setDate(from.getDate() - 14);
         queryParams[1] = from.toLocaleString('lt-LT');
-        where = `where role = $1 AND assigned_plan < $2`;
+        queryParams[2] = 'month';
+        where = `where role = $1 AND assigned_plan < $2 AND support_over NOT LIKE $3`;
     } else if(week) {
         from.setDate(from.getDate() - 28);
         to.setDate(to.getDate() - 14);
@@ -35,7 +37,7 @@ exports.getAllUsers = async (req, res) => {
         
     let queryString = `SELECT ${columns} from users LEFT JOIN subscriptions ON users.id = subscriptions.user_id ${where} ORDER BY ${column} ${sort} NULLS LAST;`;
 
-    try {
+    // try {
         const data = await db.query(queryString, queryParams);        
         res.status(200).json({
             users: data.rows
