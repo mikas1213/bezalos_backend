@@ -31,13 +31,16 @@ exports.getAllUsers = async (req, res) => {
     } else if(month) {
         from.setDate(from.getDate() - 28);
         queryParams[1] = from.toLocaleString('lt-LT');
-        queryParams[2] = 'none';
-        where = `where role = $1 AND assigned_plan < $2 AND support_over = $3`;
+        queryParams[2] = 'month';
+        where = `where role = $1 AND assigned_plan < $2 AND support_over NOT LIKE $3`;
     }
         
     let queryString = `SELECT ${columns} from users LEFT JOIN subscriptions ON users.id = subscriptions.user_id ${where} ORDER BY ${column} ${sort} NULLS LAST;`;
 
     // try {
+        console.log(queryString);
+        console.log('- - - - -');
+        console.log(queryParams);
         const data = await db.query(queryString, queryParams);        
         res.status(200).json({
             users: data.rows
