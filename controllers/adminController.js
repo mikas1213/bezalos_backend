@@ -9,7 +9,7 @@ exports.getAllUsers = async (req, res) => {
     try {
         const { column, sort, week, month } = req.body;
         
-        const columns = 'users.id, name, email, role, subscription, subscription_type, initial_target, subscription_expires, plan_assign, plan_prepare, plan_prepare_status, plan_assign_status, last_activity, subscriptions.status as s_status, subscriptions.current_period_end as s_subscription_expires';
+        const columns = 'users.id, name, email, role, subscription, subscription_type, initial_target, subscription_expires, plan_prepare, plan_prepare_status, plan_assign, plan_assign_status, maintenance, maintenance_status, last_activity, subscriptions.status as s_status, subscriptions.current_period_end as s_subscription_expires';
         let where = 'where role = $1';
         let queryParams = [2324];
 
@@ -36,7 +36,8 @@ exports.getAllUsers = async (req, res) => {
         }
         
         let queryString = `SELECT ${columns} from users LEFT JOIN subscriptions ON users.id = subscriptions.user_id ${where} ORDER BY ${column} ${sort} NULLS LAST;`;
-        const data = await db.query(queryString, queryParams);        
+        const data = await db.query(queryString, queryParams);       
+         
         res.status(200).json({
             users: data.rows
         });
