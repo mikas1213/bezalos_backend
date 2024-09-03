@@ -1,8 +1,8 @@
-const db = require('../database/db');
-const fs = require('fs');
-const path = require('node:path');
+const db = require('../../database/db');
+// const fs = require('fs');
+// const path = require('node:path');
 
-const { trys_lentos }  = require('../utils/sqlQueries');
+// const { trys_lentos }  = require('../../utils/sqlQueries');
 
 exports.getAllUsers = async (req, res) => {
 
@@ -121,21 +121,5 @@ exports.getStats = async (req, res) => {
     }
 };
 
-// exports.getPlans = async (req, res) => {
-//     var queryString = fs.readFileSync(path.join(__dirname, '../', 'database', 'queries.sql')).toString();
-//     var result = queryString.split('-- myselect');
-
-//     console.log(trys_lentos)
-    
-//     try {
-//         const data = await db.query(trys_lentos, ['7e5eca39-9f96-4e1d-b6b2-7972ca583cb9']);
-
-//         res.status(200).json({
-//             data: data.rows
-//         });
-//     } catch (err) {
-//         console.log(err.message)
-//     }
-// };
 
 

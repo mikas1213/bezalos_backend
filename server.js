@@ -19,8 +19,10 @@ const credentials = require('./middleware/credentials');
 const authRoutes = require('./routes/authRoutes');
 const videoRoutes = require('./routes/videoRoutes');
 const mailerRoutes = require('./routes/mailerRoutes');
-const adminRoutes = require('./routes/adminRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const customersRoutes = require('./routes/adminRoutes/customersRoutes');
+const nutritionPlansRoutes = require('./routes/adminRoutes/nutritionPlansRouter');
+
 
 app.use(logger);
 app.use(express.urlencoded({ extended: false }));
@@ -29,6 +31,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(hpp());
 app.use(require('sanitize').middleware);
+
 // app.use(xss());
 
 app.use(credentials);
@@ -38,8 +41,12 @@ app.use(errorHandler);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/videos', videoRoutes);
 app.use('/api/v1/mailer', mailerRoutes);
-app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/admin', [
+    customersRoutes, 
+    nutritionPlansRoutes
+]);
+
 
 app.all('*', (req, res) => {
     res.status(404).json({
