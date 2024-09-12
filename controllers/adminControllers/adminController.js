@@ -1,0 +1,29 @@
+const db = require('../../database/db');
+
+exports.getAllRows = (table, field = 'created_at', sort = 'DESC') => {
+    return async (req, res) => {
+        try {
+            const data = await db.query(`SELECT * FROM ${table} ORDER BY ${field} ${sort};`);
+            res.status(200).json({
+                [`${table}`]: data.rows
+            });
+        } catch (err) {
+            console.log(err.message)
+        }
+    };
+}
+
+exports.getStats = async (req, res) => {
+    try {
+        const data = await db.query(`SELECT 
+            (SELECT COUNT(*) FROM users WHERE role = 2324) AS users,
+            (SELECT COUNT(*) FROM offers) AS mails,
+            (SELECT count(*) from users WHERE subscription_type NOT LIKE 'free' AND role = 2324) AS active_subscriptions;`);
+
+        res.status(200).json({
+            data: data.rows[0]
+        });
+    } catch (err) {
+        console.log(err.message)
+    }
+};

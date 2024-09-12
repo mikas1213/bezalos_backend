@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const roles = require('../../utils/roles');
 const authController = require('../../controllers/authController');
+const adminControllers = require('../../controllers/adminControllers/adminController');
 const customersController = require('../../controllers/adminControllers/customersController');
 
 router.route('/users').post(
@@ -19,19 +20,19 @@ router.route('/user/:id').patch(
 router.route('/videos').get(
     authController.protect,
     authController.verifyRoles(roles.admin),
-    customersController.getAllRows('videos')
+    adminControllers.getAllRows('videos')
 );
 
 router.route('/stats').get(
     authController.protect,
     authController.verifyRoles(roles.admin),
-    customersController.getStats
+    adminControllers.getStats
 );
 
 router.route('/offers').get(
     authController.protect,
     authController.verifyRoles(roles.admin),
-    customersController.getAllRows('offers')
+    adminControllers.getAllRows('offers')
 );
 
 

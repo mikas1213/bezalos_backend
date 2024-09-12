@@ -6,14 +6,14 @@ SELECT nutrition_plans.id, nutrition_plans.title,
 		'logic', meals.logic,
 		'time', meals.time,
 		'products', (SELECT COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
-			'id', products.id, 
-			'title', products.title,
-			'category', products.category,
-			'grams', products.grams,
-			'carbs', products.carbs,
-			'proteins', products.proteins,
-			'fat', products.fat
-		)), '[]'::json) FROM products WHERE products.meal_id = meals.id))
+			'id', products_dev.id, 
+			'title', products_dev.title,
+			'category', products_dev.category,
+			'grams', products_dev.grams,
+			'carbs', products_dev.carbs,
+			'proteins', products_dev.proteins,
+			'fat', products_dev.fat
+		)), '[]'::json) FROM products_dev WHERE products_dev.meal_id = meals.id))
     ) AS meals_plans FROM nutrition_plans
 LEFT JOIN meals ON nutrition_plans.id = meals.nutrition_plan_id
 GROUP BY nutrition_plans.id;
