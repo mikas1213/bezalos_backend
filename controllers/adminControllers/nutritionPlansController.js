@@ -113,7 +113,8 @@ exports.getAllMeals = async (req, res) => {
     console.log(queryString)
     try {
         const { rows: data } = await db.query(queryString);
-        console.log('meals: ', data)
+        const data2 = await db.query(queryString);
+        console.log('meals: ', data2)
         res.status(200).json(data);
     } catch (err) {
         console.log(err.message)
