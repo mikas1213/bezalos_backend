@@ -110,9 +110,10 @@ exports.deleteProduct = async (req, res) => {
 exports.getAllMeals = async (req, res) => {
     var queryString = fs.readFileSync(path.join(__dirname, '../', '../', 'database', 'queries.sql')).toString();
     queryString = queryString.match(/--GET-ALL-MEALS-SELECT-START([\s\S]*?)--GET-ALL-MEALS-SELECT-END/)[1];
-
+    console.log(queryString)
     try {
         const { rows: data } = await db.query(queryString);
+        console.log('meals: ', data)
         res.status(200).json(data);
     } catch (err) {
         console.log(err.message)
