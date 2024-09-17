@@ -111,10 +111,12 @@ exports.getAllMeals = async (req, res) => {
     var queryString = fs.readFileSync(path.join(__dirname, '../', '../', 'database', 'queries.sql')).toString();
     queryString = queryString.match(/--GET-ALL-MEALS-SELECT-START([\s\S]*?)--GET-ALL-MEALS-SELECT-END/)[1];
     console.log(queryString)
+
+    const testQuery = `select fm.id, fm.title, fm.logic, fm.is_lactose, fm.is_gluten, JSON_AGG(JSON_BUILD_OBJECT('id', fmp.id, 'product_id', fmp.product_id, 'meal_id', fm.id, 'title', fp.title, 'b_100', fp.proteins, 'a_100', fp.carbs, 'r_100', fp.fat, 'grams', fmp.grams) ORDER BY fmp.created_at ASC) AS products from food_meals AS fm join food_meal_products AS fmp ON fm.id = fmp.meal_id join food_products AS fp ON fmp.product_id = fp.id group by fm.id, fm.title, fm.logic, fm.is_lactose, fm.is_gluten order by fm.created_at DESC`;
     try {
         const { rows: data } = await db.query(queryString);
         const data2 = await db.query(queryString);
-        console.log('meals: ', data2)
+        console.log('meals: ', data2.rows)
         res.status(200).json(data);
     } catch (err) {
         console.log(err.message)
