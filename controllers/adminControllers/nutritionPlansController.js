@@ -18,6 +18,7 @@ exports.getPlans = async (req, res) => {
     }
 };
 
+// PRODUCTS CONTROLLERS
 exports.getAllProducts = async (req, res) => {
     const {search = '', filter = ''} = req.query;
     
@@ -41,7 +42,6 @@ exports.getAllProducts = async (req, res) => {
         console.log(err.message)
     }
 };
-
 
 exports.addProduct = async (req, res) => {
     const errors = validationResult(req);
@@ -99,6 +99,69 @@ exports.deleteProduct = async (req, res) => {
 			status: 'success',
 			data: 'video successfuly deleted'
 		});
+    } catch (err) {
+        res.status(500).json({
+            message: err.message
+        });
+    }
+};
+
+// VALGIAI CONTROLLERS
+exports.getAllMeals = async (req, res) => {
+    var queryString = fs.readFileSync(path.join(__dirname, '../', '../', 'database', 'queries.sql')).toString();
+    queryString = queryString.match(/--GET-ALL-MEALS-SELECT-START([\s\S]*?)--GET-ALL-MEALS-SELECT-END/)[1];
+
+    try {
+        const { rows: data } = await db.query(queryString);
+        res.status(200).json(data);
+    } catch (err) {
+        console.log(err.message)
+    }
+};
+
+exports.editMeal = async (req, res) => {
+    console.log(req.body)
+    try {
+        const {meal_id, column, value} = req.body;
+        await db.query(`UPDATE food_meals SET ${column} = $1 WHERE id = $2`, [value, meal_id]);
+        res.sendStatus(204);
+    } catch (err) {
+        res.status(500).json({
+            message: err.message
+        });
+    }
+};
+exports.addMeal = async (req, res) => {
+    // try {
+    //     const {meal_id, column, value} = req.body;
+    //     await db.query(`UPDATE food_meals SET ${column} = $1 WHERE id = $2`, [value, meal_id]);
+    //     res.sendStatus(204);
+    // } catch (err) {
+    //     res.status(500).json({
+    //         message: err.message
+    //     });
+    // }
+};
+
+exports.deleteMeal = async (req, res) => {
+    try {
+        const { meal_id } = req.body;
+        await db.query(`DELETE FROM food_meals WHERE id = $1`, [meal_id]);
+        res.sendStatus(201);
+    } catch (err) {
+        res.status(500).json({
+            message: err.message
+        });
+    }
+};
+
+exports.editMealProduct = async (req, res) => {
+
+    try {
+        const { id, value, meal_id, column } = req.body;
+        console.log(req.body)
+        await db.query(`UPDATE food_meal_products SET ${column} = $2 WHERE id = $1`, [id, value]);
+        res.sendStatus(201);
     } catch (err) {
         res.status(500).json({
             message: err.message

@@ -21,5 +21,15 @@ router.route('/plans/products')
 router.route('/plans/products/:id')
     .all(authController.protect, authController.verifyRoles(roles.admin))
     .delete(nutritionPlansController.deleteProduct);
+
+router.route('/plans/meals')
+    .all(authController.protect, authController.verifyRoles(roles.admin))
+    .get(nutritionPlansController.getAllMeals)
+    .post(nutritionPlansController.addMeal)
+    .patch(nutritionPlansController.editMeal)
+    .delete(nutritionPlansController.deleteMeal);
     
+router.route('/plans/meal/product')
+    .all(authController.protect, authController.verifyRoles(roles.admin))
+    .patch(nutritionPlansController.editMealProduct);
 module.exports = router;

@@ -25,3 +25,36 @@ SELECT videos.title, count(c), JSON_AGG(JSON_BUILD_OBJECT(
 )) AS komentarai FROM videos
 LEFT JOIN comments AS c ON videos.id = c.video_id
 GROUP by videos.id
+
+--GET-ALL-MEALS-SELECT-START
+select fm.id, fm.title, fm.logic, fm.is_lactose, fm.is_gluten, JSON_AGG(JSON_BUILD_OBJECT(
+	'id', fmp.id,
+	'product_id', fmp.product_id,
+	'meal_id', fm.id,
+	'title', fp.title,
+	'b_100', fp.proteins,
+	'a_100', fp.carbs,
+	'r_100', fp.fat,
+	'grams', fmp.grams
+) ORDER BY fmp.created_at ASC) AS products from food_meals AS fm 
+join food_meal_products AS fmp ON fm.id = fmp.meal_id 
+join food_products AS fp ON fmp.product_id = fp.id
+group by fm.id, fm.title, fm.logic, fm.is_lactose, fm.is_gluten order by fm.created_at DESC
+--GET-ALL-MEALS-SELECT-END
+
+--GET-ALL-MEALS-SELECT-OLD-START
+select fm.id, fm.title, fm.logic, fm.is_lactose, fm.is_gluten, JSON_AGG(JSON_BUILD_OBJECT(
+	'id', fmp.id,
+	'product_id', fmp.product_id,
+	'meal_id', fm.id,
+	'title', fp.title,
+	'b', ROUND(fp.proteins * fmp.grams / 100, 1),
+	'a', ROUND(fp.carbs * fmp.grams / 100, 1),
+	'r', ROUND(fp.fat * fmp.grams / 100, 1),
+	'grams', fmp.grams,
+	'kcal', ROUND((fp.proteins*fmp.grams/100*4)+(fp.carbs*fmp.grams/100*4)+(fp.fat*fmp.grams/100*9))
+) ORDER BY fmp.created_at ASC) AS products from food_meals AS fm 
+join food_meal_products AS fmp ON fm.id = fmp.meal_id 
+join food_products AS fp ON fmp.product_id = fp.id
+group by fm.id, fm.title, fm.logic, fm.is_lactose, fm.is_gluten order by fm.created_at DESC
+--GET-ALL-MEALS-SELECT-OLD-END
