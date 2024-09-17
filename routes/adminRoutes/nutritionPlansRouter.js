@@ -6,11 +6,11 @@ const adminController = require('../../controllers/adminControllers/adminControl
 const nutritionPlansController = require('../../controllers/adminControllers/nutritionPlansController');
 const { addProductValidators } = require('../../middleware/validators/adminValidators');
 
-router.route('/plans').get(
-    authController.protect,
-    authController.verifyRoles(roles.admin),
-    nutritionPlansController.getPlans
-);
+// router.route('/plans').get(
+//     authController.protect,
+//     authController.verifyRoles(roles.admin),
+//     nutritionPlansController.getPlans
+// );
 
 router.route('/plans/products')
     .all(authController.protect, authController.verifyRoles(roles.admin))
