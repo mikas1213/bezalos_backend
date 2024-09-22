@@ -78,7 +78,7 @@ exports.editProduct = async (req, res) => {
         if(['proteins', 'carbs', 'fat'].includes(prodCell)) {
             value = value.replace(',', '.');
         }
-        await db.query(`UPDATE food_products SET ${prodCell} = $1 WHERE id = $2;`, [value, prodId]);
+        await db.query(`UPDATE food_products SET ${prodCell} = $1, updated_at = $3 WHERE id = $2;`, [value, prodId, new Date().toLocaleString('lt-LT')]);
         res.status(200).json({
             status: 'success',
             data: 'product was updated'
