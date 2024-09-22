@@ -18,7 +18,7 @@ const { validationResult } = require('express-validator');
 //     }
 // };
 
-// PRODUCTS CONTROLLERS
+/* --PRODUCTS CONTROLLERS-- */
 exports.getAllProducts = async (req, res) => {
     const {search = '', filter = ''} = req.query;
     
@@ -76,7 +76,6 @@ exports.editProduct = async (req, res) => {
         let {prodId, prodCell, value} = req.body;
 
         if(['proteins', 'carbs', 'fat'].includes(prodCell)) {
-            console.log('yra')
             value = value.replace(',', '.');
         }
         await db.query(`UPDATE food_products SET ${prodCell} = $1 WHERE id = $2;`, [value, prodId]);
@@ -106,7 +105,7 @@ exports.deleteProduct = async (req, res) => {
     }
 };
 
-// VALGIAI CONTROLLERS
+/* --MEALS CONTROLLERS-- */
 exports.getAllMeals = async (req, res) => {
     var queryString = fs.readFileSync(path.join(__dirname, '../', '../', 'database', 'queries.sql')).toString();
     queryString = queryString.match(/--GET-ALL-MEALS-SELECT-START([\s\S]*?)--GET-ALL-MEALS-SELECT-END/)[1];
@@ -119,28 +118,31 @@ exports.getAllMeals = async (req, res) => {
     }
 };
 
-exports.editMeal = async (req, res) => {
-    console.log(req.body)
+exports.addMeal = async (req, res) => {
     try {
         const {meal_id, column, value} = req.body;
-        await db.query(`UPDATE food_meals SET ${column} = $1 WHERE id = $2`, [value, meal_id]);
-        res.sendStatus(204);
+        const { rows } = await db.query(`INSERT INTO food_meals (title, logic) VALUES($1, $2) RETURNING id`, ['-', 'A+B']);
+        
+        res.status(201).json({
+            new_meal_id: rows[0].id
+        });
     } catch (err) {
         res.status(500).json({
             message: err.message
         });
     }
 };
-exports.addMeal = async (req, res) => {
-    // try {
-    //     const {meal_id, column, value} = req.body;
-    //     await db.query(`UPDATE food_meals SET ${column} = $1 WHERE id = $2`, [value, meal_id]);
-    //     res.sendStatus(204);
-    // } catch (err) {
-    //     res.status(500).json({
-    //         message: err.message
-    //     });
-    // }
+
+exports.editMeal = async (req, res) => {
+    try {
+        const {meal_id, column, value} = req.body;
+        await db.query(`UPDATE food_meals SET ${column} = $1, updated_at = $3 WHERE id = $2`, [value, meal_id, new Date().toLocaleString('lt-LT')]);
+        res.sendStatus(204);
+    } catch (err) {
+        res.status(500).json({
+            message: err.message
+        });
+    }
 };
 
 exports.deleteMeal = async (req, res) => {
@@ -155,12 +157,48 @@ exports.deleteMeal = async (req, res) => {
     }
 };
 
-exports.editMealProduct = async (req, res) => {
-
+/* --MEALS_PRODUCTS CONTROLLERS-- */
+exports.addMealProduct = async (req, res) => {
     try {
-        const { id, prod_id, grams } = req.body;
-        console.log(req.body)
-        await db.query(`UPDATE food_meal_products SET product_id = $2, grams = $3 WHERE id = $1`, [id, prod_id, grams]);
+        const { meal_id } = req.body;
+        const default_new_prod_id = '204726c7-a05a-409a-9476-aeff78d138e8';
+        const data = await db.query('INSERT INTO food_meal_products(meal_id, product_id) values($1, $2) RETURNING id, product_id;', [meal_id, default_new_prod_id]);
+        
+        res.status(201).json({
+            status: 'success',
+            message: 'Products was successfully added',
+            data: data.rows[0]
+        });
+    } catch (err) {
+        res.status(500).json({
+            status: 'error',
+            errort: 'Product wasn\'t added',
+            message: err.message
+        });
+    }
+};
+
+exports.editMealProduct = async (req, res) => {
+    
+    try {
+        let { id, prod_id, grams } = req.body;
+        grams ||= 0;
+        await db.query(`UPDATE food_meal_products SET product_id = $2, grams = $3, updated_at = $4 WHERE id = $1`, [id, prod_id, grams, new Date().toLocaleString('lt-LT')]);
+        res.status(201).json({
+            status: 'success',
+            // data: req.app.locals
+        });
+    } catch (err) {
+        res.status(500).json({
+            message: err.message
+        });
+    }
+};
+
+exports.deleteMealProduct = async (req, res) => {
+    try {
+        const { id } = req.body;
+        await db.query(`DELETE FROM food_meal_products WHERE id = $1`, [id]);
         res.sendStatus(201);
     } catch (err) {
         res.status(500).json({

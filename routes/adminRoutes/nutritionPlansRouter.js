@@ -31,5 +31,9 @@ router.route('/plans/meals')
     
 router.route('/plans/meal/product')
     .all(authController.protect, authController.verifyRoles(roles.admin))
-    .patch(nutritionPlansController.editMealProduct);
+    .post(nutritionPlansController.addMealProduct)
+    .patch(nutritionPlansController.editMealProduct)
+    .delete(nutritionPlansController.deleteMealProduct);
+
+
 module.exports = router;
