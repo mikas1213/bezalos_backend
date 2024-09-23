@@ -5,7 +5,7 @@ exports.getAllUsers = async (req, res) => {
     try {
         const { column, sort, week, month, maintenance } = req.body;
     
-        const columns = 'users.id, name, email, role, subscription, subscription_type, initial_target, subscription_expires, plan_prepare, plan_prepare_status, plan_assign, plan_assign_status, maintenance, maintenance_status, last_activity, subscriptions.status as s_status, subscriptions.current_period_end as s_subscription_expires';
+        const columns = 'users.id, name, email, stripe_username, role, subscription, subscription_type, initial_target, subscription_expires, plan_prepare, plan_prepare_status, plan_assign, plan_assign_status, maintenance, maintenance_status, last_activity, subscriptions.status as s_status, subscriptions.current_period_end as s_subscription_expires';
         let where = 'where role = $1';
         let queryParams = [2324];
 
