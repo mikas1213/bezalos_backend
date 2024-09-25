@@ -1,5 +1,5 @@
 .env_bezalos
 logs
 node_modules
-database/queries
+database/SQL
 *_key.pem

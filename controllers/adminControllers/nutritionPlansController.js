@@ -1,22 +1,8 @@
 const db = require('../../database/db');
 const fs = require('fs');
 const path = require('node:path');
-// const { trys_lentos }  = require('../../utils/sqlQueries');
 const { validationResult } = require('express-validator');
-
-// exports.getPlans = async (req, res) => {
-//     var queryString = fs.readFileSync(path.join(__dirname, '../', '../', 'database', 'queries.sql')).toString();
-//     var result = queryString.split('-- myselect');
-    
-//     try {
-//         const data = await db.query(trys_lentos, ['7e5eca39-9f96-4e1d-b6b2-7972ca583cb9']);
-//         res.status(200).json({
-//             data: data.rows
-//         });
-//     } catch (err) {
-//         console.log(err.message)
-//     }
-// };
+const Meal = require('../../Models/Meal');
 
 /* --PRODUCTS CONTROLLERS-- */
 exports.getAllProducts = async (req, res) => {
@@ -107,22 +93,22 @@ exports.deleteProduct = async (req, res) => {
 
 /* --MEALS CONTROLLERS-- */
 exports.getAllMeals = async (req, res) => {
-    var queryString = fs.readFileSync(path.join(__dirname, '../', '../', 'database', 'queries.sql')).toString();
-    queryString = queryString.match(/--GET-ALL-MEALS-SELECT-START([\s\S]*?)--GET-ALL-MEALS-SELECT-END/)[1];
+    const test = new Meal();
+    let {search = '', logic = '', is_gluten = false, is_lactose = false} = req.query;
+    const queryParams = [`%${search.toLowerCase()}%`, `%${logic}%`];
+    const queryString = Meal.getAllMealsQuery(is_gluten, is_lactose);
     
     try {
-        const { rows: data } = await db.query(queryString);
+        const { rows: data } = await db.query(queryString, queryParams);
         res.status(200).json(data);
     } catch (err) {
-        console.log(err.message)
+        console.log(err.message);
     }
 };
 
 exports.addMeal = async (req, res) => {
     try {
-        const {meal_id, column, value} = req.body;
-        const { rows } = await db.query(`INSERT INTO food_meals (title, logic) VALUES($1, $2) RETURNING id`, ['-', 'A+B']);
-        
+        const { rows } = await db.query(`INSERT INTO food_meals DEFAULT VALUES RETURNING id`);
         res.status(201).json({
             new_meal_id: rows[0].id
         });
@@ -160,10 +146,9 @@ exports.deleteMeal = async (req, res) => {
 /* --MEALS_PRODUCTS CONTROLLERS-- */
 exports.addMealProduct = async (req, res) => {
     try {
-        const { meal_id } = req.body;
-        const default_new_prod_id = '204726c7-a05a-409a-9476-aeff78d138e8';
-        const data = await db.query('INSERT INTO food_meal_products(meal_id, product_id) values($1, $2) RETURNING id, product_id;', [meal_id, default_new_prod_id]);
-        
+        const { meal_id, value } = req.body;
+        const data = await db.query('INSERT INTO food_meal_products(meal_id, product_id) values($1, $2) RETURNING id;', [meal_id, value]);
+
         res.status(201).json({
             status: 'success',
             message: 'Products was successfully added',
