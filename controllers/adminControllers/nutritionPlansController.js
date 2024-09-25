@@ -171,7 +171,6 @@ exports.editMealProduct = async (req, res) => {
         await db.query(`UPDATE food_meal_products SET product_id = $2, grams = $3, updated_at = $4 WHERE id = $1`, [id, prod_id, grams, new Date().toLocaleString('lt-LT')]);
         res.status(201).json({
             status: 'success',
-            // data: req.app.locals
         });
     } catch (err) {
         res.status(500).json({
