@@ -37,14 +37,14 @@ exports.addProduct = async (req, res) => {
             return res.status(400).json({ errors: errors.errors });
         }
         
-        let {title, proteins, carbs, fat, category, sub_category} = req.body;
-        if(sub_category === 'null') sub_category = null;
+        let {title, proteins, carbs, fat, category, sub_category, intolerance} = req.body;
+        
         title = title.trim();
         proteins = proteins.replace(',', '.');
         carbs = carbs.replace(',', '.')
         fat = fat.replace(',', '.')
         
-        const data = await db.query('INSERT INTO food_products(title, proteins, carbs, fat, category, sub_category) values($1, $2, $3, $4, $5, $6) RETURNING id;', [title, proteins, carbs, fat, category, sub_category]);
+        const data = await db.query('INSERT INTO food_products(title, proteins, carbs, fat, category, sub_category, intolerance) values($1, $2, $3, $4, $5, $6, $7) RETURNING id;', [title, proteins, carbs, fat, category, sub_category, intolerance]);
         const id = data.rows[0].id;
         
         res.status(201).json({

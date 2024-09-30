@@ -13,23 +13,19 @@ exports.signup = async (req, res) => {
     
     try {
         if(!errors.isEmpty() && errors.errors[0].path === 'email') {
-            // return res.status(400).json({ 'message': errors.errors[0].msg });
             return res.status(400).json({ errors: errors.errors });
         }
         const data = await db.query('SELECT id FROM users WHERE email = $1', [req.body.email]);
 
         if(data.rows.length) {
-            // return res.status(409).json({message: 'Toks vartotojas jau yra'});
             return res.status(409).json({ errors: [{msg:'Toks vartotojas jau yra', path:'email'}] });
         }
 
         if(!errors.isEmpty() && errors.errors[0].path === 'password') {
-            // return res.status(400).json({ message: errors.errors[0].msg });
             return res.status(400).json({ errors: errors.errors });
         }
 
         if(!errors.isEmpty() && errors.errors[0].path === 'passwordConfirmed') {
-            // return res.status(400).json({ message: errors.errors[0].msg });
             return res.status(400).json({ errors: errors.errors });
         }
         
@@ -44,7 +40,6 @@ exports.signup = async (req, res) => {
             message: 'New user successfully registered!'
         });
     } catch (err) {
-        // console.log(errors)
         res.status(500).json({ msg: err.message });
     }
 };
@@ -185,7 +180,7 @@ exports.forgotPassword = async (req, res) => {
         const encryptedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
 
         // IV - Save encryptedToken for user to databaseuser and save password_reset_expires date
-        await db.query('UPDATE users SET password_reset_token = $1, password_reset_expires = $2 WHERE email = $3', [encryptedToken, (new Date(Date.now()+10*60*1000).toISOString()), req.body.email]);
+        await db.query('UPDATE users SET password_reset_token = $2, password_reset_expires = $3, updated_at = $4 WHERE email = $1', [req.body.email, encryptedToken, (new Date(Date.now()+10*60*1000).toISOString()), new Date().toLocaleString('lt-LT')]);
 
         // V - Send rest url to user's email
         const resetUrl = `${req.protocol}://${req.get('host')}/keisti-slaptazodi/${resetToken}`;
