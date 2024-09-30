@@ -38,7 +38,7 @@ exports.addProduct = async (req, res) => {
         }
         
         let {title, proteins, carbs, fat, category, sub_category, intolerance} = req.body;
-        
+        console.log(req.body)
         title = title.trim();
         proteins = proteins.replace(',', '.');
         carbs = carbs.replace(',', '.')
