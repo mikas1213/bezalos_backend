@@ -1,8 +1,9 @@
 const db = require('../../database/db');
-const fs = require('fs');
-const path = require('node:path');
+// const fs = require('fs');
+// const path = require('node:path');
 const { validationResult } = require('express-validator');
 const Meal = require('../../Models/Meal');
+const Plan = require('../../Models/Plan');
 
 /* --PRODUCTS CONTROLLERS-- */
 exports.getAllProducts = async (req, res) => {
@@ -188,5 +189,67 @@ exports.deleteMealProduct = async (req, res) => {
         res.status(500).json({
             message: err.message
         });
+    }
+};
+
+// FOOD_PLANS CONTROLLERS
+exports.getAllPlans = async (req, res) => {
+    let { meal_count = 0, is_vegetarian = false, search = ''} = req.query;
+    is_vegetarian = is_vegetarian === 'true' ? true : false;
+    
+    try {
+        // const { rows } = await db.query(`SELECT * FROM food_plans WHERE title LIKE $1 order by created_at DESC`, [`%${search}%`]);
+        // const { rows } = await db.query(Plan.getAllPlansQuery(), [`%${search}%`]);
+
+        const { rows } = await db.query(Plan.getAllPlansQuery());
+        res.status(201).json({
+            data: rows
+        });
+    } catch (err) {
+        return res.status(400).json({ message: err.message});
+    }
+};
+
+exports.addPlan = async (req, res) => {
+    try {
+        const data = await db.query('INSERT INTO food_plans DEFAULT VALUES RETURNING id');
+        const id = data.rows[0].id;
+        
+        res.status(201).json({
+            status: 'success',
+            message: 'New plan was successfully added!',
+            id
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message});
+    }
+};
+
+exports.editPlan = async (req, res) => {
+    try {
+        const {plan_id, column, value} = req.body;
+        await db.query(`UPDATE food_plans SET ${column} = $2, updated_at = $3 WHERE id = $1`, [plan_id, value, new Date().toLocaleString('lt-LT')]);
+        res.sendStatus(204);
+    } catch (err) {
+        res.status(500).json({message: err.message});
+    }
+};
+
+exports.deletePlan = async (req, res) => {
+    try {
+        const { id } = req.body;
+        await db.query(`DELETE from food_plans WHERE id = $1`, [id]);
+    } catch (err) {
+        res.status(500).json({message: err.message});
+    }
+};
+
+exports.addPlanMeals = async (req, res) => {
+    
+    try {
+        const {plan_id, meal_id, is_sport} = req.body;
+        await db.query(`INSERT INTO food_plan_meals(plan_id, meal_id, is_sport) VALUES ($1, $2, $3)`, [plan_id, meal_id, is_sport]);
+    } catch (err) {
+        res.status(500).json({message: err.message});
     }
 };
