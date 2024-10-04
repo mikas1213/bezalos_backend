@@ -1,6 +1,4 @@
 const db = require('../../database/db');
-// const fs = require('fs');
-// const path = require('node:path');
 const { validationResult } = require('express-validator');
 const Meal = require('../../Models/Meal');
 const Plan = require('../../Models/Plan');
@@ -197,11 +195,9 @@ exports.getAllPlans = async (req, res) => {
     let { meal_count = 0, is_vegetarian = false, search = ''} = req.query;
     is_vegetarian = is_vegetarian === 'true' ? true : false;
     
+    const queryParams = is_vegetarian ? [`%${search.toLowerCase()}%`, meal_count, is_vegetarian] : [`%${search.toLowerCase()}%`, meal_count];
     try {
-        // const { rows } = await db.query(`SELECT * FROM food_plans WHERE title LIKE $1 order by created_at DESC`, [`%${search}%`]);
-        // const { rows } = await db.query(Plan.getAllPlansQuery(), [`%${search}%`]);
-
-        const { rows } = await db.query(Plan.getAllPlansQuery());
+        const { rows } = await db.query(Plan.getAllPlansQuery(meal_count, is_vegetarian), queryParams);
         res.status(201).json({
             data: rows
         });
@@ -248,7 +244,13 @@ exports.addPlanMeals = async (req, res) => {
     
     try {
         const {plan_id, meal_id, is_sport} = req.body;
-        await db.query(`INSERT INTO food_plan_meals(plan_id, meal_id, is_sport) VALUES ($1, $2, $3)`, [plan_id, meal_id, is_sport]);
+        const { rows } = await db.query(`INSERT INTO food_plan_meals(plan_id, meal_id, is_sport) VALUES ($1, $2, $3) RETURNING id`, [plan_id, meal_id, is_sport]);
+
+        res.status(201).json({
+            status: 'success',
+            message: 'Meal was successfuly added',
+            id: rows[0].id
+        });
     } catch (err) {
         res.status(500).json({message: err.message});
     }
