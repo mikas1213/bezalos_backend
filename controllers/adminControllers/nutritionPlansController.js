@@ -190,7 +190,7 @@ exports.deleteMealProduct = async (req, res) => {
     }
 };
 
-// FOOD_PLANS CONTROLLERS
+/* --FOOD_PLANS CONTROLLERS-- */
 exports.getAllPlans = async (req, res) => {
     let { meal_count = 0, is_vegetarian = false, search = ''} = req.query;
     is_vegetarian = is_vegetarian === 'true' ? true : false;
@@ -253,5 +253,21 @@ exports.addPlanMeals = async (req, res) => {
         });
     } catch (err) {
         res.status(500).json({message: err.message});
+    }
+};
+
+/* --MANAGE PLAN CONTROLLERS-- */
+
+exports.getPlan = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { rows } = await db.query(Plan.getPlanQuery(), [id]);
+        console.log(rows[0])
+        res.status(200).json({
+            status: 'success',
+            data: rows[0]
+        });
+    } catch (err) {
+        console.log(err.message)
     }
 };
