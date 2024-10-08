@@ -17,8 +17,7 @@ class Plan {
                 'logic', fm.logic,
                 'intolerance', fm.intolerance, 
                 'is_sport', fpm.is_sport,
-                'meal_time_from', fpm.meal_time_from,
-                'meal_time_to', fpm.meal_time_to,
+                'meal_time', fpm.meal_time,
                 'b', (SELECT SUM(fp.proteins * fmp.grams / 100)
                     FROM food_meal_products AS fmp
                     LEFT JOIN food_products AS fp ON fmp.product_id = fp.id
@@ -66,8 +65,7 @@ class Plan {
                 'logic', fm.logic,
                 'intolerance', fm.intolerance, 
                 'is_sport', fpm.is_sport,
-                'meal_time_from', fpm.meal_time_from,
-                'meal_time_to', fpm.meal_time_to,
+                'meal_time', fpm.meal_time,
                 'b', (SELECT SUM(fp.proteins * fmp.grams / 100)
                     FROM food_meal_products AS fmp
                     LEFT JOIN food_products AS fp ON fmp.product_id = fp.id
