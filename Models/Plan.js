@@ -34,7 +34,8 @@ class Plan {
                     WHERE fmp.meal_id = fm.id),
 
                 'products', (select COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
-                    'id', fp.id,
+                    'id', 'fmp.id',
+                    'product_id', fp.id,
                     'title', fp.title,
                     'b_100', fp.proteins,
                     'a_100', fp.carbs,
@@ -82,7 +83,8 @@ class Plan {
                     WHERE fmp.meal_id = fm.id),
 
                 'products', (select COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
-                    'id', fp.id,
+                    'id', fmp.id,
+                    'product_id', fp.id,
                     'title', fp.title,
                     'b_100', fp.proteins,
                     'a_100', fp.carbs,

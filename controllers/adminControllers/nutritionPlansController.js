@@ -19,10 +19,8 @@ exports.getAllProducts = async (req, res) => {
     }
 
     try {
-        const data = await db.query(queryString, queryParams);
-        res.status(200).json({
-            data: data.rows
-        });
+        const { rows } = await db.query(queryString, queryParams);
+        res.status(200).json(rows);
     } catch (err) {
         console.log(err.message)
     }
@@ -98,8 +96,9 @@ exports.getAllMeals = async (req, res) => {
     const queryString = Meal.getAllMealsQuery(is_gluten, is_lactose);
     
     try {
-        const { rows: data } = await db.query(queryString, queryParams);
-        res.status(200).json(data);
+        // const { rows: data } = await db.query(queryString, queryParams);
+        const { rows }  = await db.query(queryString, queryParams);
+        res.status(200).json(rows);
     } catch (err) {
         console.log(err.message);
     }
@@ -198,9 +197,7 @@ exports.getAllPlans = async (req, res) => {
     const queryParams = is_vegetarian ? [`%${search.toLowerCase()}%`, meal_count, is_vegetarian] : [`%${search.toLowerCase()}%`, meal_count];
     try {
         const { rows } = await db.query(Plan.getAllPlansQuery(meal_count, is_vegetarian), queryParams);
-        res.status(201).json({
-            data: rows
-        });
+        res.status(201).json(rows);
     } catch (err) {
         return res.status(400).json({ message: err.message});
     }
@@ -257,16 +254,11 @@ exports.addPlanMeals = async (req, res) => {
 };
 
 /* --MANAGE PLAN CONTROLLERS-- */
-
 exports.getPlan = async (req, res) => {
     try {
         const { id } = req.params;
         const { rows } = await db.query(Plan.getPlanQuery(), [id]);
-        console.log(rows[0])
-        res.status(200).json({
-            status: 'success',
-            data: rows[0]
-        });
+        res.status(200).json(rows[0]);
     } catch (err) {
         console.log(err.message)
     }
