@@ -3,41 +3,80 @@ const db = require('../../database/db');
 exports.getAllUsers = async (req, res) => {
 
     try {
+        const page = parseInt(req.query.page);
+        const pageSize = parseInt(req.query.pageSize);
+        const { search } = req.query;
+        
+        const startIndex = (page - 1) * pageSize;
+        const endIndex = page * pageSize;
+        
         const { column, sort, week, month, maintenance } = req.body;
-    
-        const columns = 'users.id, name, email, stripe_username, role, subscription, subscription_type, initial_target, subscription_expires, plan_prepare, plan_prepare_status, plan_assign, plan_assign_status, maintenance, maintenance_status, last_activity, subscriptions.status as s_status, subscriptions.current_period_end as s_subscription_expires';
-        let where = 'where role = $1';
-        let queryParams = [2324];
+        const validColumns = ['s_subscription_expires', 'name', 'email', 'subscription_expires', 'last_activity', 'plan_prepare', 'plan_assign', 'subscription_type', 'eat_status', 'eat_calories'];
+
+        const columns = `
+        users.id, 
+        role, 
+        name, 
+        email, 
+        stripe_username, 
+        initial_target, 
+        subscription, 
+        subscription_type, 
+        TO_CHAR(subscription_expires, 'YYYY-MM-DD') AS subscription_expires, 
+        TO_CHAR(plan_prepare, 'YYYY-MM-DD') AS plan_prepare, 
+        plan_prepare_status, 
+        TO_CHAR(plan_assign, 'YYYY-MM-DD') AS plan_assign, 
+        plan_assign_status, 
+        TO_CHAR(maintenance, 'YYYY-MM-DD') AS maintenance, 
+        maintenance_status, 
+        last_activity, 
+        eats_status, 
+        eats_calories, 
+        subscriptions.status as s_status, 
+        subscriptions.current_period_end as s_subscription_expires`;
+        
+        let where = 'where role = $1 AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2)';
+        let queryParams = [2324, `%${search.toLowerCase()}%`];
 
         var from = new Date();
         var to = new Date();
 
+        if(!validColumns.includes(column)) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Invalid column name'
+            });
+        }
+
         if(week && month) {
             from.setDate(from.getDate() - 14);
-            queryParams[1] = from.toLocaleString('lt-LT');
-            queryParams[2] = 'month';
+            queryParams = [2324, from.toLocaleString('lt-LT'), 'month'];
             where = `where role = $1 AND plan_assign < $2 AND plan_assign_status NOT LIKE $3`;
+
         } else if(week) {
             from.setDate(from.getDate() - 28);
             to.setDate(to.getDate() - 14);
-            queryParams[1] = from.toLocaleString('lt-LT');
-            queryParams[2] = to.toLocaleString('lt-LT');
+            queryParams = [2324, from.toLocaleString('lt-LT'), to.toLocaleString('lt-LT')];
             where = `where role = $1 AND plan_assign BETWEEN $2 AND $3`;
 
         } else if(month) {
             from.setDate(from.getDate() - 28);
-            queryParams[1] = from.toLocaleString('lt-LT');
-            queryParams[2] = 'month';
+            queryParams = [2324, from.toLocaleString('lt-LT'), 'month'];
             where = `where role = $1 AND plan_assign < $2 AND plan_assign_status NOT LIKE $3`;
+
         } else if(maintenance) {
-            where = `where role = $1 AND maintenance IS NOT null AND maintenance_status NOT LIKE '4 sav'`;
+            where = `where role = $1 AND maintenance IS NOT null AND maintenance_status NOT LIKE '4 sav' AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2)`;
         }
         
         let queryString = `SELECT ${columns} from users LEFT JOIN subscriptions ON users.id = subscriptions.user_id ${where} ORDER BY ${column} ${sort} NULLS LAST;`;
-        const data = await db.query(queryString, queryParams);       
+
+        const { rows } = await db.query(queryString, queryParams);       
+        const paginatedUsers = rows.slice(startIndex, endIndex);
+        const totalPage = Math.ceil(rows.length / pageSize);
          
         res.status(200).json({
-            users: data.rows
+            data: paginatedUsers,
+            totalPage
         });
     } catch (err) {
         console.log(err.message);
@@ -45,19 +84,78 @@ exports.getAllUsers = async (req, res) => {
 }
 
 exports.updateUser = async (req, res) => {
+    const { value, column } = req.body;
+    
+    const id = req.params.id;
+    const validColumns = [
+        'subscription_expires', 
+        'plan_prepare', 
+        'plan_assign', 
+        'maintenance', 
+        'plan_prepare_status', 
+        'plan_assign_status',
+        'maintenance_status',
+        'eats_status',
+        'eats_calories'
+    ];
+    
+    let queryString = '';
+    let queryParams = [];
+
+    try {
+        if(!validColumns.includes(column)) {
+            return res.status(400).json({
+                status: 'error',
+                message: `Column \'${column}\' don't exist!`
+            })
+        }
+
+                
+        queryString = `UPDATE users SET ${column} = $2, updated_at = $3 WHERE id = $1;`;
+        queryParams = [req.params.id, value, new Date().toLocaleString('lt-LT')];
+            
+        if(column === 'eats_calories' && isNaN(value)) throw new Error('Turi būti tik skaičiai')
+        
+        if(column === 'subscription_expires') {
+            const { stripe_type } = req.body
+            if(stripe_type) {
+                queryString = `UPDATE users SET ${column} = $2, updated_at = $3 WHERE id = $1;`;
+                queryParams = [req.params.id, value, new Date().toLocaleString('lt-LT')];
+            } else {
+                const plan = !!value ? 'Virtuvė' : 'free';
+                queryString = `UPDATE users SET ${column} = $2, subscription = $3, subscription_type = $4, updated_at = $5 WHERE id = $1;`;
+                queryParams = [req.params.id, value, !!value, plan, new Date().toLocaleString('lt-LT')];
+            }
+        } 
+            
+        await db.query(queryString, queryParams);
+        res.sendStatus(204);
+    } catch (err) {
+        console.log(err)
+        res.status(500).json({
+            status: 'error',
+            message: err.message
+        });
+    }
+}
+
+exports.updateUser2 = async (req, res) => {
     try {
         let { column, value } = req.body;
-        if(value === '') value = null;
+        value = value === '' ? null : value;
+        // value = value === 'true' ? true : false;
+        // console.log(column, ': ', value)
         let queryString = `UPDATE users SET ${column} = $1 WHERE id = $2;`;
         let queryParams = [value, req.params.id];
         
         if(column === 'subscription_expires') {
             const user = await db.query(`SELECT id, stripe_subscription_id, status from subscriptions where user_id = $1`, [req.params.id]);
 
-            // jei Stripe subscription aktyvus
+            // Jei Stripe subscription aktyvus
             if(user.rows.length) {
                 queryString = `UPDATE users SET ${column} = $1 WHERE id = $2;`;
-            // jei Stripe subscription neaktyvus
+
+            // Jei Stripe subscription neaktyvus
             } else {
                 queryString = `UPDATE users SET ${column} = $1, subscription = $3, subscription_type = $4 WHERE id = $2;`;
                 queryParams[2] = !!value;
@@ -71,7 +169,7 @@ exports.updateUser = async (req, res) => {
         }
 
     
-        await db.query(queryString, queryParams);
+        // await db.query(queryString, queryParams);
         res.sendStatus(204);
     } catch (err) {
         console.log(err.message);

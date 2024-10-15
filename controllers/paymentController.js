@@ -49,10 +49,11 @@ exports.paymentSuccess = async (req, res) => {
         const subs_start = new Date(data.object.current_period_start*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' }); 
         const subs_end = new Date(data.object.current_period_end*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' });
         const price = await stripe.prices.retrieve(data.object.plan.id);
+        const stripe_customer = await stripe.customers.retrieve(data.object.customer);
 
         const subscription_status = !data.object.cancel_at ? price.metadata.u_plan : `Cancel_${price.metadata.s_plan}`;
-        await db.query('UPDATE users SET subscription_type = $2, updated_at = $3 WHERE stripe_customer_id = $1', [data.object.customer, subscription_status, new Date().toLocaleString('lt-LT')]);
-        await db.query('UPDATE subscriptions SET current_period_start = $1, current_period_end = $2,  status = $3 WHERE stripe_subscription_id = $4', [subs_start, subs_end, price.metadata.s_plan, data.object.id]);
+        await db.query('UPDATE users SET subscription_type = $2, stripe_username = $3, updated_at = $4 WHERE stripe_customer_id = $1', [data.object.customer, subscription_status, stripe_customer.name, new Date().toLocaleString('lt-LT')]);
+        await db.query('UPDATE subscriptions SET current_period_start = $1, current_period_end = $2, status = $3 WHERE stripe_subscription_id = $4', [subs_start, subs_end, price.metadata.s_plan, data.object.id]);
     }
 
     if(event_type === 'invoice.payment_failed') {
