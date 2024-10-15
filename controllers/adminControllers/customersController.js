@@ -11,7 +11,7 @@ exports.getAllUsers = async (req, res) => {
         const endIndex = page * pageSize;
         
         const { column, sort, week, month, maintenance } = req.body;
-        const validColumns = ['s_subscription_expires', 'name', 'email', 'subscription_expires', 'last_activity', 'plan_prepare', 'plan_assign', 'subscription_type', 'eat_status', 'eat_calories'];
+        const validColumns = ['s_subscription_expires', 'name', 'email', 'subscription_expires', 'last_activity', 'plan_prepare', 'plan_assign', 'subscription_type', 'eat_status', 'eat_calories', 'created_at'];
 
         const columns = `
         users.id, 
@@ -30,6 +30,7 @@ exports.getAllUsers = async (req, res) => {
         TO_CHAR(maintenance, 'YYYY-MM-DD') AS maintenance, 
         maintenance_status, 
         last_activity, 
+        users.created_at,
         eats_status, 
         eats_calories, 
         subscriptions.status as s_status, 
@@ -44,7 +45,7 @@ exports.getAllUsers = async (req, res) => {
         if(!validColumns.includes(column)) {
             return res.status(400).json({
                 status: 'error',
-                message: 'Invalid column name'
+                message: `Invalid column ${column}`
             });
         }
 
