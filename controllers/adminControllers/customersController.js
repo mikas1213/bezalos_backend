@@ -110,7 +110,6 @@ exports.updateUser = async (req, res) => {
             })
         }
 
-                
         queryString = `UPDATE users SET ${column} = $2, updated_at = $3 WHERE id = $1;`;
         queryParams = [req.params.id, value, new Date().toLocaleString('lt-LT')];
             
@@ -130,51 +129,14 @@ exports.updateUser = async (req, res) => {
             
         await db.query(queryString, queryParams);
         res.sendStatus(204);
+        
     } catch (err) {
-        console.log(err)
         res.status(500).json({
             status: 'error',
             message: err.message
         });
     }
 }
-
-exports.updateUser2 = async (req, res) => {
-    try {
-        let { column, value } = req.body;
-        value = value === '' ? null : value;
-        // value = value === 'true' ? true : false;
-        // console.log(column, ': ', value)
-        let queryString = `UPDATE users SET ${column} = $1 WHERE id = $2;`;
-        let queryParams = [value, req.params.id];
-        
-        if(column === 'subscription_expires') {
-            const user = await db.query(`SELECT id, stripe_subscription_id, status from subscriptions where user_id = $1`, [req.params.id]);
-
-            // Jei Stripe subscription aktyvus
-            if(user.rows.length) {
-                queryString = `UPDATE users SET ${column} = $1 WHERE id = $2;`;
-
-            // Jei Stripe subscription neaktyvus
-            } else {
-                queryString = `UPDATE users SET ${column} = $1, subscription = $3, subscription_type = $4 WHERE id = $2;`;
-                queryParams[2] = !!value;
-                queryParams[3] = !!value ? 'Virtuvė' : 'free';
-            }
-        }
-
-        if(column === 'plan_assign' && value === null) {
-            queryString = `UPDATE users SET ${column} = $1, plan_assign_status = $3 WHERE id = $2;`;
-            queryParams[2] = 'none';
-        }
-
-    
-        // await db.query(queryString, queryParams);
-        res.sendStatus(204);
-    } catch (err) {
-        console.log(err.message);
-    }
-};
 
 
 
