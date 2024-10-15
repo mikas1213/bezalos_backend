@@ -35,7 +35,7 @@ exports.getAllUsers = async (req, res) => {
         subscriptions.status as s_status, 
         subscriptions.current_period_end as s_subscription_expires`;
         
-        let where = 'where role = $1 AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2)';
+        let where = `where role = $1 AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2)`;
         let queryParams = [2324, `%${search.toLowerCase()}%`];
 
         var from = new Date();
@@ -65,7 +65,7 @@ exports.getAllUsers = async (req, res) => {
             where = `where role = $1 AND plan_assign < $2 AND plan_assign_status NOT LIKE $3`;
 
         } else if(maintenance) {
-            where = `where role = $1 AND maintenance IS NOT null AND maintenance_status NOT LIKE '4 sav' AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2)`;
+            where = `where role = $1 AND maintenance IS NOT null AND maintenance_status NOT LIKE '4 sav' AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2)`;
         }
         
         let queryString = `SELECT ${columns} from users LEFT JOIN subscriptions ON users.id = subscriptions.user_id ${where} ORDER BY ${column} ${sort} NULLS LAST;`;
@@ -129,7 +129,6 @@ exports.updateUser = async (req, res) => {
             
         await db.query(queryString, queryParams);
         res.sendStatus(204);
-        
     } catch (err) {
         res.status(500).json({
             status: 'error',
