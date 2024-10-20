@@ -1,5 +1,19 @@
 const db = require('../../database/db');
 
+exports.searchUsers = async (req, res) => {
+    try {
+        const { search } = req.query;
+        const queryString = `SELECT id, name, email, stripe_username FROM users WHERE LOWER(name) LIKE $1 OR LOWER(email) LIKE $1 OR LOWER(stripe_username) LIKE $1`;
+        const { rows } = await db.query(queryString, [`%${search}%`]);       
+        res.status(200).json(rows);
+    } catch (err) {
+        res.status(500).json({
+            status: 'error',
+            message: err.message
+        })
+    }
+};
+
 exports.getAllUsers = async (req, res) => {
 
     try {
@@ -10,7 +24,7 @@ exports.getAllUsers = async (req, res) => {
         const startIndex = (page - 1) * pageSize;
         const endIndex = page * pageSize;
         
-        const { column, sort, week, month, maintenance } = req.body;
+        const { column, sort = 'ASC', week, month, maintenance } = req.body;
         const validColumns = ['s_subscription_expires', 'name', 'email', 'subscription_expires', 'last_activity', 'plan_prepare', 'plan_assign', 'subscription_type', 'eat_status', 'eat_calories', 'created_at'];
 
         const columns = `
@@ -82,7 +96,23 @@ exports.getAllUsers = async (req, res) => {
     } catch (err) {
         console.log(err.message);
     }
-}
+};
+
+exports.getOneUser = async (req, res) => {
+    
+    try {
+        const { id } = req.params;
+        const { rows } = await db.query(`SELECT name, stripe_username, email, plan_assign, subscription_type
+            from users WHERE id = $1`, [id]);     
+        res.status(200).json(rows[0]);
+
+    } catch (err) {
+        res.status(500).json({
+            status: 'error',
+            messagee: err.message
+        });
+    }
+};
 
 exports.updateUser = async (req, res) => {
     const { value, column } = req.body;
@@ -136,7 +166,7 @@ exports.updateUser = async (req, res) => {
             message: err.message
         });
     }
-}
+};
 
 
 

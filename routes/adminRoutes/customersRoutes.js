@@ -5,17 +5,15 @@ const authController = require('../../controllers/authController');
 const adminControllers = require('../../controllers/adminControllers/adminController');
 const customersController = require('../../controllers/adminControllers/customersController');
 
-router.route('/users').post(
-    authController.protect,
-    authController.verifyRoles(roles.admin),
-    customersController.getAllUsers
-);
+router.route('/users')
+    .all(authController.protect, authController.verifyRoles(roles.admin))
+    .get(customersController.searchUsers)
+    .post(customersController.getAllUsers);
 
-router.route('/user/:id').patch(
-    authController.protect,
-    authController.verifyRoles(roles.admin),
-    customersController.updateUser
-);
+router.route('/user/:id')
+.all(authController.protect, authController.verifyRoles(roles.admin))
+    .get(customersController.getOneUser)
+    .patch(customersController.updateUser);
 
 router.route('/videos').get(
     authController.protect,

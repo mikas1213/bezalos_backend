@@ -90,7 +90,6 @@ exports.deleteProduct = async (req, res) => {
 
 /* --MEALS CONTROLLERS-- */
 exports.getAllMeals = async (req, res) => {
-    const test = new Meal();
     let {search = '', logic = '', is_gluten = false, is_lactose = false} = req.query;
     const queryParams = [`%${search.toLowerCase()}%`, `%${logic}%`];
     const queryString = Meal.getAllMealsQuery(is_gluten, is_lactose);
@@ -261,5 +260,48 @@ exports.getPlan = async (req, res) => {
         res.status(200).json(rows[0]);
     } catch (err) {
         console.log(err.message)
+    }
+};
+
+/* --ASSIGN PLAN CONTROLLERS-- */
+exports.assignPlan = async (req, res) => {
+    try {
+        
+        /* ---I-N-S-E-R-T-I-N-G---P-L-A-N--- */
+        const {user_id, plan} = req.body;
+        const insertPlanQuery = 'INSERT INTO user_plans (user_id, title, b, a, r, kcal) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id';
+        await db.query('BEGIN');
+        const { rows: plan_row } = await db.query(insertPlanQuery, [user_id, plan.title, plan.b, plan.a, plan.r, plan.kcal]);
+        
+        /* ---I-N-S-E-R-T-I-N-G---M-E-A-L-S--- */
+        let mealDate = new Date();
+        const plan_id = plan_row[0].id;
+        const insertMealsQuery = 'INSERT INTO user_meals (plan_id, title, logic, intolerance, is_sport, meal_time, b, a, r, kcal, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id';
+
+        for(const meal of plan.meals) {
+            mealDate.setSeconds(mealDate.getSeconds() + 1);
+            const { rows: meal_row } = await db.query(insertMealsQuery, [plan_id, meal.title, meal.logic, meal.intolerance, meal.is_sport, meal.meal_time, meal.b, meal.a, meal.r, meal.kcal, mealDate.toLocaleString('lt-LT')]);
+            
+            /* ---I-N-S-E-R-T-I-N-G---P-R-O-D-U-C-T-S--- */
+            let prodDate = new Date();
+            const meal_id = meal_row[0].id;
+            const insertProdQuery = 'INSERT INTO user_products (meal_id, title, b_100, a_100, r_100, grams, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)';
+            for(const prod of meal.products.filter(prod => !prod.is_sport)) {
+                prodDate.setSeconds(prodDate.getSeconds() + 1);
+                const { rows: meal_row } = await db.query(insertProdQuery, [meal_id, prod.title, prod.b_100, prod.a_100, prod.r_100, prod.grams, prodDate.toLocaleString('lt-LT')]);
+            }
+        }
+
+        await db.query('COMMIT');
+
+        res.status(200).json({
+            status: 'success'
+        });
+    } catch (err) {
+        
+        await db.query('ROLLBACK');
+        res.status(500).json({
+            message: err.message
+        })
     }
 };

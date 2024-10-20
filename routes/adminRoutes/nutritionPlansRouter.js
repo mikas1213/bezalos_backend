@@ -2,7 +2,7 @@ const roles = require('../../utils/roles');
 const express = require('express');
 const router = express.Router();
 const authController = require('../../controllers/authController');
-const adminController = require('../../controllers/adminControllers/adminController');
+// const adminController = require('../../controllers/adminControllers/adminController');
 const nutritionPlansController = require('../../controllers/adminControllers/nutritionPlansController');
 const { addProductValidators } = require('../../middleware/validators/adminValidators');
 
@@ -33,6 +33,10 @@ router.route('/plans/meals')
     .post(nutritionPlansController.addMeal)
     .patch(nutritionPlansController.editMeal)
     .delete(nutritionPlansController.deleteMeal);
+
+router.route('/plans/assign')
+    .all(authController.protect, authController.verifyRoles(roles.admin))
+    .post(nutritionPlansController.assignPlan)
 
 router.route('/plans/:id')
     .all(authController.protect, authController.verifyRoles(roles.admin))

@@ -18,6 +18,7 @@ const credentials = require('./middleware/credentials');
 
 const authRoutes = require('./routes/authRoutes');
 const videoRoutes = require('./routes/videoRoutes');
+const profileRoutes = require('./routes/profileRoutes');
 const mailerRoutes = require('./routes/mailerRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const customersRoutes = require('./routes/adminRoutes/customersRoutes');
@@ -40,6 +41,7 @@ app.use(errorHandler);
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/videos', videoRoutes);
+app.use('/api/v1/profile', profileRoutes);
 app.use('/api/v1/mailer', mailerRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/admin', [

@@ -25,7 +25,7 @@ class Meal {
             'grams', fmp.grams
         ) ORDER BY fmp.created_at ASC) FILTER (WHERE fmp.id IS NOT NULL), '[]'::json) AS products from food_meals AS fm
         LEFT join food_meal_products AS fmp ON fm.id = fmp.meal_id 
-        LEFT join food_products AS fp ON fmp.product_id = fp.id ${where}
+        LEFT join food_products AS fp ON fmp.product_id = fp.id ${where} AND fm.is_template = true
         group by fm.id, fm.title, fm.logic, fm.intolerance order by fm.created_at DESC`;
 
         return queryString;

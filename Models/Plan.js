@@ -3,8 +3,8 @@ const db = require('../database/db');
 class Plan {
     static getAllPlansQuery(meal_count, is_vegetarian) {
 
-        let where = `WHERE LOWER(fpl.title) LIKE $1`;
-        if(is_vegetarian) where = `WHERE LOWER(fpl.title) LIKE $1 AND fpl.is_vegetarian = $3`;
+        let where = `WHERE LOWER(fpl.title) LIKE $1 AND fpl.plan_type = 'template'`;
+        if(is_vegetarian) where = `WHERE LOWER(fpl.title) LIKE $1 AND fpl.is_vegetarian = $3 AND fpl.plan_type = 'template'`;
 
         let having = `HAVING COUNT(CASE WHEN fpm.meal_id IS NOT NULL THEN 1 END) >= $2`;
         if(meal_count > 0) having = `HAVING COUNT(CASE WHEN fpm.meal_id IS NOT NULL THEN 1 END) = $2`;
@@ -78,6 +78,10 @@ class Plan {
                     WHERE fmp.meal_id = fm.id),
 
                 'r', (SELECT SUM(fp.fat * fmp.grams / 100)
+                    FROM food_meal_products AS fmp
+                    LEFT JOIN food_products AS fp ON fmp.product_id = fp.id
+                    WHERE fmp.meal_id = fm.id),
+                'kcal', (SELECT SUM((fp.proteins * fmp.grams / 100 * 4) + (fp.carbs * fmp.grams / 100 * 4) + (fp.fat * fmp.grams / 100 * 9))
                     FROM food_meal_products AS fmp
                     LEFT JOIN food_products AS fp ON fmp.product_id = fp.id
                     WHERE fmp.meal_id = fm.id),
