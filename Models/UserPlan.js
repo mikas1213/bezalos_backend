@@ -4,6 +4,7 @@ class UserPlan {
     static getUserPlans() {
 
         const queryString = `SELECT up.id, up.title, up.b, up.a, up.r, up.kcal, COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
+            'id', um.id,
             'title', um.title,
             'logic', um.logic,
             'intolerance', um.intolerance,
@@ -14,6 +15,7 @@ class UserPlan {
             'r', um.r,
             'kcal', um.kcal,
             'products', COALESCE((SELECT JSON_AGG(JSON_BUILD_OBJECT(
+                'id', up.id,
                 'title', up.title,
                 'b_100', up.b_100,
                 'a_100', up.a_100,
