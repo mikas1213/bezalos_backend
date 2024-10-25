@@ -108,13 +108,13 @@ exports.refresh = async (req, res) => {
     const refreshToken = cookies.jwt;
     // const user = await db.query('SELECT id, stripe_customer_id, refresh_token FROM users WHERE refresh_token = $1', [refreshToken]);
     const user = await db.query('SELECT users.id, stripe_customer_id, subscription, subscription_expires, refresh_token, s.status AS s_status, s.current_period_end AS s_subscription_expires FROM users LEFT JOIN subscriptions as s ON s.user_id = users.id WHERE refresh_token = $1', [refreshToken]);
-   
+    
     if(!user.rows[0]) return res.sendStatus(403); // Forbidden
+
     const today = Date.parse(new Date().toLocaleString('lt-LT', {dateStyle: 'short'}));
     const subs_exp = Date.parse(new Date(user.rows[0].subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
     const s_subs_exp = Date.parse(new Date(user.rows[0].s_subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
 
-    
     jwt.verify(
         refreshToken,
         process.env.REFRESH_TOKEN_SECRET,
