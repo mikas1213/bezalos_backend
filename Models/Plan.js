@@ -3,13 +3,13 @@ const db = require('../database/db');
 class Plan {
     static getAllPlansQuery(meal_count, is_vegetarian) {
 
-        let where = `WHERE LOWER(fpl.title) LIKE $1 AND fpl.plan_type = 'template'`;
-        if(is_vegetarian) where = `WHERE LOWER(fpl.title) LIKE $1 AND fpl.is_vegetarian = $3 AND fpl.plan_type = 'template'`;
+        let where = `WHERE LOWER(fpl.title) LIKE $1`;
+        if(is_vegetarian) where = `WHERE LOWER(fpl.title) LIKE $1 AND fpl.is_vegetarian = $3`;
 
         let having = `HAVING COUNT(CASE WHEN fpm.meal_id IS NOT NULL THEN 1 END) >= $2`;
         if(meal_count > 0) having = `HAVING COUNT(CASE WHEN fpm.meal_id IS NOT NULL THEN 1 END) = $2`;
 
-        const queryString = `SELECT fpl.id, fpl.plan_type, fpl.title, fpl.is_vegetarian, CAST(COUNT(fpm.meal_id) AS INTEGER) AS meal_count,
+        const queryString = `SELECT fpl.id, fpl.title, fpl.is_vegetarian, CAST(COUNT(fpm.meal_id) AS INTEGER) AS meal_count,
 	        COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
                 'id', fpm.id,
                 'meal_id', fm.id,
@@ -51,14 +51,14 @@ class Plan {
         LEFT JOIN food_plan_meals AS fpm ON fpl.id = fpm.plan_id 
         LEFT JOIN food_meals AS fm ON fpm.meal_id = fm.id 
         ${where}
-        GROUP BY fpl.id, fpl.plan_type, fpl.title, fpl.is_vegetarian
+        GROUP BY fpl.id, fpl.title, fpl.is_vegetarian
         ${having}
         ORDER BY fpl.created_at DESC`;
         return queryString;
     }
 
     static getPlanQuery() {
-        const queryString = `SELECT fpl.id, fpl.plan_type, fpl.title, fpl.is_vegetarian,
+        const queryString = `SELECT fpl.id, fpl.title, fpl.is_vegetarian,
             COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
                 'id', fpm.id,
                 'meal_id', fm.id,
@@ -104,7 +104,7 @@ class Plan {
         LEFT JOIN food_plan_meals AS fpm ON fpl.id = fpm.plan_id 
         LEFT JOIN food_meals AS fm ON fpm.meal_id = fm.id 
         WHERE fpl.id = $1
-        GROUP BY fpl.id, fpl.plan_type, fpl.title, fpl.is_vegetarian`;
+        GROUP BY fpl.id, fpl.title, fpl.is_vegetarian`;
 
         return queryString;
     }
