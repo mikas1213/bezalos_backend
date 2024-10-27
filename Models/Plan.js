@@ -2,7 +2,6 @@ const db = require('../database/db');
 
 class Plan {
     static getAllPlansQuery(meal_count, is_vegetarian) {
-
         let where = `WHERE LOWER(fpl.title) LIKE $1`;
         if(is_vegetarian) where = `WHERE LOWER(fpl.title) LIKE $1 AND fpl.is_vegetarian = $3`;
 
@@ -90,6 +89,8 @@ class Plan {
                     'id', fmp.id,
                     'product_id', fp.id,
                     'title', fp.title,
+                    'category', fp.category,
+                    'sub_category', fp.sub_category,
                     'b_100', fp.proteins,
                     'a_100', fp.carbs,
                     'r_100', fp.fat,

@@ -19,6 +19,8 @@ class Meal {
             'product_id', fmp.product_id,
             'meal_id', fm.id,
             'title', fp.title,
+            'category', fp.category,
+            'sub_category', fp.sub_category,
             'b_100', fp.proteins,
             'a_100', fp.carbs,
             'r_100', fp.fat,

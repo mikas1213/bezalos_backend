@@ -36,6 +36,8 @@ class UserPlan {
                 'products', COALESCE((SELECT JSON_AGG(JSON_BUILD_OBJECT(
                     'id', up.id,
                     'title', up.title,
+                    'category', up.category,
+                    'sub_category', up.sub_category,
                     'b_100', up.b_100,
                     'a_100', up.a_100,
                     'r_100', up.r_100,
@@ -45,7 +47,7 @@ class UserPlan {
             FROM user_plans up 
             LEFT JOIN user_meals AS um ON up.id = um.plan_id 
             WHERE user_id = $1
-            GROUP BY up.id, up.title, up.b, up.a, up.r, up.kcal;`;
+            GROUP BY up.id, up.title;`;
 
         const queryString_old = `SELECT up.id, up.title, up.b, up.a, up.r, up.kcal, COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
             'id', um.id,
@@ -71,7 +73,7 @@ class UserPlan {
         FROM user_plans up 
         LEFT JOIN user_meals um ON up.id = um.plan_id 
         WHERE user_id = $1
-        GROUP BY up.id, up.title, up.b, up.a, up.r, up.kcal;`;
+        GROUP BY up.id, up.title;`;
 
         return queryString;
     }
