@@ -58,11 +58,11 @@ exports.login = async (req, res) => {
         
         const validPassword = await bcrypt.compare(password, user.rows[0].password);
         if(!validPassword) return res.status(401).json({errors: [{path: 'auth', type: 'server', msg: 'Netinkamas el. paštas arba slaptažodis!'}]});
-        
+        console.log('Login user: ', user.rows[0])
         const today = Date.parse(new Date().toLocaleString('lt-LT', {dateStyle: 'short'}));
         const subs_exp = Date.parse(new Date(user.rows[0].subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
         const s_subs_exp = Date.parse(new Date(user.rows[0].s_subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
-
+        
         const accessToken = jwt.sign({ 
             user_id: user.rows[0].id,
             user_name: user.rows[0].email,
@@ -114,7 +114,7 @@ exports.refresh = async (req, res) => {
     const today = Date.parse(new Date().toLocaleString('lt-LT', {dateStyle: 'short'}));
     const subs_exp = Date.parse(new Date(user.rows[0].subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
     const s_subs_exp = Date.parse(new Date(user.rows[0].s_subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
-
+    
     jwt.verify(
         refreshToken,
         process.env.REFRESH_TOKEN_SECRET,
@@ -125,7 +125,7 @@ exports.refresh = async (req, res) => {
                 user_id: decoded.user_id,
                 user_name: decoded.user_name,
                 user_role: decoded.user_role,
-
+    
                 // str_cus_id: decoded.str_cus_id,
                 // user_subscription: decoded.user_subscription,
                 // user_s_subscription: decoded.user_s_subscription,
@@ -185,7 +185,6 @@ exports.forgotPassword = async (req, res) => {
         // V - Send rest url to user's email
         const resetUrl = `${req.protocol}://${req.get('host')}/keisti-slaptazodi/${resetToken}`;
         await new Email(user.rows[0].email, '', resetUrl).sendForgotPassword();
-        // console.log(resetUrl);
 
         res.status(200).json({
             status: 'success',
