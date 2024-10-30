@@ -58,7 +58,7 @@ exports.login = async (req, res) => {
         
         const validPassword = await bcrypt.compare(password, user.rows[0].password);
         if(!validPassword) return res.status(401).json({errors: [{path: 'auth', type: 'server', msg: 'Netinkamas el. paštas arba slaptažodis!'}]});
-        console.log('Login user: ', user.rows[0])
+
         const today = Date.parse(new Date().toLocaleString('lt-LT', {dateStyle: 'short'}));
         const subs_exp = Date.parse(new Date(user.rows[0].subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
         const s_subs_exp = Date.parse(new Date(user.rows[0].s_subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));

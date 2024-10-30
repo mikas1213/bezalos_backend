@@ -285,10 +285,10 @@ exports.assignPlan = async (req, res) => {
             /* ---I-N-S-E-R-T-I-N-G---P-R-O-D-U-C-T-S--- */
             let prodDate = new Date();
             const meal_id = meal_row[0].id;
-            const insertProdQuery = 'INSERT INTO user_products (meal_id, title, category, sub_category, b_100, a_100, r_100, grams, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)';
+            const insertProdQuery = 'INSERT INTO user_products (plan_id, meal_id, title, category, sub_category, b_100, a_100, r_100, grams, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)';
             for(const prod of meal.products.filter(prod => !prod.is_sport)) {
                 prodDate.setSeconds(prodDate.getSeconds() + 1);
-                await db.query(insertProdQuery, [meal_id, prod.title, prod.category, prod.sub_category, prod.b_100, prod.a_100, prod.r_100, prod.grams, prodDate.toLocaleString('lt-LT')]);
+                await db.query(insertProdQuery, [plan_id, meal_id, prod.title, prod.category, prod.sub_category, prod.b_100, prod.a_100, prod.r_100, prod.grams, prodDate.toLocaleString('lt-LT')]);
             }
         }
 
