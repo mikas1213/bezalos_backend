@@ -52,7 +52,7 @@ exports.login = async (req, res) => {
         const { email, password } = req.body;
         if(!errors.isEmpty()) return res.status(400).json({ errors: errors.errors });
 
-        const user = await db.query('SELECT users.id, stripe_customer_id, role, email, password, subscription_expires, s.status AS s_status, s.current_period_end AS s_subscription_expires FROM users LEFT JOIN subscriptions as s ON s.user_id = users.id WHERE email = $1', [email]);
+        const user = await db.query('SELECT users.id, stripe_customer_id, role, email, password, subscription_expires, subscription_type AS u_status, s.status AS s_status, s.current_period_end AS s_subscription_expires FROM users LEFT JOIN subscriptions as s ON s.user_id = users.id WHERE email = $1', [email]);
         
         if(!user.rows[0]) return res.status(401).json({errors: [{path: 'auth', type: 'server', msg: 'Netinkamas el. paštas arba slaptažodis!'}]}); 
         
@@ -70,6 +70,7 @@ exports.login = async (req, res) => {
             str_cus_id: user.rows[0].stripe_customer_id,
             user_subscription: subs_exp >= today,
             user_s_subscription: s_subs_exp >= today,
+            u_status: user.rows[0].u_status,
             s_status: user.rows[0].s_status
         }, process.env.ACCESS_TOKEN_SECRET, {
             // expiresIn: process.env.ACCESS_TOKEN_EXPIRES
@@ -83,6 +84,7 @@ exports.login = async (req, res) => {
             str_cus_id: user.rows[0].stripe_customer_id,
             user_subscription: subs_exp >= today,
             user_s_subscription: s_subs_exp >= today,
+            u_status: user.rows[0].u_status,
             s_status: user.rows[0].s_status
         }, process.env.REFRESH_TOKEN_SECRET, {
             // expiresIn: user.rows[0].role == process.env.ADMIN_ROLE ? process.env.REFRESH_TOKEN_EXPIRES_LONG : process.env.REFRESH_TOKEN_EXPIRES
@@ -106,11 +108,10 @@ exports.refresh = async (req, res) => {
     if(!cookies?.jwt) return res.sendStatus(401);
 
     const refreshToken = cookies.jwt;
-    // const user = await db.query('SELECT id, stripe_customer_id, refresh_token FROM users WHERE refresh_token = $1', [refreshToken]);
-    const user = await db.query('SELECT users.id, stripe_customer_id, subscription, subscription_expires, refresh_token, s.status AS s_status, s.current_period_end AS s_subscription_expires FROM users LEFT JOIN subscriptions as s ON s.user_id = users.id WHERE refresh_token = $1', [refreshToken]);
+    const user = await db.query('SELECT users.id, stripe_customer_id, subscription, subscription_expires, refresh_token, subscription_type AS u_status, s.status AS s_status, s.current_period_end AS s_subscription_expires FROM users LEFT JOIN subscriptions as s ON s.user_id = users.id WHERE refresh_token = $1', [refreshToken]);
     
     if(!user.rows[0]) return res.sendStatus(403); // Forbidden
-
+    
     const today = Date.parse(new Date().toLocaleString('lt-LT', {dateStyle: 'short'}));
     const subs_exp = Date.parse(new Date(user.rows[0].subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
     const s_subs_exp = Date.parse(new Date(user.rows[0].s_subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
@@ -134,6 +135,7 @@ exports.refresh = async (req, res) => {
                 str_cus_id: user.rows[0].stripe_customer_id,
                 user_subscription: subs_exp >= today,
                 user_s_subscription: s_subs_exp >= today,
+                u_status: user.rows[0].u_status,
                 s_status: user.rows[0].s_status,
             }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_EXPIRES});
             res.json({ accessToken });
@@ -269,23 +271,28 @@ exports.protect = (req, res, next) => {
         req.user_subscription = decoded.user_subscription;
         req.str_cus_id = decoded.str_cus_id;
         req.user_s_subscription = decoded.user_s_subscription
-        req.s_status = decoded.s_status
+        req.s_status = decoded.s_status;
+        req.u_status = decoded.u_status;
         next();
     });
 };
 
-// exports.isSubscription = (req, res, next) => {
-//     const {user_subscription, user_s_subscription, s_status} = req;
-//     console.log(user_subscription, user_s_subscription, s_status)
-    
-//     if(!req.user_subscription) return res.sendStatus(402);
-//     next();
-// };
-
-exports.isSubscription = plan => {
+exports.isSubscription_old = plan => {
     return (req, res, next) => {
-        const {user_subscription, user_s_subscription, s_status} = req;   
+        const { user_subscription, user_s_subscription, s_status } = req;   
         if(!req.user_subscription && s_status !== plan) return res.sendStatus(402);
+        next();
+    };
+}
+
+exports.isSubscription = (...allowedSubscriptionTypes) => {
+    return (req, res, next) => {
+        const {user_subscription, user_s_subscription, u_status, s_status} = req;   
+        const u_sub = user_subscription && allowedSubscriptionTypes.includes(u_status);
+        const s_sub = user_s_subscription && allowedSubscriptionTypes.includes(s_status);
+        const is_sub = !(u_sub || s_sub);
+
+        if(is_sub) return res.sendStatus(402);
         next();
     };
 }
