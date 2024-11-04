@@ -1,4 +1,5 @@
 const db = require('../../database/db');
+const UserPlan = require('../../Models/UserPlan');
 
 exports.searchUsers = async (req, res) => {
     try {
@@ -102,14 +103,16 @@ exports.getOneUser = async (req, res) => {
     
     try {
         const { id } = req.params;
-        const { rows } = await db.query(`SELECT name, stripe_username, email, plan_assign, subscription_type
-            from users WHERE id = $1`, [id]);     
+        const { rows } = await db.query(UserPlan.getUserDetailsQuery(), [id]);     
+        if(rows.length === 0) return res.status(404).json({
+            message: 'Toks vartotojas nerastas'
+        });
         res.status(200).json(rows[0]);
 
     } catch (err) {
         res.status(500).json({
             status: 'error',
-            messagee: err.message
+            message: err.message
         });
     }
 };
@@ -168,7 +171,98 @@ exports.updateUser = async (req, res) => {
     }
 };
 
+exports.updateUserPlan = async (req, res) => {
+    
+    const { id: plan_id } = req.params;
+    const { action, actionData } = req.body;
+    const today = new Date().toLocaleString('lt-LT');
 
+    try {
+        switch(action) {
+            case 'update-plan-title':
+                await updatePlanTitle(actionData.title, today, actionData.user_id, plan_id);
+                break;
+            case 'update-meal-time':
+                await updateMealTime(actionData.meal_time, plan_id, actionData.meal_id);
+                break;
+            case 'update-meal': 
+                await updateMeal(actionData.meal, today, plan_id, actionData.meal_id);
+                break;
+            case 'update-product':
+                await updateProduct(actionData.prod, today, plan_id, actionData.meal_id, actionData.prod_id);
+                break;
+            case 'update-prod-grams':
+                updateProdGrams(actionData.grams, today, plan_id, actionData.prod_id);
+                break;
+            case 'delete-product':
+                deleteProducts(plan_id, actionData.meal_id, actionData.prod_id);
+                break;
+            case 'delete-plan':
+                deletePlan(actionData.user_id, plan_id);
+                break;
+            default:
+                return res.status(400).json({message: 'Invalid action'})
+        }
+        res.sendStatus(200);
+    } catch (err) {
+        res.status(500).json({
+            status: 'error',
+            message: err.message
+        });
+    }
+};
+
+
+async function updatePlanTitle(title, today, user_id, plan_id) {
+    const query_str = 'UPDATE user_plans SET title = $1, updated_at = $2 WHERE user_id = $3 AND id = $4';
+    await db.query(query_str, [title, today, user_id, plan_id]);
+}
+
+async function updateMealTime(meal_time, plan_id, meal_id) {
+    const query_str = 'UPDATE user_meals SET meal_time = $1 WHERE plan_id = $2 AND id = $3';
+    await db.query(query_str, [meal_time, plan_id, meal_id]);
+}
+
+async function updateMeal(meal, today, plan_id, meal_id) {
+
+    try {
+        let prod_date = new Date();
+        const query_str = 'UPDATE user_meals SET title = $1, logic = $2, intolerance = $3, updated_at = $4 WHERE plan_id = $5 AND id = $6'; 
+        await db.query('BEGIN');
+        await db.query(query_str, [meal.label, meal.logic, meal.intolerance, today, plan_id, meal_id]);
+        await db.query('DELETE FROM user_products WHERE plan_id = $1 AND meal_id = $2', [plan_id, meal_id]);
+
+        const prod_query = 'INSERT INTO user_products (meal_id, plan_id, title, category, sub_category, b_100, a_100, r_100, grams, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)';
+        for(const prod of meal.products) {
+            prod_date.setSeconds(prod_date.getSeconds() + 1);
+            await db.query(prod_query, [meal_id, plan_id, prod.title, prod.category, prod.sub_category, prod.b_100, prod.a_100, prod.r_100, prod.grams, prod_date.toLocaleString('lt-LT')]);
+        }
+
+        await db.query('COMMIT');
+    } catch (err) {
+        await db.query('ROLLBACK');
+        throw new Error(err.message)
+    }
+}
+
+async function updateProduct(prod, today, plan_id, meal_id, prod_id) {
+    const query_str = 'UPDATE user_products SET title = $1, category = $2, sub_category = $3, b_100 = $4, a_100 = $5, r_100 = $6, updated_at = $7 WHERE plan_id = $8 AND meal_id = $9 AND id = $10';
+    await db.query(query_str, [prod.label, prod.category, prod.sub_category, prod.b_100, prod.a_100, prod.r_100, today, plan_id, meal_id, prod_id]);
+}
+
+async function updateProdGrams(grams, today, plan_id, prod_id) {
+    const query_str = 'UPDATE user_products SET grams = $1, updated_at = $2 WHERE plan_id = $3 AND id = $4';
+    await db.query(query_str, [grams, today, plan_id, prod_id]);
+}
+
+async function deleteProducts(plan_id, meal_id, prod_id) {
+    const query_str = 'DELETE from user_products WHERE plan_id = $1 AND meal_id = $2 AND id = $3';
+    await db.query(query_str, [plan_id, meal_id, prod_id]);
+}
+
+async function deletePlan(user_id, plan_id) {
+    await db.query('DELETE from user_plans WHERE user_id = $1 AND id = $2', [user_id, plan_id]);
+}
 
 
 

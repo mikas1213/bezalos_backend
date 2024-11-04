@@ -1,18 +1,19 @@
 const express = require('express');
-const roles = require('../utils/roles');
+// const roles = require('../utils/roles');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const profileController = require('../controllers/profileController');
+const { validateUUID, validateUUIDs } = require('../middleware/validate_uuid');
 
 router.route('/plans/:id')
     .all(authController.protect)
-    .get(profileController.getAllUserPlans);
+    .get(validateUUID, profileController.getAllUserPlans);
 
 router.route('/products/:plan_id/:prod_id')
     .all(authController.protect,
         authController.isSubscription('profilis', 'virtuve', 'Virtuvė')
     )
-    .patch(profileController.updateProduct)
+    .patch(validateUUIDs, profileController.updateProduct)
 
 router.route('/products')
     .all(authController.protect,

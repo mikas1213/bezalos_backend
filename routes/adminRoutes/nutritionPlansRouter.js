@@ -2,9 +2,9 @@ const roles = require('../../utils/roles');
 const express = require('express');
 const router = express.Router();
 const authController = require('../../controllers/authController');
-// const adminController = require('../../controllers/adminControllers/adminController');
 const nutritionPlansController = require('../../controllers/adminControllers/nutritionPlansController');
 const { addProductValidators } = require('../../middleware/validators/adminValidators');
+const { validateUUID } = require('../../middleware/validate_uuid');
 
 
 router.route('/plans/meal/product')
@@ -40,7 +40,7 @@ router.route('/plans/assign')
 
 router.route('/plans/:id')
     .all(authController.protect, authController.verifyRoles(roles.admin))
-    .get(nutritionPlansController.getPlan);
+    .get(validateUUID, nutritionPlansController.getPlan);
     
 router.route('/plans')
     .all(authController.protect, authController.verifyRoles(roles.admin))
@@ -49,12 +49,4 @@ router.route('/plans')
     .patch(nutritionPlansController.editPlan)
     .delete(nutritionPlansController.deletePlan);
     
-
-
-
-
-    
-
-
-
 module.exports = router;
