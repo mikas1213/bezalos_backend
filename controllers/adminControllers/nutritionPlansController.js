@@ -33,15 +33,15 @@ exports.addProduct = async (req, res) => {
         if(!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.errors });
         }
-        
-        let {title, proteins, carbs, fat, category, sub_category, intolerance} = req.body;
+        console.log(req.body)
+        let {title, proteins, carbs, fat, category, sub_category, group, intolerance} = req.body;
         console.log(req.body)
         title = title.trim();
         proteins = proteins.replace(',', '.');
         carbs = carbs.replace(',', '.')
         fat = fat.replace(',', '.')
         
-        const data = await db.query('INSERT INTO food_products(title, proteins, carbs, fat, category, sub_category, intolerance) values($1, $2, $3, $4, $5, $6, $7) RETURNING id;', [title, proteins, carbs, fat, category, sub_category, intolerance]);
+        const data = await db.query('INSERT INTO food_products(title, proteins, carbs, fat, category, sub_category, "group", intolerance) values($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id;', [title, proteins, carbs, fat, category, sub_category, group, intolerance]);
         const id = data.rows[0].id;
         
         res.status(201).json({
@@ -61,7 +61,7 @@ exports.editProduct = async (req, res) => {
         if(['proteins', 'carbs', 'fat'].includes(prodCell)) {
             value = value.replace(',', '.');
         }
-        await db.query(`UPDATE food_products SET ${prodCell} = $1, updated_at = $3 WHERE id = $2;`, [value, prodId, new Date().toLocaleString('lt-LT')]);
+        await db.query(`UPDATE food_products SET "${prodCell}" = $1, updated_at = $3 WHERE id = $2;`, [value, prodId, new Date().toLocaleString('lt-LT')]);
         res.status(200).json({
             status: 'success',
             data: 'product was updated'
