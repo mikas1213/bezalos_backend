@@ -15,7 +15,7 @@ exports.getAllUserPlans = async (req, res) => {
 
 exports.getAllProfileProducts = async (req, res) => {
     try {
-        const { rows } = await db.query('SELECT id, title, CAST(proteins AS REAL), CAST(carbs AS REAL), CAST(fat AS REAL), category, sub_category FROM food_products ORDER BY title ASC');
+        const { rows } = await db.query('SELECT id, title, CAST(proteins AS REAL), CAST(carbs AS REAL), CAST(fat AS REAL), category, sub_category, "group" FROM food_products ORDER BY title ASC');
         res.status(200).json(rows);
     } catch (err) {
         res.status(500).json({
@@ -36,8 +36,7 @@ exports.updateProduct = async (req, res) => {
             a_100 = $7, 
             r_100 = $8, 
             updated_at = $9
-            WHERE plan_id = $1 AND id = $2
-        `, [plan_id, prod_id, title, category, sub_category, proteins, carbs, fat, new Date().toLocaleString('lt-LT')]);
+            WHERE plan_id = $1 AND id = $2`, [plan_id, prod_id, title, category, sub_category, proteins, carbs, fat, new Date().toLocaleString('lt-LT')]);
         res.sendStatus(204);
     } catch (err) {
         res.status(500).json({
