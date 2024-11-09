@@ -5,7 +5,7 @@ exports.searchUsers = async (req, res) => {
     try {
         const { search } = req.query;
         const queryString = `SELECT id, name, email, stripe_username FROM users WHERE LOWER(name) LIKE $1 OR LOWER(email) LIKE $1 OR LOWER(stripe_username) LIKE $1`;
-        const { rows } = await db.query(queryString, [`%${search}%`]);       
+        const { rows } = await db.query(queryString, [`%${search.toLowerCase()}%`]);       
         res.status(200).json(rows);
     } catch (err) {
         res.status(500).json({
