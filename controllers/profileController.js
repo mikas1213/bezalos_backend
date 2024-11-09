@@ -27,7 +27,8 @@ exports.getAllProfileProducts = async (req, res) => {
 exports.updateProduct = async (req, res) => {
     try {
         const { plan_id, prod_id } = req.params;
-        const { title, category, sub_category, proteins, carbs, fat } = req.body;
+        const { title, category, sub_category, proteins, carbs, fat, grams } = req.body;
+
         await db.query(`UPDATE 
             user_products SET title = $3, 
             category = $4, 
@@ -35,8 +36,9 @@ exports.updateProduct = async (req, res) => {
             b_100 = $6, 
             a_100 = $7, 
             r_100 = $8, 
-            updated_at = $9
-            WHERE plan_id = $1 AND id = $2`, [plan_id, prod_id, title, category, sub_category, proteins, carbs, fat, new Date().toLocaleString('lt-LT')]);
+            grams = $9,
+            updated_at = $10
+            WHERE plan_id = $1 AND id = $2`, [plan_id, prod_id, title, category, sub_category, proteins, carbs, fat, grams, new Date().toLocaleString('lt-LT')]);
         res.sendStatus(204);
     } catch (err) {
         res.status(500).json({
