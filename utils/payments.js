@@ -19,12 +19,11 @@ exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_na
             allow_promotion_codes: plan_price === 'virtuve_month',
             // success_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/apmoketa-sekmingai?session_id={CHECKOUT_SESSION_ID}' : 'https://bezalos.dulevicius.dev/apmoketa-sekmingai?session_id={CHECKOUT_SESSION_ID}'}`,
             // cancel_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://bezalos.dulevicius.dev/paslaugos'}`,
-            success_url: `${hostname}/apmoketa-sekmingai?session_id={CHECKOUT_SESSION_ID}`,
+            success_url: `${hostname}/apmoketa-sekmingai?plan=${plan_name}&session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${hostname}/paslaugos`,
             metadata: { user_id, subscription_status: plan_name },
             // customer_creation: 'if_required' in payment mode only
         });
-        
         return session;
 
     } catch (err) {

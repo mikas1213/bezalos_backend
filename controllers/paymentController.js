@@ -29,8 +29,9 @@ exports.createCheckoutSession = async (req, res) => {
 exports.paymentSuccess = async (req, res) => {
     const event_type = req.body.type;
     const data = req.body.data;
-    
+
     if(event_type === 'checkout.session.completed' && data.object.payment_status === 'paid') {
+        for_success_subs_page = data.object.metadata.subscription_status;
         const userId = data.object.metadata.user_id;
         let type = 'free';
         let stripe_username = data.object?.customer_details?.name;
