@@ -6,9 +6,7 @@ const addProductValidators = [
     body('carbs').notEmpty().withMessage('Neįvesti angliavandeniai'),
     body('fat').notEmpty().withMessage('Neįvesti riebalai'),
     body('category').notEmpty().withMessage('Nepasirinkta kategorija'),
-    body('sub_category').notEmpty()
-    // .optional({ nullable: false, checkFalsy: false })
-    .withMessage('Nepasirinkta subkategorija')
+    // body('sub_category').notEmpty().withMessage('Nepasirinkta subkategorija')
 ];
 
 module.exports = { addProductValidators };

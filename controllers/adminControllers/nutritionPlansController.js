@@ -33,8 +33,8 @@ exports.addProduct = async (req, res) => {
         if(!errors.isEmpty()) {
             return res.status(400).json({ errors: errors.errors });
         }
-        let {title, proteins, carbs, fat, category, sub_category, food_type, intolerance} = req.body;
-
+        let {title, proteins, carbs, fat, category, sub_category = '-', food_type = '-', intolerance = '-'} = req.body;
+        
         title = title.trim();
         proteins = proteins.replace(',', '.');
         carbs = carbs.replace(',', '.')
