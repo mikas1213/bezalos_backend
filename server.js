@@ -2,7 +2,7 @@ require('dotenv').config({path: './.env_bezalos'});
 
 const express = require('express');
 const app = express();
-const path = require('path');
+// const path = require('path');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit')
 const cookieParser = require('cookie-parser');
@@ -25,7 +25,7 @@ const nutritionPlansRoutes = require('./routes/adminRoutes/nutritionPlansRouter'
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 min
     max: 220, // Limitas per langą
-    message: 'Too many requests from this IP, please try again later.'
+    message: 'Too many requests.'
 });
 
 app.use(logger);
