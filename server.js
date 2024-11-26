@@ -22,9 +22,10 @@ const mailerRoutes = require('./routes/mailerRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const customersRoutes = require('./routes/adminRoutes/customersRoutes');
 const nutritionPlansRoutes = require('./routes/adminRoutes/nutritionPlansRouter');
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 min
-    max: 10000, // Limitas per langą
+
+const videos_limiter = rateLimit({
+    windowMs: 10 * 60 * 1000, // 15 min
+    max: 12, // Limitas per langą
     message: 'Too many requests.'
 });
 
@@ -41,7 +42,7 @@ app.use(require('sanitize').middleware);
 app.use(credentials);
 app.use(cors(corsOptions));
 app.use(errorHandler);
-app.use(limiter);
+// app.use(limiter);
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/videos', videoRoutes);
