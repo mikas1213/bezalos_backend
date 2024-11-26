@@ -3,11 +3,8 @@ const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
 const profileController = require('../controllers/profileController');
-const { validateUUID, validateUUIDs } = require('../middleware/validate_uuid');
-
-router.route('/plans/:id')
-    .all(authController.protect)
-    .get(validateUUID, profileController.getAllUserPlans);
+const { validateUUID, validateUUIDs } = require('../middleware/validators/validate_uuid');
+const { sanitizeInput, xssProtection, validateSanitization } = require('../middleware/validators/anketaValidator');
 
 router.route('/products/:plan_id/:prod_id')
     .all(authController.protect,
@@ -15,11 +12,18 @@ router.route('/products/:plan_id/:prod_id')
     )
     .patch(validateUUIDs, profileController.updateProduct)
 
+router.route('/anketa/:user_id')
+    .all(authController.protect)
+    .post(sanitizeInput, xssProtection, validateSanitization, profileController.submitAnketa);
+
 router.route('/products')
     .all(authController.protect,
         // authController.isSubscription('virtuve')
     )
     .get(profileController.getAllProfileProducts);
 
+router.route('/:id')
+    .all(authController.protect)
+    .get(validateUUID, profileController.getUserDetails);
 
 module.exports = router;

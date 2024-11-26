@@ -4,7 +4,7 @@ const roles = require('../../utils/roles');
 const authController = require('../../controllers/authController');
 const adminControllers = require('../../controllers/adminControllers/adminController');
 const customersController = require('../../controllers/adminControllers/customersController');
-const { validateUUID } = require('../../middleware/validate_uuid');
+const { validateUUID } = require('../../middleware/validators/validate_uuid');
 
 router.route('/user/plan/:id')
     .all(

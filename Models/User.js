@@ -1,61 +1,7 @@
 const db = require('../database/db');
 
-class UserPlan {
-    static getUserPlans() {
-
-        const queryString = `SELECT 
-            up.id, 
-            up.title, 
-            (SELECT SUM(u_prod.b_100 * u_prod.grams / 100) FROM user_products AS u_prod 
-                INNER JOIN user_meals AS um ON um.id = u_prod.meal_id 
-                WHERE um.plan_id = up.id)::INTEGER AS b,
-
-            (SELECT SUM(u_prod.a_100 * u_prod.grams / 100) FROM user_products AS u_prod 
-                INNER JOIN user_meals AS um ON um.id = u_prod.meal_id 
-                WHERE um.plan_id = up.id)::INTEGER AS a,
-
-            (SELECT SUM(u_prod.r_100 * u_prod.grams / 100) FROM user_products AS u_prod 
-                INNER JOIN user_meals AS um ON um.id = u_prod.meal_id 
-                WHERE um.plan_id = up.id)::INTEGER AS r,
-
-            (SELECT SUM((u_prod.b_100 * u_prod.grams / 100 * 4) + (u_prod.a_100 * u_prod.grams / 100 * 4) + (u_prod.r_100 * u_prod.grams / 100 * 9)) FROM user_products AS u_prod 
-                INNER JOIN user_meals AS um ON um.id = u_prod.meal_id 
-                WHERE um.plan_id = up.id)::INTEGER AS kcal,
-
-            COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
-                'id', um.id,
-                'meal_id', um.id,
-                'title', um.title,
-                'logic', um.logic,
-                'intolerance', um.intolerance,
-                'is_sport', um.is_sport,
-                'meal_time', um.meal_time,
-                'b', (SELECT SUM(u_prod.b_100 * u_prod.grams / 100)::INTEGER FROM user_products AS u_prod WHERE u_prod.meal_id = um.id),
-                'a', (SELECT SUM(u_prod.a_100 * u_prod.grams / 100)::INTEGER FROM user_products AS u_prod WHERE u_prod.meal_id = um.id),
-                'r', (SELECT SUM(u_prod.r_100 * u_prod.grams / 100)::INTEGER FROM user_products AS u_prod WHERE u_prod.meal_id = um.id),
-                'kcal', (SELECT SUM((u_prod.b_100 * u_prod.grams / 100 * 4) + (u_prod.a_100 * u_prod.grams / 100 * 4) + (u_prod.r_100 * u_prod.grams / 100 * 9)) FROM user_products AS u_prod WHERE u_prod.meal_id = um.id)::INTEGER,
-                'products', COALESCE((SELECT JSON_AGG(JSON_BUILD_OBJECT(
-                    'id', up.id,
-                    'product_id', up.id,
-                    'title', up.title,
-                    'category', up.category,
-                    'sub_category', up.sub_category,
-                    'b_100', up.b_100,
-                    'a_100', up.a_100,
-                    'r_100', up.r_100,
-                    'grams', up.grams
-                ) ORDER BY up.created_at ASC) FROM user_products AS up WHERE up.meal_id = um.id), '[]'::json))
-            ORDER BY um.created_at ASC), '[]'::json) AS meals 
-            FROM user_plans up
-            LEFT JOIN user_meals AS um ON up.id = um.plan_id 
-            WHERE user_id = $1
-            GROUP BY up.id, up.title ORDER BY up.created_at ASC;`;
-
-        return queryString;
-    }
-
+class User {
     static getUserDetailsQuery() {
-
         const queryString = `SELECT 
             u.id,
             u.name,
@@ -64,6 +10,8 @@ class UserPlan {
             u.plan_assign, 
             u.subscription_type,
             u.initial_target,
+            (SELECT COALESCE(JSON_AGG(a.*), '[]'::json) FROM anketa a WHERE a.user_id = $1) as anketa,
+            -- (SELECT JSONB_OBJECT_AGG(a.id, a.user_id) FROM anketa a WHERE a.user_id = $1) as anketa,
             COALESCE((SELECT JSON_AGG(JSON_BUILD_OBJECT(
                 'id', up.id,
                 'title', up.title,
@@ -109,6 +57,77 @@ class UserPlan {
 
         return queryString;
     }
+
+    static userAnketaUpsertQuery() {
+        const queryString = `
+        INSERT INTO anketa(
+            user_id, 
+            gender, 
+            age, 
+            height, 
+            weight, 
+            activity_steps,
+            goal,
+            schedule,
+            feeding,
+            feeding_desc,
+            health_problems,
+            health_problems_desc,
+            diet,
+            diet_desc,
+            intolerance,
+            intolerance_desc,
+            breakfast, 
+            breakfast_time, 
+            breakfast_desc, 
+            lunch, 
+            lunch_time, 
+            lunch_desc, 
+            snack, 
+            snack_time, 
+            snack_desc, 
+            dinner, 
+            dinner_time, 
+            dinner_desc, 
+            routines, 
+            additional_info)
+            VALUES(
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 
+                $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30
+            ) ON CONFLICT (user_id) DO UPDATE SET
+                gender = EXCLUDED.gender, 
+                age = EXCLUDED.age, 
+                height = EXCLUDED.height, 
+                weight = EXCLUDED.weight, 
+                activity_steps = EXCLUDED.activity_steps,
+                goal = EXCLUDED.goal,
+                schedule = EXCLUDED.schedule,
+                feeding = EXCLUDED.feeding,
+                feeding_desc = EXCLUDED.feeding_desc,
+                health_problems = EXCLUDED.health_problems,
+                health_problems_desc = EXCLUDED.health_problems_desc,
+                diet = EXCLUDED.diet,
+                diet_desc = EXCLUDED.diet_desc,
+                intolerance = EXCLUDED.intolerance,
+                intolerance_desc = EXCLUDED.intolerance_desc,
+                breakfast = EXCLUDED.breakfast, 
+                breakfast_time = EXCLUDED.breakfast_time, 
+                breakfast_desc = EXCLUDED.breakfast_desc, 
+                lunch = EXCLUDED.lunch, 
+                lunch_time = EXCLUDED.lunch_time, 
+                lunch_desc = EXCLUDED.lunch_desc, 
+                snack = EXCLUDED.snack, 
+                snack_time = EXCLUDED.snack_time, 
+                snack_desc = EXCLUDED.snack_desc, 
+                dinner = EXCLUDED.dinner, 
+                dinner_time = EXCLUDED.dinner_time, 
+                dinner_desc = EXCLUDED.dinner_desc, 
+                routines = EXCLUDED.routines, 
+                additional_info = EXCLUDED.additional_info,
+                updated_at = CURRENT_TIMESTAMP
+        `;
+        return queryString;
+    }
 };
 
-module.exports = UserPlan;
+module.exports = User;

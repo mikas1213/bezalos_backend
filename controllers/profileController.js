@@ -1,10 +1,12 @@
 const db = require('../database/db');
-const UserPlan = require('../Models/UserPlan');
-exports.getAllUserPlans = async (req, res) => {
+const User = require('../Models/User');
+
+exports.getUserDetails = async (req, res) => {
 
     try {
         const { id } = req.params;
-        const { rows } = await db.query(UserPlan.getUserPlans(), [id])
+        const { rows } = await db.query(User.getUserDetailsQuery(), [id]);
+        
         res.status(200).json(rows);
     } catch (err) {
         res.status(500).json({
@@ -56,5 +58,84 @@ exports.updateProduct = async (req, res) => {
         res.status(500).json({
             message: err.message
         })
+    }
+};
+
+exports.submitAnketa = async (req, res) => {
+    
+    const { user_id } = req.params;
+    try {
+        const {
+            gender,
+            age,
+            height,
+            weight,
+            activity_steps,
+            goal,
+            schedule,
+            feeding,
+            feeding_desc,
+            health_problems,
+            health_problems_desc,
+            diet,
+            diet_desc,
+            intolerance,
+            intolerance_desc,
+            breakfast,
+            breakfast_time,
+            breakfast_desc,
+            lunch,
+            lunch_time,
+            lunch_desc,
+            snack,
+            snack_time, 
+            snack_desc, 
+            dinner, 
+            dinner_time, 
+            dinner_desc,
+            routines,
+            additional_info,
+            updated_at
+        } = req.body;
+
+        const queryValues = [
+            user_id,
+            gender,
+            age,
+            height,
+            weight,
+            activity_steps,
+            goal,
+            schedule,
+            feeding,
+            feeding_desc,
+            health_problems,
+            health_problems_desc,
+            diet,
+            diet_desc,
+            intolerance,
+            intolerance_desc,
+            breakfast,
+            breakfast_time,
+            breakfast_desc,
+            lunch,
+            lunch_time,
+            lunch_desc,
+            snack,
+            snack_time, 
+            snack_desc, 
+            dinner, 
+            dinner_time, 
+            dinner_desc,
+            routines,
+            additional_info
+        ];
+
+        await db.query(User.userAnketaUpsertQuery(), queryValues);
+        res.status(200).json(req.body);
+    } catch (err) {
+        res.status(500).json({
+            message: err.message
+        });
     }
 };

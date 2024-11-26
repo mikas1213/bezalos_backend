@@ -4,7 +4,7 @@ const router = express.Router();
 const authController = require('../../controllers/authController');
 const nutritionPlansController = require('../../controllers/adminControllers/nutritionPlansController');
 const { addProductValidators } = require('../../middleware/validators/adminValidators');
-const { validateUUID } = require('../../middleware/validate_uuid');
+const { validateUUID } = require('../../middleware/validators/validate_uuid');
 
 
 router.route('/plans/meal/product')
