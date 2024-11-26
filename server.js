@@ -24,7 +24,7 @@ const customersRoutes = require('./routes/adminRoutes/customersRoutes');
 const nutritionPlansRoutes = require('./routes/adminRoutes/nutritionPlansRouter');
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 min
-    max: 220, // Limitas per langą
+    max: 10000, // Limitas per langą
     message: 'Too many requests.'
 });
 
