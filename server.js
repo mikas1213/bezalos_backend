@@ -2,7 +2,8 @@ require('dotenv').config({path: './.env_bezalos'});
 
 const express = require('express');
 const app = express();
-// const path = require('path');
+const jwt = require('jsonwebtoken');
+
 const cors = require('cors');
 const rateLimit = require('express-rate-limit')
 const cookieParser = require('cookie-parser');
@@ -23,10 +24,27 @@ const paymentRoutes = require('./routes/paymentRoutes');
 const customersRoutes = require('./routes/adminRoutes/customersRoutes');
 const nutritionPlansRoutes = require('./routes/adminRoutes/nutritionPlansRouter');
 
-const videos_limiter = rateLimit({
-    windowMs: 10 * 60 * 1000, // 15 min
-    max: 12, // Limitas per langą
-    message: 'Too many requests.'
+// const limiter = rateLimit({
+//     windowMs: 10 * 60 * 1000, 
+//     max: 120,
+//     message: 'Too many requests.'
+// });
+
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+
+    max: function(req) {
+        let limit = (req.path.indexOf('auth/refresh') > -1 || req.path.indexOf('/videos') > -1) ? 500 : 150;
+        return limit;
+    },
+
+    message: req => {
+        return {
+            status: 429,
+            message: `Too many requests.`
+        };
+    },
+    skip: (req) => req.path.indexOf('/admin') > -1
 });
 
 app.use(logger);
@@ -42,7 +60,7 @@ app.use(require('sanitize').middleware);
 app.use(credentials);
 app.use(cors(corsOptions));
 app.use(errorHandler);
-// app.use(limiter);
+app.use(limiter);
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/videos', videoRoutes);
