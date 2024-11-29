@@ -52,7 +52,7 @@ class Plan {
         ${where}
         GROUP BY fpl.id, fpl.title, fpl.is_vegetarian
         ${having}
-        ORDER BY fpl.created_at DESC`;
+        ORDER BY fpl.is_vegetarian ASC, fpl.created_at DESC`;
         return queryString;
     }
 
