@@ -23,7 +23,7 @@ exports.getStats = async (req, res) => {
             (SELECT count(*) from users WHERE subscription_type = 'Profilis' AND role = 2324) AS profilis_active,
             (SELECT count(*) from food_plans) AS plans,
             (SELECT count(*) from food_meals) AS meals,
-            (SELECT count(*) from food_products) AS products;
+            (SELECT count(*) from food_products) AS products; 
         `);
         
         res.status(200).json(data.rows[0]);
