@@ -18,38 +18,39 @@ exports.searchUsers = async (req, res) => {
 exports.getAllUsers = async (req, res) => {
 
     try {
+        /* PAGINATION */
         const page = parseInt(req.query.page);
         const pageSize = parseInt(req.query.pageSize);
-        const { search } = req.query;
-        
         const startIndex = (page - 1) * pageSize;
         const endIndex = page * pageSize;
-        
+        /* - - - - - - */
+
+        const { search } = req.query;
         const { column, sort = 'ASC', week, month, maintenance } = req.body;
         const validColumns = ['s_subscription_expires', 'name', 'email', 'subscription_expires', 'last_activity', 'plan_prepare', 'plan_assign', 'subscription_type', 'eat_status', 'eat_calories', 'created_at'];
 
         const columns = `
-        users.id, 
-        role, 
-        name, 
-        email, 
-        stripe_username, 
-        initial_target, 
-        subscription, 
-        subscription_type, 
-        TO_CHAR(subscription_expires, 'YYYY-MM-DD') AS subscription_expires, 
-        TO_CHAR(plan_prepare, 'YYYY-MM-DD') AS plan_prepare, 
-        plan_prepare_status, 
-        TO_CHAR(plan_assign, 'YYYY-MM-DD') AS plan_assign, 
-        plan_assign_status, 
-        TO_CHAR(maintenance, 'YYYY-MM-DD') AS maintenance, 
-        maintenance_status, 
-        last_activity, 
-        users.created_at,
-        eats_status, 
-        eats_calories, 
-        subscriptions.status as s_status, 
-        subscriptions.current_period_end as s_subscription_expires`;
+            users.id, 
+            role, 
+            name, 
+            email, 
+            stripe_username, 
+            initial_target, 
+            subscription, 
+            subscription_type, 
+            TO_CHAR(subscription_expires, 'YYYY-MM-DD') AS subscription_expires, 
+            TO_CHAR(plan_prepare, 'YYYY-MM-DD') AS plan_prepare, 
+            plan_prepare_status, 
+            TO_CHAR(plan_assign, 'YYYY-MM-DD') AS plan_assign, 
+            plan_assign_status, 
+            TO_CHAR(maintenance, 'YYYY-MM-DD') AS maintenance, 
+            maintenance_status, 
+            last_activity, 
+            users.created_at,
+            eats_status, 
+            eats_calories, 
+            subscriptions.status as s_status, 
+            subscriptions.current_period_end as s_subscription_expires`;
         
         let where = `where role = $1 AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2)`;
         let queryParams = [2324, `%${search.toLowerCase()}%`];

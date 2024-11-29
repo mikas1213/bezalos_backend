@@ -2,9 +2,10 @@ const db = require('../database/db');
 
 class Meal {
     static getAllMealsQuery(is_gluten, is_lactose) {
+        
         is_gluten = is_gluten === 'true' ? true : false;
         is_lactose = is_lactose === 'true' ? true : false;
-
+        
         let where = 'where LOWER(fm.title) LIKE $1 AND fm.logic LIKE $2';
         if(is_gluten && is_lactose) {
             where += ` AND (fm.intolerance = 'gluten_free' OR fm.intolerance = 'lactose_free')`;
