@@ -73,8 +73,7 @@ exports.login = async (req, res) => {
             u_status: user.rows[0].u_status,
             s_status: user.rows[0].s_status
         }, process.env.ACCESS_TOKEN_SECRET, {
-            // expiresIn: process.env.ACCESS_TOKEN_EXPIRES
-            expiresIn: '10s'
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRES
         });
 
         const refreshToken = jwt.sign({ 
@@ -87,12 +86,11 @@ exports.login = async (req, res) => {
             u_status: user.rows[0].u_status,
             s_status: user.rows[0].s_status
         }, process.env.REFRESH_TOKEN_SECRET, {
-            // expiresIn: user.rows[0].role == process.env.ADMIN_ROLE ? process.env.REFRESH_TOKEN_EXPIRES_LONG : process.env.REFRESH_TOKEN_EXPIRES
-            expiresIn: '3d'
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRES
         });
         
         await db.query('UPDATE users SET refresh_token = $1, last_activity = $2 WHERE id = $3', [refreshToken, new Date().toISOString(), user.rows[0].id]);
-        res.cookie('jwt', refreshToken, { httpOnly: true, secure: true, maxAge: 24 * 60 * 60 * 1000 });
+        res.cookie('jwt', refreshToken, { httpOnly: true, secure: true, maxAge: 2 * 24 * 60 * 60 * 1000 });
 
         res.status(200).json({
             accessToken
