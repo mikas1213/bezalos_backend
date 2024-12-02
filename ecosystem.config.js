@@ -1,6 +1,6 @@
 module.exports = {
     apps: [{
-      name: "Be žalos",
+      name: "bezalos.lt",
       script: "./server.js",
       error_file: "./logs_pm2/error.log",
       out_file: "./logs_pm2/out.log",
