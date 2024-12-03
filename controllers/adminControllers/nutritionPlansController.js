@@ -89,7 +89,6 @@ exports.deleteProduct = async (req, res) => {
 
 /* --MEALS CONTROLLERS-- */
 exports.getAllMeals = async (req, res) => {
-    
     let {search = '', logic = '', is_gluten = false, is_lactose = false, page, pageSize} = req.query;
     
     const queryParams = [`%${search.toLowerCase()}%`, `%${logic}%`];
@@ -103,9 +102,9 @@ exports.getAllMeals = async (req, res) => {
         const { rows }  = await db.query(queryString, queryParams);
         const paginatedMeals = rows.slice(startIndex, endIndex);
         const totalPage = Math.ceil(rows.length / pageSize);
-        
+
         res.status(200).json({
-            data: paginatedMeals,
+            data: page ? paginatedMeals : rows,
             totalPage
         });
     } catch (err) {
