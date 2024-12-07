@@ -50,7 +50,6 @@ const valid_desc = (field, maxLength, field_2, page) => {
     let chain = body(field)
         .trim()
         .isLength({ max: maxLength })
-        .escape()
         .custom((value, { req }) => !(req.body[field_2] && value.length === 0))
         .withMessage({error: `Trūksta informacijos`, page });
     return chain;
@@ -60,7 +59,6 @@ const valid_meal_desc = (field, maxLength, field_2, page) => {
     let chain = body(field)
         .trim()
         .isLength({ max: maxLength })
-        .escape()
         .custom((value, { req }) => req.body[field_2] || (!req.body[field_2] && value.length > 0))
         .withMessage({error: `Trūksta informacijos`, page });
     return chain;
@@ -139,7 +137,7 @@ const sanitizeInput = [
     body('routines').customSanitizer(value => JSON.stringify(value)),
     
     /* PAGE 7 */
-    body('nadditional_info').trim().isLength({max: limits.additional_info}).escape()
+    body('additional_info').trim().isLength({max: limits.additional_info})
 ];
 
 const xssProtection = (req, res, next) => {

@@ -5,6 +5,7 @@ const authController = require('../controllers/authController');
 const profileController = require('../controllers/profileController');
 const { validateUUID, validateUUIDs } = require('../middleware/validators/validate_uuid');
 const { sanitizeInput, xssProtection, validateSanitization } = require('../middleware/validators/anketaValidator');
+const { sanitizeRecipeInputs, xssRecipeProtection, validateRecipeSanitization } = require('../middleware/validators/newRecipeValidator');
 
 router.route('/products/:plan_id/:prod_id')
     .all(authController.protect,
@@ -15,6 +16,14 @@ router.route('/products/:plan_id/:prod_id')
 router.route('/anketa/:user_id')
     .all(authController.protect)
     .post(sanitizeInput, xssProtection, validateSanitization, profileController.submitAnketa);
+
+router.route('/new-recipe/:user_id')
+    .all(
+        authController.protect, 
+        authController.isSubscription('virtuve', 'Virtuvė', 'profilis')
+    )
+    // .get(profileController.getAllUserRecipes)
+    .post(sanitizeRecipeInputs, xssRecipeProtection, validateRecipeSanitization, profileController.saveNewRecipe)
 
 router.route('/products')
     .all(authController.protect,

@@ -31,7 +31,8 @@ exports.addMailToMailerList = async (req, res) => {
 exports.sendOfferMail = async (req, res) => {
     const errors = validationResult(req);
     const { email } = req.body;
-    const video = 'https://youtu.be/7AyRYZ6oKb8';
+    // const video = 'https://youtu.be/7AyRYZ6oKb8';
+    const video = 'https://youtu.be/w8G1KrQilbs';
     const today = new Date();
     today.setDate(today.getDate() + 30);
 
@@ -57,8 +58,7 @@ exports.sendOfferMail = async (req, res) => {
 
         res.status(201).json({
             status: 'success',
-            message: 'Offer successfully sent!',
-            // data: data.rows
+            message: 'Offer successfully sent!'
         });
     } catch (err) {
         res.status(500).json({ msg: err.message });

@@ -27,7 +27,7 @@ exports.getAllProfileProducts = async (req, res) => {
             sub_category, 
             food_type 
             FROM food_products 
-            WHERE NOT(proteins = 0 AND carbs = 0 AND fat = 0)
+            -- WHERE NOT(proteins = 0 AND carbs = 0 AND fat = 0)
             ORDER BY title ASC`
         );
         res.status(200).json(rows);
@@ -137,5 +137,34 @@ exports.submitAnketa = async (req, res) => {
         res.status(500).json({
             message: err.message
         });
+    }
+};
+
+exports.saveNewRecipe = async (req, res) => {
+    const { user_id } = req.params;
+    const { title, products } = req.body;
+
+    try {
+        const insertRecipeQuery = 'INSERT INTO user_recipes (user_id, title) VALUES ($1, $2) RETURNING id';
+        await db.query('BEGIN');
+        const data = await db.query(insertRecipeQuery, [user_id, title]); 
+
+        let prodDate = new Date();
+        const recipe_id = data.rows[0].id;
+
+        const insertProdsQuery = 'INSERT INTO user_recipe_products (recipe_id, product_id, title, proteins, carbs, fat, grams, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)';
+        for(const prod of products) {
+            prodDate.setSeconds(prodDate.getSeconds() + 1);
+            
+            await db.query(insertProdsQuery, [recipe_id, prod.product_id, prod.title, prod.proteins, prod.carbs, prod.fat, prod.grams, prodDate.toLocaleString('lt-LT')]);
+        }
+
+        await db.query('COMMIT');
+        res.sendStatus(200);
+    } catch (err) {
+        await db.query('ROLLBACK');
+        res.status(500).json({
+            message: err.message
+        })
     }
 };
