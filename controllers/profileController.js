@@ -142,12 +142,12 @@ exports.submitAnketa = async (req, res) => {
 
 exports.saveNewRecipe = async (req, res) => {
     const { user_id } = req.params;
-    const { title, products } = req.body;
+    const { title, logic, products } = req.body;
 
     try {
-        const insertRecipeQuery = 'INSERT INTO user_recipes (user_id, title) VALUES ($1, $2) RETURNING id';
+        const insertRecipeQuery = 'INSERT INTO user_recipes (user_id, title, logic) VALUES ($1, $2, $3) RETURNING id';
         await db.query('BEGIN');
-        const data = await db.query(insertRecipeQuery, [user_id, title]); 
+        const data = await db.query(insertRecipeQuery, [user_id, title, logic]); 
 
         let prodDate = new Date();
         const recipe_id = data.rows[0].id;

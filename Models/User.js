@@ -13,6 +13,7 @@ class User {
             COALESCE((SELECT JSON_AGG(JSON_BUILD_OBJECT( 
                 'id', ur.id,
                 'title', ur.title,
+                'logic', ur.logic,
                 'b', (
                     SELECT SUM(urp.proteins * urp.grams / 100)
                     FROM user_recipe_products urp 
@@ -28,6 +29,11 @@ class User {
                     FROM user_recipe_products urp 
                     WHERE urp.recipe_id = ur.id
                 ),
+                'kcal', (
+                    SELECT SUM((urp.proteins * urp.grams / 100 * 4) + (urp.carbs * urp.grams / 100 * 4) + (urp.fat * urp.grams / 100 * 9))
+                    FROM user_recipe_products urp 
+                    WHERE urp.recipe_id = ur.id
+                ),
                 'products', (SELECT COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
                     'id', urp.id,
                     'product_id', urp.product_id,
@@ -37,7 +43,7 @@ class User {
                     'fat', urp.fat,
                     'grams', urp.grams
                 ) ORDER BY urp.created_at ASC), '[]'::json) FROM user_recipe_products urp WHERE urp.recipe_id = ur.id)) 
-            ORDER BY ur.created_at ASC) FROM user_recipes ur WHERE ur.user_id = $1), '[]'::json) AS recipes,
+            ORDER BY ur.created_at DESC) FROM user_recipes ur WHERE ur.user_id = $1), '[]'::json) AS recipes,
             (SELECT COALESCE(JSON_AGG(a.*), '[]'::json) FROM anketa a WHERE a.user_id = $1) as anketa,
             -- (SELECT JSONB_OBJECT_AGG(a.id, a.user_id) FROM anketa a WHERE a.user_id = $1) as anketa,
             COALESCE((SELECT JSON_AGG(JSON_BUILD_OBJECT(

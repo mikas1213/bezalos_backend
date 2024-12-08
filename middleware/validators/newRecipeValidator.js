@@ -3,6 +3,7 @@ const xss = require('xss');
 
 const sanitizeRecipeInputs = [
     body('title').trim().notEmpty().withMessage('Neįrašytas recepto pavadinimas').isLength({max: 100}).withMessage('Galimas ne ilgesnis nei 100 simbolių pavadinimas'),
+    body('logic').trim().isLength({max: 3}).withMessage('Recepto maistinių medžiagų logika netinkama'),
     body('products').customSanitizer(products => {
         return products.map(prod => {
             const sanitizedProd = {...prod};

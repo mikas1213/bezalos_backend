@@ -20,7 +20,7 @@ router.route('/anketa/:user_id')
 router.route('/new-recipe/:user_id')
     .all(
         authController.protect, 
-        authController.isSubscription('virtuve', 'Virtuvė', 'profilis')
+        // authController.isSubscription('virtuve', 'Virtuvė', 'profilis')
     )
     // .get(profileController.getAllUserRecipes)
     .post(sanitizeRecipeInputs, xssRecipeProtection, validateRecipeSanitization, profileController.saveNewRecipe)
