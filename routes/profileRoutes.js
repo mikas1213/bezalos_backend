@@ -9,7 +9,7 @@ const { sanitizeRecipeInputs, xssRecipeProtection, validateRecipeSanitization } 
 
 router.route('/products/:plan_id/:prod_id')
     .all(authController.protect,
-        authController.isSubscription('profilis', 'virtuve', 'Virtuvė')
+        authController.isSubscription('profilis', 'virtuve', 'Profilis', 'Virtuvė')
     )
     .patch(validateUUIDs, profileController.updateProduct)
 
@@ -20,7 +20,8 @@ router.route('/anketa/:user_id')
 router.route('/new-recipe/:id')
     .all(
         authController.protect, 
-        // authController.isSubscription('virtuve', 'Virtuvė', 'profilis')
+        authController.isSubscription('profilis', 'virtuve', 'Profilis', 'Virtuvė')
+        // authController.isSubscription('ASF')
     )
     .post(sanitizeRecipeInputs, xssRecipeProtection, validateRecipeSanitization, profileController.saveNewRecipe)
     .delete(profileController.deleteRecipe)
