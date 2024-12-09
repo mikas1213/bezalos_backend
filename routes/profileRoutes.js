@@ -17,13 +17,13 @@ router.route('/anketa/:user_id')
     .all(authController.protect)
     .post(sanitizeInput, xssProtection, validateSanitization, profileController.submitAnketa);
 
-router.route('/new-recipe/:user_id')
+router.route('/new-recipe/:id')
     .all(
         authController.protect, 
         // authController.isSubscription('virtuve', 'Virtuvė', 'profilis')
     )
-    // .get(profileController.getAllUserRecipes)
     .post(sanitizeRecipeInputs, xssRecipeProtection, validateRecipeSanitization, profileController.saveNewRecipe)
+    .delete(profileController.deleteRecipe)
 
 router.route('/products')
     .all(authController.protect,

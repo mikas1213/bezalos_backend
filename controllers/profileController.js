@@ -141,7 +141,7 @@ exports.submitAnketa = async (req, res) => {
 };
 
 exports.saveNewRecipe = async (req, res) => {
-    const { user_id } = req.params;
+    const { id: user_id } = req.params;
     const { title, logic, products } = req.body;
 
     try {
@@ -160,11 +160,24 @@ exports.saveNewRecipe = async (req, res) => {
         }
 
         await db.query('COMMIT');
-        res.sendStatus(200);
+        res.status(200).json({recipe_id});
     } catch (err) {
         await db.query('ROLLBACK');
         res.status(500).json({
             message: err.message
         })
+    }
+};
+
+exports.deleteRecipe = async (req, res) => {
+    const { id: recipe_id } = req.params;
+    console.log(recipe_id)
+    try {
+        await db.query('DELETE from user_recipes WHERE id = $1', [recipe_id]);
+        res.sendStatus(204);
+    } catch (err) {
+        res.status(500).json({
+            message: err.message
+        });
     }
 };
