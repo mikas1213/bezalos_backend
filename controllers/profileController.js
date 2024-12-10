@@ -170,9 +170,20 @@ exports.saveNewRecipe = async (req, res) => {
 };
 
 exports.deleteRecipe = async (req, res) => {
+    const { user_id } = req;
     const { id: recipe_id } = req.params;
-    console.log(recipe_id)
+    
     try {
+        const { rows:recipe } = await db.query('SELECT * FROM user_recipes WHERE id = $1', [recipe_id]);
+        if(!recipe[0]) {
+            throw new Error('Recipe not found')
+        }
+
+        if(recipe[0].user_id !== user_id) {
+            throw new Error('You do not have permission to that action');
+        }
+
+
         await db.query('DELETE from user_recipes WHERE id = $1', [recipe_id]);
         res.sendStatus(204);
     } catch (err) {

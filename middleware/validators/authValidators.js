@@ -1,5 +1,6 @@
 const { body } = require('express-validator');
-
+// npm i tlds
+// const tlds = require("tlds");
 const signupValidator = [
     body('name').isLength({max: 24}).withMessage('Vardas yra per ilgas'),
     body('email').notEmpty().withMessage('Neįvestas el. paštas'),
