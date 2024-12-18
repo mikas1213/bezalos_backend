@@ -19,10 +19,26 @@ exports.createCheckoutSession = async (req, res) => {
     const { user_id, plan_price, plan_name, } = req.body;
     
     try {
-        const session = await stripeSubscriptionSession(user_id, req.user_name, prices_ids[plan_price], plan_name, plan_price);
+        const session = await stripeSubscriptionSession(user_id, req.user_name, prices_ids[plan_price], plan_name);
         res.status(200).json({session});
     } catch (err) {
         console.log(err.message)
+    }
+};
+
+exports.createServiceSession = async (req, res) => {
+    
+    if (req.method !== 'POST') {
+        return res.status(405).json({ message: 'Method not allowed' });
+    }
+
+    const { user_id, title, price } = req.body;
+    
+    try {
+        const session = await stripeServiceSession(user_id, req.user_name, title, price);
+        res.status(200).json({session});
+    } catch (err) {
+        console.log(err.message);
     }
 };
 
@@ -30,7 +46,7 @@ exports.paymentSuccess = async (req, res) => {
     const event_type = req.body.type;
     const data = req.body.data;
 
-    if(event_type === 'checkout.session.completed' && data.object.payment_status === 'paid') {
+    if(event_type === 'checkout.session.completed' && data.object.mode === 'subscription' && data.object.payment_status === 'paid') {
         for_success_subs_page = data.object.metadata.subscription_status;
         const userId = data.object.metadata.user_id;
         let type = 'free';
@@ -44,6 +60,9 @@ exports.paymentSuccess = async (req, res) => {
         const subs_start = new Date(subscription.current_period_start*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' }); 
         const subs_end = new Date(subscription.current_period_end*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' });
         await db.query('INSERT INTO subscriptions(user_id, stripe_subscription_id, status, current_period_start, current_period_end) VALUES ($1, $2, $3, $4, $5);', [userId, subscription.id, data.object.metadata.subscription_status, subs_start, subs_end]);
+
+        // UPDATE CUSTOMER INFO
+        await stripe.customers.update(data.object.customer, { metadata: { userId }});
     }
 
     if(event_type === 'customer.subscription.updated') {
@@ -69,44 +88,28 @@ exports.paymentSuccess = async (req, res) => {
         const subscription_status = `Canceled_${data.object.plan.metadata.s_plan}`;
         const stripe_customer = await stripe.customers.retrieve(data.object.customer);
         
-        await stripe.customers.del(stripe_customer.id);
-        await db.query('UPDATE users SET subscription = $2, subscription_type = $3, subscription_expires = $4, stripe_customer_id = $5, updated_at = $6  WHERE stripe_customer_id = $1', [data.object.customer, 'false', subscription_status, null, null, new Date().toLocaleString('lt-LT')]);
+        // await stripe.customers.del(stripe_customer.id);
+        // await db.query('UPDATE users SET subscription = $2, subscription_type = $3, subscription_expires = $4, stripe_customer_id = $5, updated_at = $6  WHERE stripe_customer_id = $1', [data.object.customer, 'false', subscription_status, null, null, new Date().toLocaleString('lt-LT')]);
+        await db.query('UPDATE users SET subscription = $2, subscription_type = $3, subscription_expires = $4, updated_at = $5  WHERE stripe_customer_id = $1', [data.object.customer, 'false', subscription_status, null, new Date().toLocaleString('lt-LT')]);
         await db.query('DELETE from subscriptions WHERE stripe_subscription_id = $1', [data.object.id]);
+    }
+
+
+    /* O-N-E---P-A-Y-M-E-N-T---W-E-B-H-O-O-K-S */
+    if(event_type === 'checkout.session.completed' && data.object.mode === 'payment' && data.object.payment_status === 'paid') {
+        console.log('prek4 nupirkta');
+        const userId = data.object.metadata.user_id;
+        // await stripe.customers.update(data.object.customer, { metadata: { userId }});
     }
     res.sendStatus(200);
 }
-
-exports.createServiceSession = async (req, res) => {
-    const { title, price } = req.body;
-    
-    try {
-        const session = await stripeServiceSession(title, price);
-        res.status(200).json({session});
-    } catch (err) {
-        console.log(err.message);
-    }
-};
 
 exports.customerPortal = async (req, res) => {
     try {
         const session = await stripe.billingPortal.sessions.create({
             customer: req.str_cus_id,
             locale: 'lt',
-            // return_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://bezalos.dulevicius.dev/paslaugos'}`,
             return_url: `${hostname}/paslaugos`,
-            // flow_data: {
-                // type: 'payment_method_update',
-                // type: 'subscription_update',
-                // type: 'subscription_cancel',
-                
-                // subscription_update: {
-                //     subscription: 'sub_1PbRK3AXc9J1oascQhAtnZyK',
-                // },
-                // subscription_cancel: {
-                //     subscription: 'sub_1PbRK3AXc9J1oascQhAtnZyK',
-                // },
-            // },
-            
         });
 
         res.status(200).json({session});

@@ -1,29 +1,115 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const db = require( '../database/db');
 let = hostname = 'http://localhost:5173';
 if(process.env.PROJECT === 'DULEVICIUS') hostname = 'https://bezalos.dulevicius.dev';
 if(process.env.PROJECT === 'BEZALOS') hostname = 'https://bezalos.lt';
 
-exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_name, plan_price) => {
-    
+
+const findCustomerById = async customer_id => {
+
+    if (!customer_id) {
+        throw new Error('Customer ID is required');
+    }
+    try {
+        const customer = await stripe.customers.retrieve(customer_id);
+        return customer && !customer.deleted ? customer.id : null;
+    } catch (err) {
+        if (err.type === 'StripeInvalidRequestError') {
+            if (err.code === 'resource_missing') {
+                return null;
+            }
+        }
+        throw err;
+    }
+};
+
+const findCustomerByEmail = async email => {
+    if (!email) {
+        throw new Error('Email is required');
+    }
+    try {
+        const customers = await stripe.customers.list({ 
+            email,
+            limit: 1 
+        });
+        return customers.data[0]?.id || null;
+    } catch (err) {
+        throw err; 
+    }
+}
+
+const getOrCreateStripeCustomer = async (user_id, email) => {
+
+    let data = await db.query('SELECT stripe_customer_id from users WHERE id = $1', [user_id]);
+    let str_cust_id = data.rows[0].stripe_customer_id;
+    if (str_cust_id) {
+        const validCustomer = await findCustomerById(str_cust_id);
+        if (validCustomer) {
+            console.log('exist user by str_cust_id');
+            return str_cust_id;
+        }
+    }
+
+    try {
+        const customers = await stripe.customers.list({ email, limit: 1 });
+        if (customers.data.length > 0) {
+            console.log('exist user by email');
+            return customers.data[0].id;
+        }
+    } catch (err) {
+        throw err;
+    }
+
+    const newCustomer = await stripe.customers.create({ email, metadata: { user_id } });
+    console.log('was created new user!');
+    return newCustomer.id;
+};
+
+const isExistStripeCustomer = async (user_id, email) => {
+
+    let data = await db.query('SELECT stripe_customer_id from users WHERE id = $1', [user_id]);
+    let str_cust_id = data.rows[0].stripe_customer_id;
+
+    if (str_cust_id) {
+        const validCustomer = await findCustomerById(str_cust_id);
+        if (validCustomer) {
+            console.log('user exist by id')
+            return str_cust_id;
+        }
+    }
+
+    try {
+        const customers = await stripe.customers.list({ email, limit: 1 });
+        if (customers.data.length > 0) {
+            console.log('user exist by email')
+            return customers.data[0].id;
+        }
+    } catch (err) {
+        throw err;
+    }
+    console.log('user don\'t exist')
+    return undefined;
+};
+
+exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_name) => {
+    const is_customer_exist = await isExistStripeCustomer(user_id, user_email);
+
     try {
         const session = await stripe.checkout.sessions.create({
             locale: 'lt',
             mode: 'subscription',
+            allow_promotion_codes: true,
             payment_method_types: ['card'],
-            customer_email: user_email,
-            // customer: 'cus_QWSmPP402ifTdq',
+            customer: is_customer_exist,
+            customer_email: !is_customer_exist ? user_email : undefined,
+            metadata: { user_id, subscription_status: plan_name },
             line_items: [{
                 price: priceId,
                 quantity: 1
             }],
-            // allow_promotion_codes: plan_price === 'virtuve_month',
-            allow_promotion_codes: true,
-            // success_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/apmoketa-sekmingai?session_id={CHECKOUT_SESSION_ID}' : 'https://bezalos.dulevicius.dev/apmoketa-sekmingai?session_id={CHECKOUT_SESSION_ID}'}`,
-            // cancel_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://bezalos.dulevicius.dev/paslaugos'}`,
+            
             success_url: `${hostname}/apmoketa-sekmingai?plan=${plan_name}&session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${hostname}/paslaugos`,
-            metadata: { user_id, subscription_status: plan_name },
-            // customer_creation: 'if_required' in payment mode only
+            cancel_url: `${hostname}/paslaugos`
         });
         return session;
 
@@ -32,29 +118,38 @@ exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_na
     }
 };
 
-exports.stripeServiceSession = async (title, price) => {
+exports.stripeServiceSession = async (user_id, user_name, title, price) => {
+    
     try {
+        
+        let customerId = await isExistStripeCustomer(user_id, user_name);
+        if (!customerId) {
+            const customer = await stripe.customers.create({
+                email: user_name,
+                metadata: { user_id }
+            });
+            customerId = customer.id;
+        }
+        
         const session = await stripe.checkout.sessions.create({
+            locale: 'lt',
+            mode: 'payment',
+            allow_promotion_codes: true,
+            payment_method_types: ['card'],
+            customer: customerId,
+            // customer_email: !is_customer_exist ? user_name : undefined,
+            metadata: { user_id },
             line_items: [{
                 price_data: {
                     currency: 'eur',
                     product_data: {
                         name: title
                     },
-                    unit_amount: price,
+                    unit_amount: price * 100,
                 },
-                quantity: 1,
+                quantity: 1
             }],
-            // allow_promotion_codes: true,
-            // discounts: [
-            //     {
-            //         coupon: 'promo_1PPVUZAXc9J1oascXnitYSBM',
-            //     },
-            // ],
-            mode: 'payment',
-            // success_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslauga-apmoketa' : 'https://bezalos.dulevicius.dev/paslauga-apmoketa'}`,
-            // cancel_url: `${process.env.NODE_ENV === 'development' ? 'http://localhost:5173/paslaugos' : 'https://bezalos.dulevicius.dev/paslaugos'}`,
-            success_url: `${hostname}/paslauga-apmoketa`,
+            success_url: `${hostname}/paslaugos`,
             cancel_url: `${hostname}/paslaugos`,
         });
         return session;
