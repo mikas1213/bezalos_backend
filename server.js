@@ -16,19 +16,14 @@ const errorHandler = require('./middleware/logsMiddleware/errorHandler');
 const corsOptions = require('./config/corsOptions');
 const credentials = require('./middleware/credentials');
 
-const authRoutes = require('./routes/authRoutes');
-const videoRoutes = require('./routes/videoRoutes');
-const profileRoutes = require('./routes/profileRoutes');
-const mailerRoutes = require('./routes/mailerRoutes');
-const paymentRoutes = require('./routes/paymentRoutes');
-const customersRoutes = require('./routes/adminRoutes/customersRoutes');
-const nutritionPlansRoutes = require('./routes/adminRoutes/nutritionPlansRouter');
-
-// const limiter = rateLimit({
-//     windowMs: 10 * 60 * 1000, 
-//     max: 120,
-//     message: 'Too many requests.'
-// });
+const authRouter = require('./routes/authRoutes');
+const videoRouter = require('./routes/videoRoutes');
+const profileRouter = require('./routes/profileRoutes');
+const mailerRouter = require('./routes/mailerRoutes');
+const paymentRouter = require('./routes/paymentRoutes');
+const customersRouter = require('./routes/adminRoutes/customersRoutes');
+const nutritionPlansRouter = require('./routes/adminRoutes/nutritionPlansRoutes');
+const servicesRouter = require('./routes/servicesRoutes');
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -62,14 +57,15 @@ app.use(cors(corsOptions));
 app.use(errorHandler);
 app.use(limiter);
 
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/videos', videoRoutes);
-app.use('/api/v1/profile', profileRoutes);
-app.use('/api/v1/mailer', mailerRoutes);
-app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/videos', videoRouter);
+app.use('/api/v1/profile', profileRouter);
+app.use('/api/v1/mailer', mailerRouter);
+app.use('/api/v1/payments', paymentRouter);
+app.use('/api/v1/services', servicesRouter);
 app.use('/api/v1/admin', [
-    customersRoutes, 
-    nutritionPlansRoutes
+    customersRouter, 
+    nutritionPlansRouter
 ]);
 
 

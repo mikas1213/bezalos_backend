@@ -32,10 +32,10 @@ exports.createServiceSession = async (req, res) => {
         return res.status(405).json({ message: 'Method not allowed' });
     }
 
-    const { user_id, title, price } = req.body;
+    const { user_id, paslauga } = req.body;
     
     try {
-        const session = await stripeServiceSession(user_id, req.user_name, title, price);
+        const session = await stripeServiceSession(user_id, req.user_name, paslauga);
         res.status(200).json({session});
     } catch (err) {
         console.log(err.message);
@@ -97,10 +97,11 @@ exports.paymentSuccess = async (req, res) => {
 
     /* O-N-E---P-A-Y-M-E-N-T---W-E-B-H-O-O-K-S */
     if(event_type === 'checkout.session.completed' && data.object.mode === 'payment' && data.object.payment_status === 'paid') {
-        console.log('prek4 nupirkta');
         const userId = data.object.metadata.user_id;
-        // await stripe.customers.update(data.object.customer, { metadata: { userId }});
+        await stripe.customers.update(data.object.customer, { metadata: { userId }});
+        await db.query('UPDATE services SET quantity = quantity - $1 WHERE id = $2', [1, data.object.metadata.paslauga_id]);
     }
+    
     res.sendStatus(200);
 }
 

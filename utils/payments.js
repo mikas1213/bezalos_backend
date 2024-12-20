@@ -38,33 +38,6 @@ const findCustomerByEmail = async email => {
     }
 }
 
-const getOrCreateStripeCustomer = async (user_id, email) => {
-
-    let data = await db.query('SELECT stripe_customer_id from users WHERE id = $1', [user_id]);
-    let str_cust_id = data.rows[0].stripe_customer_id;
-    if (str_cust_id) {
-        const validCustomer = await findCustomerById(str_cust_id);
-        if (validCustomer) {
-            console.log('exist user by str_cust_id');
-            return str_cust_id;
-        }
-    }
-
-    try {
-        const customers = await stripe.customers.list({ email, limit: 1 });
-        if (customers.data.length > 0) {
-            console.log('exist user by email');
-            return customers.data[0].id;
-        }
-    } catch (err) {
-        throw err;
-    }
-
-    const newCustomer = await stripe.customers.create({ email, metadata: { user_id } });
-    console.log('was created new user!');
-    return newCustomer.id;
-};
-
 const isExistStripeCustomer = async (user_id, email) => {
 
     let data = await db.query('SELECT stripe_customer_id from users WHERE id = $1', [user_id]);
@@ -118,8 +91,8 @@ exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_na
     }
 };
 
-exports.stripeServiceSession = async (user_id, user_name, title, price) => {
-    
+exports.stripeServiceSession = async (user_id, user_name, paslauga) => {
+
     try {
         
         let customerId = await isExistStripeCustomer(user_id, user_name);
@@ -138,18 +111,19 @@ exports.stripeServiceSession = async (user_id, user_name, title, price) => {
             payment_method_types: ['card'],
             customer: customerId,
             // customer_email: !is_customer_exist ? user_name : undefined,
-            metadata: { user_id },
+            metadata: { user_id, paslauga_id: paslauga.id, current_price: paslauga.current_price },
             line_items: [{
+                // price: priceId,
                 price_data: {
                     currency: 'eur',
                     product_data: {
-                        name: title
+                        name: paslauga.title
                     },
-                    unit_amount: price * 100,
+                    unit_amount: paslauga.current_price * 100,
                 },
                 quantity: 1
             }],
-            success_url: `${hostname}/paslaugos`,
+            success_url: `${hostname}/paslauga-apmoketa`,
             cancel_url: `${hostname}/paslaugos`,
         });
         return session;
