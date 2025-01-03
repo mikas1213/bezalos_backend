@@ -46,7 +46,7 @@ const isExistStripeCustomer = async (user_id, email) => {
     if (str_cust_id) {
         const validCustomer = await findCustomerById(str_cust_id);
         if (validCustomer) {
-            console.log('user exist by id')
+            // console.log('user exist by id')
             return str_cust_id;
         }
     }
@@ -54,13 +54,13 @@ const isExistStripeCustomer = async (user_id, email) => {
     try {
         const customers = await stripe.customers.list({ email, limit: 1 });
         if (customers.data.length > 0) {
-            console.log('user exist by email')
+            // console.log('user exist by email')
             return customers.data[0].id;
         }
     } catch (err) {
         throw err;
     }
-    console.log('user don\'t exist')
+    // console.log('user don\'t exist')
     return undefined;
 };
 
@@ -91,8 +91,8 @@ exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_na
     }
 };
 
-exports.stripeServiceSession = async (user_id, user_name, paslauga) => {
-    console.log('stripeServiceSession: ', paslauga.title)
+exports.stripeServiceSession = async (user_role, user_id, user_name, paslauga) => {
+    
     try {
         
         let customerId = await isExistStripeCustomer(user_id, user_name);
@@ -107,7 +107,7 @@ exports.stripeServiceSession = async (user_id, user_name, paslauga) => {
         const session = await stripe.checkout.sessions.create({
             locale: 'lt',
             mode: 'payment',
-            allow_promotion_codes: false,
+            allow_promotion_codes: user_role === 1213,
             payment_method_types: ['card'],
             customer: customerId,
             // customer_email: !is_customer_exist ? user_name : undefined,
