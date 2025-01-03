@@ -8,7 +8,6 @@ router.route('/service-checkout-session').post(
     paymentController.createServiceSession,
 );
 
-
 router.route('/checkout-session').post(
     authController.protect, 
     paymentController.createCheckoutSession

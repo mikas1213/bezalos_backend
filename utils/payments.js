@@ -92,7 +92,7 @@ exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_na
 };
 
 exports.stripeServiceSession = async (user_id, user_name, paslauga) => {
-
+    console.log('stripeServiceSession: ', paslauga.title)
     try {
         
         let customerId = await isExistStripeCustomer(user_id, user_name);
@@ -111,7 +111,7 @@ exports.stripeServiceSession = async (user_id, user_name, paslauga) => {
             payment_method_types: ['card'],
             customer: customerId,
             // customer_email: !is_customer_exist ? user_name : undefined,
-            metadata: { user_id, paslauga_id: paslauga.id, current_price: paslauga.current_price },
+            metadata: { user_id, paslauga_id: paslauga.id, current_price: paslauga.current_price, title: paslauga.title },
             line_items: [{
                 // price: priceId,
                 price_data: {
@@ -123,8 +123,9 @@ exports.stripeServiceSession = async (user_id, user_name, paslauga) => {
                 },
                 quantity: 1
             }],
-            success_url: `${hostname}/paslauga-apmoketa`,
-            cancel_url: `${hostname}/paslaugos`,
+
+            success_url: `${hostname}/paslauga-apmoketa?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${hostname}/paslaugos?tab=paslaugos`,
         });
         return session;
     } catch (err) {

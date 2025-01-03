@@ -3,7 +3,7 @@ const db = require('../database/db');
 
 exports.getAllServices = async (req, res) => {
     try {
-        const { rows } = await db.query('SELECT * FROM services');
+        const { rows } = await db.query('SELECT * FROM services ORDER BY sort ASC');
         
         res.status(200).json(rows);
     } catch (err) {

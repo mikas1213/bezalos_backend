@@ -26,9 +26,9 @@ exports.getAllUsers = async (req, res) => {
         /* - - - - - - */
 
         const { search } = req.query;
-        const { column, sort = 'ASC', week, month, maintenance } = req.body;
+        const { column, sort = 'ASC', week, month, maintenance, service } = req.body;
         const validColumns = ['s_subscription_expires', 'name', 'email', 'subscription_expires', 'last_activity', 'plan_prepare', 'plan_assign', 'subscription_type', 'eat_status', 'eat_calories', 'created_at'];
-
+        
         const columns = `
             users.id, 
             role, 
@@ -50,9 +50,13 @@ exports.getAllUsers = async (req, res) => {
             eats_status, 
             eats_calories, 
             subscriptions.status as s_status, 
-            subscriptions.current_period_end as s_subscription_expires`;
-        
-        let where = `where role = $1 AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2)`;
+            subscriptions.current_period_end as s_subscription_expires,
+            CASE WHEN EXISTS (
+                SELECT 1 FROM orders o WHERE o.user_id = users.id
+            ) THEN true ELSE false END as has_order
+        `;
+
+        let where = `WHERE role = $1 AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2)`;
         let queryParams = [2324, `%${search.toLowerCase()}%`];
 
         var from = new Date();
@@ -68,24 +72,28 @@ exports.getAllUsers = async (req, res) => {
         if(week && month) {
             from.setDate(from.getDate() - 14);
             queryParams = [2324, from.toLocaleString('lt-LT'), 'month'];
-            where = `where role = $1 AND plan_assign < $2 AND plan_assign_status NOT LIKE $3`;
+            where = `WHERE role = $1 AND plan_assign < $2 AND plan_assign_status NOT LIKE $3`;
 
         } else if(week) {
             from.setDate(from.getDate() - 28);
             to.setDate(to.getDate() - 14);
             queryParams = [2324, from.toLocaleString('lt-LT'), to.toLocaleString('lt-LT')];
-            where = `where role = $1 AND plan_assign BETWEEN $2 AND $3`;
+            where = `WHERE role = $1 AND plan_assign BETWEEN $2 AND $3`;
 
         } else if(month) {
             from.setDate(from.getDate() - 28);
             queryParams = [2324, from.toLocaleString('lt-LT'), 'month'];
-            where = `where role = $1 AND plan_assign < $2 AND plan_assign_status NOT LIKE $3`;
+            where = `WHERE role = $1 AND plan_assign < $2 AND plan_assign_status NOT LIKE $3`;
 
         } else if(maintenance) {
-            where = `where role = $1 AND maintenance IS NOT null AND maintenance_status NOT LIKE '4 sav' AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2)`;
+            where = `WHERE role = $1 AND maintenance IS NOT null AND maintenance_status NOT LIKE '4 sav' AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2)`;
+        } 
+
+        let queryString = `SELECT ${columns} FROM users LEFT JOIN subscriptions ON users.id = subscriptions.user_id ${where} ORDER BY ${column} ${sort} NULLS LAST;`;
+        if(service) {
+            where = `WHERE role = $1 AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2) AND plan_assign IS NULL`;
+            queryString = `SELECT ${columns} FROM users INNER JOIN orders o ON users.id = o.user_id LEFT JOIN subscriptions ON users.id = subscriptions.user_id ${where} ORDER BY ${column} ${sort} NULLS LAST;`;
         }
-        
-        let queryString = `SELECT ${columns} from users LEFT JOIN subscriptions ON users.id = subscriptions.user_id ${where} ORDER BY ${column} ${sort} NULLS LAST;`;
 
         const { rows } = await db.query(queryString, queryParams);       
         const paginatedUsers = rows.slice(startIndex, endIndex);

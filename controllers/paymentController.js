@@ -99,9 +99,10 @@ exports.paymentSuccess = async (req, res) => {
     if(event_type === 'checkout.session.completed' && data.object.mode === 'payment' && data.object.payment_status === 'paid') {
         const userId = data.object.metadata.user_id;
         await stripe.customers.update(data.object.customer, { metadata: { userId }});
-        await db.query('UPDATE services SET quantity = quantity - $1 WHERE id = $2', [1, data.object.metadata.paslauga_id]);
+        await db.query('UPDATE services SET quantity = quantity - $1 WHERE id = $2', [1, data.object.metadata.paslauga_id]);        
+        await db.query('INSERT INTO orders(user_id, title, price) VALUES($1, $2, $3)', [userId, data.object.metadata.title, data.object.metadata.current_price]);        
+        
     }
-    
     res.sendStatus(200);
 }
 

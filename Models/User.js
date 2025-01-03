@@ -10,6 +10,18 @@ class User {
             u.plan_assign, 
             u.subscription_type,
             u.initial_target,
+
+            COALESCE((
+                SELECT JSON_AGG(JSON_BUILD_OBJECT(
+                    'id', o.id,
+                    'user_id', o.user_id,
+                    'title', o.title,
+                    'price', o.price,
+                    'created_at', o.created_at
+                ) ORDER BY o.created_at DESC)
+                FROM orders AS o WHERE o.user_id = u.id
+            ), '[]'::json) AS orders,
+
             COALESCE((SELECT JSON_AGG(JSON_BUILD_OBJECT( 
                 'id', ur.id,
                 'title', ur.title,
@@ -43,9 +55,9 @@ class User {
                     'fat', urp.fat,
                     'grams', urp.grams
                 ) ORDER BY urp.created_at ASC), '[]'::json) FROM user_recipe_products urp WHERE urp.recipe_id = ur.id)) 
-            ORDER BY ur.created_at DESC) FROM user_recipes ur WHERE ur.user_id = $1), '[]'::json) AS recipes,
+                    ORDER BY ur.created_at DESC) FROM user_recipes ur WHERE ur.user_id = $1), '[]'::json) AS recipes,
             (SELECT COALESCE(JSON_AGG(a.*), '[]'::json) FROM anketa a WHERE a.user_id = $1) as anketa,
-            -- (SELECT JSONB_OBJECT_AGG(a.id, a.user_id) FROM anketa a WHERE a.user_id = $1) as anketa,
+            
             COALESCE((SELECT JSON_AGG(JSON_BUILD_OBJECT(
                 'id', up.id,
                 'title', up.title,
