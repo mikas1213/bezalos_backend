@@ -107,7 +107,7 @@ exports.stripeServiceSession = async (user_id, user_name, paslauga) => {
         const session = await stripe.checkout.sessions.create({
             locale: 'lt',
             mode: 'payment',
-            allow_promotion_codes: true,
+            allow_promotion_codes: false,
             payment_method_types: ['card'],
             customer: customerId,
             // customer_email: !is_customer_exist ? user_name : undefined,
