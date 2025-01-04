@@ -27,14 +27,14 @@ exports.createCheckoutSession = async (req, res) => {
 };
 
 exports.createServiceSession = async (req, res) => {
-    
+
     if (req.method !== 'POST') {
         return res.status(405).json({ message: 'Method not allowed' });
     }
 
-    const { user_role, user_id, paslauga } = req.body;
+    const { user_role, user_id, paslauga, code, isCodeApproved } = req.body;
     try {
-        const session = await stripeServiceSession(user_role, user_id, req.user_name, paslauga);
+        const session = await stripeServiceSession(user_role, user_id, req.user_name, paslauga, code, isCodeApproved);
         res.status(200).json({session});
     } catch (err) {
         console.log(err.message);
@@ -96,11 +96,15 @@ exports.paymentSuccess = async (req, res) => {
 
     /* O-N-E---P-A-Y-M-E-N-T---W-E-B-H-O-O-K-S */
     if(event_type === 'checkout.session.completed' && data.object.mode === 'payment' && data.object.payment_status === 'paid') {
-        const userId = data.object.metadata.user_id;
+
+        const { userId, paslauga_id, title, current_price, code, isCodeApproved } = data.object.metadata;
         await stripe.customers.update(data.object.customer, { metadata: { userId }});
-        await db.query('UPDATE services SET quantity = quantity - $1 WHERE id = $2', [1, data.object.metadata.paslauga_id]);        
-        await db.query('INSERT INTO orders(user_id, title, price) VALUES($1, $2, $3)', [userId, data.object.metadata.title, data.object.metadata.current_price]);        
-        
+        await db.query('UPDATE services SET quantity = quantity - $1 WHERE id = $2', [1, paslauga_id]);        
+        await db.query('INSERT INTO orders(user_id, title, price) VALUES($1, $2, $3)', [userId, title, current_price]);    
+
+        if(JSON.parse(isCodeApproved)) {
+            await db.query('UPDATE promotions SET usage_count = usage_count + 1 WHERE discount_code = $1', [code]);        
+        }    
     }
     res.sendStatus(200);
 }

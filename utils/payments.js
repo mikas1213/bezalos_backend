@@ -91,7 +91,7 @@ exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_na
     }
 };
 
-exports.stripeServiceSession = async (user_role, user_id, user_name, paslauga) => {
+exports.stripeServiceSession = async (user_role, user_id, user_name, paslauga, code, isCodeApproved) => {
     
     try {
         
@@ -111,7 +111,14 @@ exports.stripeServiceSession = async (user_role, user_id, user_name, paslauga) =
             payment_method_types: ['card'],
             customer: customerId,
             // customer_email: !is_customer_exist ? user_name : undefined,
-            metadata: { user_id, paslauga_id: paslauga.id, current_price: paslauga.current_price, title: paslauga.title },
+            metadata: { 
+                user_id, 
+                paslauga_id: paslauga.id, 
+                current_price: paslauga.current_price, 
+                title: paslauga.title,
+                code,
+                isCodeApproved
+            },
             line_items: [{
                 // price: priceId,
                 price_data: {
