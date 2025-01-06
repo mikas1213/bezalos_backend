@@ -16,14 +16,14 @@ exports.getAllRows = (table, field = 'created_at', sort = 'DESC') => {
 exports.getStats = async (req, res) => {
     try {
         const data = await db.query(`SELECT 
-            (SELECT COUNT(*) FROM users WHERE role = 2324) AS users,
-            (SELECT COUNT(*) FROM mailer_list) AS mailer_list_mails,
-            (SELECT COUNT(*) FROM offers) AS offer_mails,
-            (SELECT count(*) from users WHERE subscription_type = 'Virtuvė' AND role = 2324) AS virtuve_active,
-            (SELECT count(*) from users WHERE subscription_type = 'Profilis' AND role = 2324) AS profilis_active,
-            (SELECT count(*) from food_plans) AS plans,
-            (SELECT count(*) from food_meals) AS meals,
-            (SELECT count(*) from food_products) AS products;
+            (SELECT COUNT(*)::INTEGER FROM users WHERE role = 2324) AS users,
+            (SELECT COUNT(*)::INTEGER FROM mailer_list) AS mailer_list_mails,
+            (SELECT COUNT(*)::INTEGER FROM offers) AS offer_mails,
+            (SELECT COUNT(*)::INTEGER from users WHERE subscription_type = 'Virtuvė' AND role = 2324) AS virtuve_active,
+            (SELECT COUNT(*)::INTEGER from users WHERE subscription_type = 'Profilis' AND role = 2324) AS profilis_active,
+            (SELECT COUNT(*)::INTEGER from food_plans) AS plans,
+            (SELECT COUNT(*)::INTEGER from food_meals) AS meals,
+            (SELECT COUNT(*)::INTEGER from food_products) AS products;
         `);
         
         res.status(200).json(data.rows[0]);
