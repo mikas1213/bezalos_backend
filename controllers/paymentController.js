@@ -97,10 +97,11 @@ exports.paymentSuccess = async (req, res) => {
     /* O-N-E---P-A-Y-M-E-N-T---W-E-B-H-O-O-K-S */
     if(event_type === 'checkout.session.completed' && data.object.mode === 'payment' && data.object.payment_status === 'paid') {
 
-        const { userId, paslauga_id, title, current_price, code, isCodeApproved } = data.object.metadata;
-        await stripe.customers.update(data.object.customer, { metadata: { userId }});
+        const { user_id, paslauga_id, title, current_price, code, isCodeApproved } = data.object.metadata;
+        console.log(user_id, paslauga_id, title, current_price, code, isCodeApproved)
+        await stripe.customers.update(data.object.customer, { metadata: { user_id }});
         await db.query('UPDATE services SET quantity = quantity - $1 WHERE id = $2', [1, paslauga_id]);        
-        await db.query('INSERT INTO orders(user_id, title, price) VALUES($1, $2, $3)', [userId, title, current_price]);    
+        await db.query('INSERT INTO orders(user_id, title, price) VALUES($1, $2, $3)', [user_id, title, current_price]);    
 
         if(JSON.parse(isCodeApproved)) {
             await db.query('UPDATE promotions SET usage_count = usage_count + 1 WHERE discount_code = $1', [code]);        
