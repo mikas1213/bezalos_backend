@@ -9,7 +9,7 @@ const { validateUUID } = require('../../middleware/validators/validate_uuid');
 router.route('/user/plan/:id')
     .all(
         authController.protect,
-        authController.verifyRoles(roles.admin),
+        authController.verifyRoles(roles.admin)
     ).patch(validateUUID, customersController.updateUserPlan);
 
 router.route('/user/:id')

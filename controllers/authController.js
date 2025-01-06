@@ -259,7 +259,7 @@ exports.protect = (req, res, next) => {
     
     const token = authHeader.split(' ').pop();
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-
+        
         if(err) return res.sendStatus(403);
         
         req.user_id = decoded.user_id;

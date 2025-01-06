@@ -194,10 +194,10 @@ exports.updateUserPlan = async (req, res) => {
             case 'update-meal-time':
                 await updateMealTime(actionData.meal_time, plan_id, actionData.meal_id);
                 break;
-            case 'update-meal': 
+            case 'update-meal-title': 
                 await updateMeal(actionData.meal, today, plan_id, actionData.meal_id);
                 break;
-            case 'update-product':
+            case 'update-product-title':
                 await updateProduct(actionData.prod, today, plan_id, actionData.meal_id, actionData.prod_id);
                 break;
             case 'update-prod-grams':
