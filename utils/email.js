@@ -69,6 +69,6 @@ module.exports = class Email {
     }
 
     async sendOffer() {
-        await this.sendEmail(process.env.SENDGRID_TEMPLATE_OFFER, '"Išgyventi Kalėdas" su Valgau be žalos 💚');
+        await this.sendEmail(process.env.SENDGRID_TEMPLATE_OFFER, 'Nieko nevalgau, o auga svoris. Pažįstama?');
     }
 }

@@ -32,7 +32,8 @@ exports.sendOfferMail = async (req, res) => {
     const errors = validationResult(req);
     const { email } = req.body;
     // const video = 'https://youtu.be/7AyRYZ6oKb8';
-    const video = 'https://youtu.be/w8G1KrQilbs';
+    // const video = 'https://youtu.be/w8G1KrQilbs';
+    const video = 'https://youtu.be/vWWaFLEDDzI';
     const today = new Date();
     today.setDate(today.getDate() + 30);
 
