@@ -51,6 +51,18 @@ exports.getAllUsers = async (req, res) => {
             eats_calories, 
             subscriptions.status as s_status, 
             subscriptions.current_period_end as s_subscription_expires,
+
+            COALESCE((
+                SELECT JSON_AGG(JSON_BUILD_OBJECT(
+                    'id', o.id,
+                    'user_id', o.user_id,
+                    'title', o.title,
+                    'price', o.price,
+                    'created_at', o.created_at
+                ) ORDER BY o.created_at DESC)
+                FROM orders AS o WHERE o.user_id = users.id
+            ), '[]'::json) AS orders,
+
             CASE WHEN EXISTS (
                 SELECT 1 FROM orders o WHERE o.user_id = users.id
             ) THEN true ELSE false END as has_order
