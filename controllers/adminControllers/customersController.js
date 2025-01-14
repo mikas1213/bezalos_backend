@@ -174,7 +174,7 @@ exports.updateUser = async (req, res) => {
             const { stripe_type } = req.body
             if(stripe_type) {
                 queryString = `UPDATE users SET ${column} = $2, updated_at = $3 WHERE id = $1;`;
-                queryParams = [req.params.id, value, new Date().toLocaleString('lt-LT')];
+                queryParams = [req.params.id, value, new Date().    toLocaleString('lt-LT')];
             } else {
                 const plan = !!value ? 'Virtuvė' : 'free';
                 queryString = `UPDATE users SET ${column} = $2, subscription = $3, subscription_type = $4, updated_at = $5 WHERE id = $1;`;

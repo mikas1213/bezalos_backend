@@ -6,6 +6,7 @@ const profileController = require('../controllers/profileController');
 const { validateUUID, validateUUIDs } = require('../middleware/validators/validate_uuid');
 const { sanitizeInput, xssProtection, validateSanitization } = require('../middleware/validators/anketaValidator');
 const { sanitizeRecipeInputs, xssRecipeProtection, validateRecipeSanitization } = require('../middleware/validators/newRecipeValidator');
+const {areAllFieldsEmpty, sanitizeBodyTrackingInput, validateBodyTrackingSanitization} = require('../middleware/validators/bodyTrackingValidator');
 
 router.route('/products/:plan_id/:prod_id')
     .all(authController.protect,
@@ -21,15 +22,17 @@ router.route('/new-recipe/:id')
     .all(
         authController.protect, 
         authController.isSubscription('profilis', 'virtuve', 'Profilis', 'Virtuvė')
-        // authController.isSubscription('ASF')
     )
     .post(sanitizeRecipeInputs, xssRecipeProtection, validateRecipeSanitization, profileController.saveNewRecipe)
     .delete(profileController.deleteRecipe)
 
+router.route('/body-tracking/:id')
+    // .all(authController.protect, authController.isSubscription('profilis', 'virtuve', 'Profilis', 'Virtuvė'))
+    .get(profileController.getBodyTracking)
+    .post(areAllFieldsEmpty, sanitizeBodyTrackingInput, validateBodyTrackingSanitization, profileController.addBodyTracking)
+
 router.route('/products')
-    .all(authController.protect,
-        // authController.isSubscription('virtuve')
-    )
+    .all(authController.protect)
     .get(profileController.getAllProfileProducts);
 
 router.route('/:id')

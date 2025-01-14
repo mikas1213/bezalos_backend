@@ -1,5 +1,6 @@
 const db = require('../database/db');
 const User = require('../Models/User');
+const Bodytracking = require('../Models/Bodytracking');
 
 exports.getUserDetails = async (req, res) => {
 
@@ -174,7 +175,7 @@ exports.deleteRecipe = async (req, res) => {
     const { id: recipe_id } = req.params;
     
     try {
-        const { rows:recipe } = await db.query('SELECT * FROM user_recipes WHERE id = $1', [recipe_id]);
+        const { rows: recipe } = await db.query('SELECT * FROM user_recipes WHERE id = $1', [recipe_id]);
         if(!recipe[0]) {
             throw new Error('Recipe not found')
         }
@@ -192,3 +193,64 @@ exports.deleteRecipe = async (req, res) => {
         });
     }
 };
+
+exports.getBodyTracking = async (req, res) => {
+    
+    try {
+        const { id } = req.params;
+        const { rows } = await db.query(Bodytracking.getBodytracking(), [id, 122]);
+        const { rows: [stats] } = await db.query(Bodytracking.getBodyStats(), [id]);
+        
+        res.status(200).json({ rows, stats });
+    } catch (err) {
+        res.status(500).json({
+            message: err.message
+        })
+    }
+};
+
+exports.addBodyTracking = async (req, res) => {
+    const currentDate = new Date(Date.now());
+    const weeksToSubtract = 0;
+    const millisPerWeek = 7 * 24 * 60 * 60 * 1000;
+    const created_at = new Date(currentDate - (weeksToSubtract * millisPerWeek));
+    
+    try {        
+        const { id } = req.params;
+        let { svoris, bicepsas, talija, sedmenys, slaunis } = req.body;
+
+        svoris ||= null;
+        bicepsas ||= null;
+        talija ||= null;
+        sedmenys ||= null;
+        slaunis ||= null;
+        console.log('svoris: ', svoris, typeof svoris,
+            '\nbicepsas: ', bicepsas, 
+            '\ntalija: ', talija, 
+            '\nsedmenys: ', sedmenys, 
+            '\nslaunis: ', slaunis,
+        'created_at: ', created_at.toLocaleString('lt-LT'));
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await db.query('INSERT INTO body_tracking(user_id, svoris, bicepsas, talija, sedmenys, slaunis) VALUES($1, $2, $3, $4, $5, $6)', [id, svoris, bicepsas, talija, sedmenys, slaunis]);
+
+        res.status(200).json({
+            status: 'success'
+        });
+    } catch (err) {
+        console.log('err: ', err)
+        res.status(500).json({
+            message: err.message
+        });
+    }
+};
+
+
+// Get current date
+const now = new Date();
+
+// Calculate date 12 weeks later
+const futureDate = new Date();
+futureDate.setDate(futureDate.getDate() + (12 * 7));
+
+console.log('Current date:', now);
+console.log('Date in 12 weeks:', futureDate);

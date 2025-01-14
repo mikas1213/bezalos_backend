@@ -259,7 +259,6 @@ exports.protect = (req, res, next) => {
     
     const token = authHeader.split(' ').pop();
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-        
         if(err) return res.sendStatus(403);
         
         req.user_id = decoded.user_id;
@@ -273,14 +272,6 @@ exports.protect = (req, res, next) => {
         next();
     });
 };
-
-// exports.isSubscription_old = plan => {
-//     return (req, res, next) => {
-//         const { user_subscription, user_s_subscription, s_status } = req;   
-//         if(!req.user_subscription && s_status !== plan) return res.sendStatus(402);
-//         next();
-//     };
-// }
 
 exports.isSubscription = (...allowedSubscriptionTypes) => {
     return (req, res, next) => {

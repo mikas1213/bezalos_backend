@@ -61,7 +61,7 @@ exports.paymentSuccess = async (req, res) => {
         await db.query('INSERT INTO subscriptions(user_id, stripe_subscription_id, status, current_period_start, current_period_end) VALUES ($1, $2, $3, $4, $5);', [userId, subscription.id, data.object.metadata.subscription_status, subs_start, subs_end]);
 
         // UPDATE CUSTOMER INFO
-        await stripe.customers.update(data.object.customer, { metadata: { userId }});
+        await stripe.customers.update(data.object.customer, { metadata: { user_id: userId }});
     }
 
     if(event_type === 'customer.subscription.updated') {
@@ -76,6 +76,7 @@ exports.paymentSuccess = async (req, res) => {
     }
 
     if(event_type === 'invoice.payment_failed') {
+        console.log('invoice.payment_failed')
         const subscription = await stripe.subscriptions.retrieve(data.object.subscription);
         const subs_start = new Date(subscription.current_period_start*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' }); 
         const subs_end = new Date(subscription.current_period_end*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' });
@@ -85,10 +86,6 @@ exports.paymentSuccess = async (req, res) => {
 
     if(event_type === 'customer.subscription.deleted') {
         const subscription_status = `Canceled_${data.object.plan.metadata.s_plan}`;
-        const stripe_customer = await stripe.customers.retrieve(data.object.customer);
-        
-        // await stripe.customers.del(stripe_customer.id);
-        // await db.query('UPDATE users SET subscription = $2, subscription_type = $3, subscription_expires = $4, stripe_customer_id = $5, updated_at = $6  WHERE stripe_customer_id = $1', [data.object.customer, 'false', subscription_status, null, null, new Date().toLocaleString('lt-LT')]);
         await db.query('UPDATE users SET subscription = $2, subscription_type = $3, subscription_expires = $4, updated_at = $5  WHERE stripe_customer_id = $1', [data.object.customer, 'false', subscription_status, null, new Date().toLocaleString('lt-LT')]);
         await db.query('DELETE from subscriptions WHERE stripe_subscription_id = $1', [data.object.id]);
     }

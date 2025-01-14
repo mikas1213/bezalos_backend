@@ -1,0 +1,106 @@
+const db = require('../database/db');
+
+class Bodytracking {
+    static getBodytracking() {
+        const queryString = `
+        -- Generuojame paskutines 12 savaičių nuo vėliausios datos
+        WITH weeks AS (
+            SELECT 
+                generate_series(
+                    DATE_TRUNC('week', (SELECT MAX(created_at) FROM body_tracking) - ($2 - 1 || ' weeks')::interval),
+                    DATE_TRUNC('week', (SELECT MAX(created_at) FROM body_tracking)),
+                    INTERVAL '1 week'
+                ) AS week_start
+        ),
+
+
+        -- Paimame originalius duomenis iš body_tracking
+        user_data AS (
+            SELECT *, DATE_TRUNC('week', created_at) AS week_start
+            FROM body_tracking
+            WHERE created_at >= (
+                SELECT MAX(created_at) - ($2 || ' weeks')::interval
+                FROM body_tracking
+            ) AND user_id = $1
+        )
+
+
+        -- Sujungiame generuotus savaičių pradžios laikus su faktiniais duomenimis
+        SELECT
+            ud.svoris::float,
+            ud.bicepsas,
+            ud.talija,
+            ud.sedmenys,
+            ud.slaunis,
+            CASE
+                WHEN ud.bicepsas IS NULL AND ud.talija IS NULL AND ud.sedmenys IS NULL AND ud.slaunis IS NULL THEN NULL
+                ELSE ROUND(SUM(
+                    COALESCE(ud.bicepsas::float, 0) +
+                    COALESCE(ud.talija::float, 0) +
+                    COALESCE(ud.sedmenys::float, 0) +
+                    COALESCE(ud.slaunis::float, 0)
+                )::numeric, 1) 
+            END AS apimtys,
+            ud.created_at,
+            w.week_start AS w_week_start,
+            ud.week_start AS ud_week_start,
+            EXTRACT(WEEK FROM w.week_start) AS week
+        FROM weeks AS w
+        LEFT JOIN user_data AS ud
+        ON w.week_start = ud.week_start
+        GROUP BY ud.user_id, ud.svoris, ud.bicepsas, ud.talija, ud.sedmenys, ud.slaunis, w.week_start, ud.week_start, ud.created_at
+        ORDER BY w.week_start ASC;`;
+
+        return queryString;
+    }
+
+    static getBodyStats() {
+        const queryString = `
+            WITH stats AS (
+                SELECT 
+                    (
+                        SELECT svoris::float 
+                        FROM body_tracking 
+                        WHERE svoris IS NOT NULL
+                        AND user_id = $1
+                        ORDER BY created_at ASC 
+                        LIMIT 1
+                    ) AS last_svoris,
+                    (
+                        SELECT svoris::float
+                        FROM body_tracking 
+                        WHERE svoris IS NOT NULL
+                        AND user_id = $1
+                        ORDER BY created_at DESC 
+                        LIMIT 1
+                    ) AS latest_svoris,
+                    (
+                        SELECT SUM(COALESCE(bicepsas, 0) + COALESCE(talija, 0) + COALESCE(sedmenys, 0) + COALESCE(slaunis, 0))::float AS apimtys
+                        FROM body_tracking 
+                        WHERE (bicepsas IS NOT NULL OR talija IS NOT NULL OR sedmenys IS NOT NULL OR slaunis IS NOT NULL)
+                        AND user_id = $1
+                        GROUP BY created_at
+                        ORDER BY created_at ASC 
+                        LIMIT 1
+                    ) AS last_apimtys,
+                    (
+                        SELECT SUM(COALESCE(bicepsas, 0) + COALESCE(talija, 0) + COALESCE(sedmenys, 0) + COALESCE(slaunis, 0))::float AS apimtys
+                        FROM body_tracking 
+                        WHERE (bicepsas IS NOT NULL OR talija IS NOT NULL OR sedmenys IS NOT NULL OR slaunis IS NOT NULL)
+                        AND user_id = $1
+                        GROUP BY created_at
+                        ORDER BY created_at DESC 
+                        LIMIT 1
+                    ) AS latest_apimtys
+                )
+            SELECT last_svoris,
+                latest_svoris,
+                last_apimtys,
+                latest_apimtys,
+                ROUND((latest_svoris - last_svoris)::numeric, 1)::float AS trend_svoris, 
+                ROUND((latest_apimtys - last_apimtys)::numeric, 1)::float AS trend_apimtys FROM stats;`;
+        return queryString;
+    }
+}
+
+module.exports = Bodytracking;
