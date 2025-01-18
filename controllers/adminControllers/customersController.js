@@ -104,7 +104,7 @@ exports.getAllUsers = async (req, res) => {
 
         let queryString = `SELECT ${columns} FROM users LEFT JOIN subscriptions ON users.id = subscriptions.user_id ${where} ORDER BY ${column} ${sort} NULLS LAST;`;
         if(service) {
-            where = `WHERE role = $1 AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2) AND plan_assign IS NULL`;
+            where = `WHERE role = $1 AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2) AND (o.title = 'Mitybos planas + 🎁' OR o.title = 'Mitybos planas + 4 savaičių priežiūra') AND plan_assign IS NULL`;
             queryString = `SELECT ${columns} FROM users INNER JOIN orders o ON users.id = o.user_id LEFT JOIN subscriptions ON users.id = subscriptions.user_id ${where} ORDER BY ${column} ${sort} NULLS LAST;`;
         }
 
