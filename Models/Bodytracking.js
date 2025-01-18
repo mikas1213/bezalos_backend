@@ -27,6 +27,7 @@ class Bodytracking {
 
         -- Sujungiame generuotus savaičių pradžios laikus su faktiniais duomenimis
         SELECT
+            ud.id,
             ud.svoris::float,
             ud.bicepsas,
             ud.talija,
@@ -39,7 +40,7 @@ class Bodytracking {
                     COALESCE(ud.talija::float, 0) +
                     COALESCE(ud.sedmenys::float, 0) +
                     COALESCE(ud.slaunis::float, 0)
-                )::numeric, 1) 
+                )::numeric, 1)::float
             END AS apimtys,
             ud.created_at,
             w.week_start AS w_week_start,
@@ -48,7 +49,7 @@ class Bodytracking {
         FROM weeks AS w
         LEFT JOIN user_data AS ud
         ON w.week_start = ud.week_start
-        GROUP BY ud.user_id, ud.svoris, ud.bicepsas, ud.talija, ud.sedmenys, ud.slaunis, w.week_start, ud.week_start, ud.created_at
+        GROUP BY ud.id, ud.svoris, ud.bicepsas, ud.talija, ud.sedmenys, ud.slaunis, w.week_start, ud.week_start, ud.created_at
         ORDER BY w.week_start ASC;`;
 
         return queryString;
@@ -101,6 +102,20 @@ class Bodytracking {
                 ROUND((latest_apimtys - last_apimtys)::numeric, 1)::float AS trend_apimtys FROM stats;`;
         return queryString;
     }
+
+    static getAllBodyData() {
+        const queryString = `SELECT 
+            id, 
+            svoris::float, 
+            bicepsas::float, 
+            talija::float, 
+            sedmenys::float, 
+            slaunis::float,
+            created_at
+            FROM body_tracking WHERE user_id = $1`;
+        return queryString;
+    }
+    
 }
 
 module.exports = Bodytracking;

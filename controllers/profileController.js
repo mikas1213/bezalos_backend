@@ -1,7 +1,7 @@
 const db = require('../database/db');
 const User = require('../Models/User');
 const Bodytracking = require('../Models/Bodytracking');
-
+const generateArray = require('../utils/helpers');
 exports.getUserDetails = async (req, res) => {
 
     try {
@@ -195,13 +195,27 @@ exports.deleteRecipe = async (req, res) => {
 };
 
 exports.getBodyTracking = async (req, res) => {
+    const periods = {'1month': 4, '3months': 12, '6months': 24, '1year': 52, 'alltime': 100};
+    
+    if(!Object.keys(periods).includes(req.query.period)) {
+        return res.status(404).json({ message: 'Not Found'})
+    }
+    const period = periods[req.query.period];
     
     try {
         const { id } = req.params;
-        const { rows } = await db.query(Bodytracking.getBodytracking(), [id, 122]);
+        const { rows } = await db.query(Bodytracking.getBodytracking(), [id, period]);
         const { rows: [stats] } = await db.query(Bodytracking.getBodyStats(), [id]);
+        const { rows: all_data } = await db.query(Bodytracking.getAllBodyData(), [id]);
         
-        res.status(200).json({ rows, stats });
+        if(rows.length === 0) {
+            const emptyDataSet = generateArray(period);
+            return res.status(200).json({
+                rows: emptyDataSet, stats, all_data
+            });
+        }
+        
+        res.status(200).json({ rows, stats, all_data });
     } catch (err) {
         res.status(500).json({
             message: err.message
@@ -210,10 +224,10 @@ exports.getBodyTracking = async (req, res) => {
 };
 
 exports.addBodyTracking = async (req, res) => {
-    const currentDate = new Date(Date.now());
-    const weeksToSubtract = 0;
-    const millisPerWeek = 7 * 24 * 60 * 60 * 1000;
-    const created_at = new Date(currentDate - (weeksToSubtract * millisPerWeek));
+    // const currentDate = new Date(Date.now());
+    // const weeksToSubtract = 0;
+    // const millisPerWeek = 7 * 24 * 60 * 60 * 1000;
+    // const created_at = new Date(currentDate - (weeksToSubtract * millisPerWeek));
     
     try {        
         const { id } = req.params;
@@ -224,33 +238,27 @@ exports.addBodyTracking = async (req, res) => {
         talija ||= null;
         sedmenys ||= null;
         slaunis ||= null;
-        console.log('svoris: ', svoris, typeof svoris,
-            '\nbicepsas: ', bicepsas, 
-            '\ntalija: ', talija, 
-            '\nsedmenys: ', sedmenys, 
-            '\nslaunis: ', slaunis,
-        'created_at: ', created_at.toLocaleString('lt-LT'));
-        await new Promise(resolve => setTimeout(resolve, 500));
-        await db.query('INSERT INTO body_tracking(user_id, svoris, bicepsas, talija, sedmenys, slaunis) VALUES($1, $2, $3, $4, $5, $6)', [id, svoris, bicepsas, talija, sedmenys, slaunis]);
 
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const { rows: [{ days_left }] } = await db.query(`SELECT 
+            GREATEST(0, 7 - (CURRENT_DATE - DATE(MAX(created_at)))) AS days_left
+            FROM body_tracking WHERE user_id = $1;`, [id]);
+
+        if(days_left > 0) {
+            return res.status(403).json({
+                days_left,
+                errors: [{path: 'all', msg: `Duomenis atnaujinti galėsite po ${days_left} ${days_left === 1 ? 'dienos' : 'dienų'}`}]
+            });
+        }
+        await db.query('INSERT INTO body_tracking(user_id, svoris, bicepsas, talija, sedmenys, slaunis) VALUES($1, $2, $3, $4, $5, $6)', [id, svoris, bicepsas, talija, sedmenys, slaunis]);
+        
         res.status(200).json({
             status: 'success'
         });
+
     } catch (err) {
-        console.log('err: ', err)
         res.status(500).json({
             message: err.message
         });
     }
 };
-
-
-// Get current date
-const now = new Date();
-
-// Calculate date 12 weeks later
-const futureDate = new Date();
-futureDate.setDate(futureDate.getDate() + (12 * 7));
-
-console.log('Current date:', now);
-console.log('Date in 12 weeks:', futureDate);

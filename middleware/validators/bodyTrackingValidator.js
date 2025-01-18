@@ -19,7 +19,7 @@ const valid_field = field => {
         .if(value => !!value)
         .customSanitizer(value => value.replace(',', '.'))
         .isFloat().withMessage('Galimi tik skaičiai')
-        .isLength({max: 6}).withMessage('Daugiausiai 6 skaitmenys')
+        .isLength({max: 5}).withMessage('Daugiausiai 5 skaitmenys')
         .toFloat()
         // .customSanitizer(value => (value === !value ? null : value))
 
