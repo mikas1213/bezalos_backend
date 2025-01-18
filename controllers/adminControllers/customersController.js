@@ -63,25 +63,10 @@ exports.getAllUsers = async (req, res) => {
                 FROM orders AS o WHERE o.user_id = users.id
             ), '[]'::json) AS orders,
 
-            CASE 
-				WHEN EXISTS (
-					SELECT 1 
-					FROM orders AS o 
-					WHERE o.user_id = users.id 
-					  AND o.title = 'Mitybos planas + 🎁'
-				) THEN 'orange'
-				WHEN EXISTS (
-					SELECT 1 
-					FROM orders AS o 
-					WHERE o.user_id = users.id 
-					  AND o.title = 'Mitybos planas + 4 savaičių priežiūra'
-				) THEN 'blue'
-				ELSE null
-			END AS has_order
-
-            --CASE WHEN EXISTS (
-                --SELECT 1 FROM orders o WHERE o.user_id = users.id
-            --) THEN true ELSE false END as has_order
+            CASE WHEN EXISTS (
+                SELECT 1 FROM orders o WHERE o.user_id = users.id
+                AND (o.title = 'Mitybos planas + 🎁' OR o.title = 'Mitybos planas + 4 savaičių priežiūra')
+            ) THEN true ELSE false END as has_order
         `;
 
         let where = `WHERE role = $1 AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2)`;
@@ -122,7 +107,7 @@ exports.getAllUsers = async (req, res) => {
             where = `WHERE role = $1 AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2) AND plan_assign IS NULL`;
             queryString = `SELECT ${columns} FROM users INNER JOIN orders o ON users.id = o.user_id LEFT JOIN subscriptions ON users.id = subscriptions.user_id ${where} ORDER BY ${column} ${sort} NULLS LAST;`;
         }
-        console.log(queryString)
+
         const { rows } = await db.query(queryString, queryParams);       
         const paginatedUsers = rows.slice(startIndex, endIndex);
         const totalPage = Math.ceil(rows.length / pageSize);
