@@ -27,9 +27,10 @@ router.route('/new-recipe/:id')
     .delete(profileController.deleteRecipe)
 
 router.route('/body-tracking/:id')
-    // .all(authController.protect, authController.isSubscription('profilis', 'virtuve', 'Profilis', 'Virtuvė'))
+    .all(authController.protect, authController.isSubscription('profilis', 'virtuve', 'Profilis', 'Virtuvė'))
     .get(profileController.getBodyTracking)
     .post(areAllFieldsEmpty, sanitizeBodyTrackingInput, validateBodyTrackingSanitization, profileController.addBodyTracking)
+    .delete(profileController.deleteBodyTracking)
 
 router.route('/products')
     .all(authController.protect)

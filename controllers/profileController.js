@@ -177,13 +177,12 @@ exports.deleteRecipe = async (req, res) => {
     try {
         const { rows: recipe } = await db.query('SELECT * FROM user_recipes WHERE id = $1', [recipe_id]);
         if(!recipe[0]) {
-            throw new Error('Recipe not found')
+            throw new Error('Recipe not found');
         }
 
         if(recipe[0].user_id !== user_id) {
             throw new Error('You do not have permission to that action');
         }
-
 
         await db.query('DELETE from user_recipes WHERE id = $1', [recipe_id]);
         res.sendStatus(204);
@@ -224,10 +223,6 @@ exports.getBodyTracking = async (req, res) => {
 };
 
 exports.addBodyTracking = async (req, res) => {
-    // const currentDate = new Date(Date.now());
-    // const weeksToSubtract = 0;
-    // const millisPerWeek = 7 * 24 * 60 * 60 * 1000;
-    // const created_at = new Date(currentDate - (weeksToSubtract * millisPerWeek));
     
     try {        
         const { id } = req.params;
@@ -240,20 +235,21 @@ exports.addBodyTracking = async (req, res) => {
         slaunis ||= null;
 
         await new Promise(resolve => setTimeout(resolve, 500));
-        const { rows: [{ days_left }] } = await db.query(`SELECT 
+        let { rows: [{ days_left }] } = await db.query(`SELECT 
             GREATEST(0, 7 - (CURRENT_DATE - DATE(MAX(created_at)))) AS days_left
             FROM body_tracking WHERE user_id = $1;`, [id]);
-
+            // days_left = 0;
         if(days_left > 0) {
             return res.status(403).json({
                 days_left,
                 errors: [{path: 'all', msg: `Duomenis atnaujinti galėsite po ${days_left} ${days_left === 1 ? 'dienos' : 'dienų'}`}]
             });
         }
-        await db.query('INSERT INTO body_tracking(user_id, svoris, bicepsas, talija, sedmenys, slaunis) VALUES($1, $2, $3, $4, $5, $6)', [id, svoris, bicepsas, talija, sedmenys, slaunis]);
-        
+        const { rows } = await db.query('INSERT INTO body_tracking(user_id, svoris, bicepsas, talija, sedmenys, slaunis) VALUES($1, $2, $3, $4, $5, $6) RETURNING id', [id, svoris, bicepsas, talija, sedmenys, slaunis]);
+        const row_id = rows[0].id;
         res.status(200).json({
-            status: 'success'
+            status: 'success',
+            row_id
         });
 
     } catch (err) {
@@ -262,3 +258,30 @@ exports.addBodyTracking = async (req, res) => {
         });
     }
 };
+
+exports.deleteBodyTracking = async (req, res) => {
+    const { user_id } = req;
+    const { id: row_id } = req.params;
+
+    try {
+        const { rows: [row] } = await db.query(`SELECT * from body_tracking WHERE id = $1`, [row_id]);
+        if(!row) {
+            return res.status(404).json({
+                message: 'Record not found'
+            });
+        }
+
+        if(user_id !== row.user_id) {
+            return res.status(403).json({
+                message: 'Forbidden'
+            });
+        }
+        await db.query('DELETE FROM body_tracking WHERE id = $1', [row_id]);
+        const { rows: [stats] } = await db.query(Bodytracking.getBodyStats(), [user_id]);
+        res.status(200).json({
+            stats
+        });
+    } catch (err) {
+        res.sendStatus(500);
+    }
+}

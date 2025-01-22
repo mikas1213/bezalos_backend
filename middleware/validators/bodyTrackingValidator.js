@@ -15,6 +15,7 @@ const areAllFieldsEmpty = (req, res, next) => {
 
 
 const valid_field = field => {
+    
     let chain = body(field).trim()
         .if(value => !!value)
         .customSanitizer(value => value.replace(',', '.'))
@@ -37,6 +38,7 @@ const sanitizeBodyTrackingInput = [
 const validateBodyTrackingSanitization = (req, res, next) => {
     
     const errors = validationResult(req);
+    
     if (!errors.isEmpty()) {
         return res.status(400).json(errors);
     }

@@ -29,10 +29,10 @@ class Bodytracking {
         SELECT
             ud.id,
             ud.svoris::float,
-            ud.bicepsas,
-            ud.talija,
-            ud.sedmenys,
-            ud.slaunis,
+            ud.bicepsas::float,
+            ud.talija::float,
+            ud.sedmenys::float,
+            ud.slaunis::float,
             CASE
                 WHEN ud.bicepsas IS NULL AND ud.talija IS NULL AND ud.sedmenys IS NULL AND ud.slaunis IS NULL THEN NULL
                 ELSE ROUND(SUM(
@@ -59,6 +59,14 @@ class Bodytracking {
         const queryString = `
             WITH stats AS (
                 SELECT 
+                    -- (
+                    --     SELECT id
+                    --     FROM body_tracking 
+                    --     WHERE svoris IS NOT NULL
+                    --     AND user_id = $1
+                    --     ORDER BY created_at ASC 
+                    --     LIMIT 1
+                    -- ) AS last_svoris_id,
                     (
                         SELECT svoris::float 
                         FROM body_tracking 
@@ -67,6 +75,14 @@ class Bodytracking {
                         ORDER BY created_at ASC 
                         LIMIT 1
                     ) AS last_svoris,
+                    -- (
+                    --     SELECT id
+                    --     FROM body_tracking 
+                    --     WHERE svoris IS NOT NULL
+                    --     AND user_id = $1
+                    --     ORDER BY created_at DESC 
+                    --     LIMIT 1
+                    -- ) AS latest_svoris_id,
                     (
                         SELECT svoris::float
                         FROM body_tracking 
@@ -75,6 +91,15 @@ class Bodytracking {
                         ORDER BY created_at DESC 
                         LIMIT 1
                     ) AS latest_svoris,
+                    -- (
+                    --     SELECT id
+                    --     FROM body_tracking 
+                    --     WHERE (bicepsas IS NOT NULL OR talija IS NOT NULL OR sedmenys IS NOT NULL OR slaunis IS NOT NULL)
+                    --     AND user_id = $1
+                    --     GROUP BY created_at, id
+                    --     ORDER BY created_at ASC 
+                    --     LIMIT 1
+                    -- ) AS last_apimtys_id,
                     (
                         SELECT SUM(COALESCE(bicepsas, 0) + COALESCE(talija, 0) + COALESCE(sedmenys, 0) + COALESCE(slaunis, 0))::float AS apimtys
                         FROM body_tracking 
@@ -84,6 +109,15 @@ class Bodytracking {
                         ORDER BY created_at ASC 
                         LIMIT 1
                     ) AS last_apimtys,
+                    -- (
+                    --     SELECT id
+                    --     FROM body_tracking 
+                    --     WHERE (bicepsas IS NOT NULL OR talija IS NOT NULL OR sedmenys IS NOT NULL OR slaunis IS NOT NULL)
+                    --     AND user_id = $1
+                    --     GROUP BY created_at, id
+                    --     ORDER BY created_at DESC 
+                    --     LIMIT 1
+                    -- ) AS latest_apimtys_id,
                     (
                         SELECT SUM(COALESCE(bicepsas, 0) + COALESCE(talija, 0) + COALESCE(sedmenys, 0) + COALESCE(slaunis, 0))::float AS apimtys
                         FROM body_tracking 
@@ -93,29 +127,59 @@ class Bodytracking {
                         ORDER BY created_at DESC 
                         LIMIT 1
                     ) AS latest_apimtys
+
+
+                    -- TESTING
+                    -- (
+                    --     SELECT id
+                    --     FROM body_tracking 
+                    --     WHERE user_id = $1
+                    --     GROUP BY created_at, id
+                    --     ORDER BY created_at ASC 
+                    --     LIMIT 1
+                    -- ) AS last_row_id,
+                    -- (
+                    --     SELECT id
+                    --     FROM body_tracking 
+                    --     WHERE user_id = $1
+                    --     GROUP BY created_at, id
+                    --     ORDER BY created_at DESC 
+                    --     LIMIT 1
+                    -- ) AS first_row_id
+                    -- TESTING
                 )
-            SELECT last_svoris,
+            SELECT 
+                -- TESTING
+                -- first_row_id,
+                -- last_row_id,
+                -- TESTING
+
+                -- last_svoris_id, 
+                last_svoris,
+                -- latest_svoris_id,
                 latest_svoris,
+                -- last_apimtys_id,
                 last_apimtys,
+                -- latest_apimtys_id,
                 latest_apimtys,
                 ROUND((latest_svoris - last_svoris)::numeric, 1)::float AS trend_svoris, 
-                ROUND((latest_apimtys - last_apimtys)::numeric, 1)::float AS trend_apimtys FROM stats;`;
+                ROUND((latest_apimtys - last_apimtys)::numeric, 1)::float AS trend_apimtys 
+            FROM stats;`;
         return queryString;
     }
 
     static getAllBodyData() {
         const queryString = `SELECT 
             id, 
-            svoris::float, 
-            bicepsas::float, 
-            talija::float, 
-            sedmenys::float, 
-            slaunis::float,
+            COALESCE(svoris::float, 0) AS svoris, 
+            COALESCE(bicepsas::float, 0) AS bicepsas, 
+            COALESCE(talija::float, 0) AS talija, 
+            COALESCE(sedmenys::float, 0) AS sedmenys, 
+            COALESCE(slaunis::float, 0) AS slaunis,
             created_at
-            FROM body_tracking WHERE user_id = $1`;
+            FROM body_tracking WHERE user_id = $1 ORDER BY created_at DESC`;
         return queryString;
     }
-    
 }
 
 module.exports = Bodytracking;
