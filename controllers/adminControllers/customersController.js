@@ -151,8 +151,10 @@ exports.updateUser = async (req, res) => {
     const { value, column } = req.body;
     
     const id = req.params.id;
+    // console.log('id: ', id, '\ncolumn: ', column, '\nvalue: ', value);
     const validColumns = [
         'subscription_expires', 
+        'subscription_type',
         'plan_prepare', 
         'plan_assign', 
         'maintenance', 
@@ -175,7 +177,7 @@ exports.updateUser = async (req, res) => {
         }
 
         queryString = `UPDATE users SET ${column} = $2, updated_at = $3 WHERE id = $1;`;
-        queryParams = [req.params.id, value, new Date().toLocaleString('lt-LT')];
+        queryParams = [id, value, new Date().toLocaleString('lt-LT')];
             
         if(column === 'eats_calories' && isNaN(value)) throw new Error('Turi būti tik skaičiai')
         
@@ -183,11 +185,11 @@ exports.updateUser = async (req, res) => {
             const { stripe_type } = req.body
             if(stripe_type) {
                 queryString = `UPDATE users SET ${column} = $2, updated_at = $3 WHERE id = $1;`;
-                queryParams = [req.params.id, value, new Date().    toLocaleString('lt-LT')];
+                queryParams = [id, value, new Date().    toLocaleString('lt-LT')];
             } else {
                 const plan = !!value ? 'Virtuvė' : 'free';
                 queryString = `UPDATE users SET ${column} = $2, subscription = $3, subscription_type = $4, updated_at = $5 WHERE id = $1;`;
-                queryParams = [req.params.id, value, !!value, plan, new Date().toLocaleString('lt-LT')];
+                queryParams = [id, value, !!value, plan, new Date().toLocaleString('lt-LT')];
             }
         } 
             
