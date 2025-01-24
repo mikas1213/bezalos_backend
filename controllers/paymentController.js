@@ -2,7 +2,6 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const db = require('../database/db');
 const { stripeSubscriptionSession, stripeServiceSession } = require('../utils/payments');
 
-
 const prices_ids = {
     profilis_month: process.env.STRIPE_PROFILIS_PRICE_MONTH,
     profilis_year: process.env.STRIPE_PROFILIS_PRICE_YEAR,
@@ -44,7 +43,7 @@ exports.createServiceSession = async (req, res) => {
 exports.paymentSuccess = async (req, res) => {
     const event_type = req.body.type;
     const data = req.body.data;
-
+    
     if(event_type === 'checkout.session.completed' && data.object.mode === 'subscription' && data.object.payment_status === 'paid') {
         for_success_subs_page = data.object.metadata.subscription_status;
         const userId = data.object.metadata.user_id;
@@ -62,6 +61,7 @@ exports.paymentSuccess = async (req, res) => {
 
         // UPDATE CUSTOMER INFO
         await stripe.customers.update(data.object.customer, { metadata: { user_id: userId }});
+        
     }
 
     if(event_type === 'customer.subscription.updated') {
@@ -77,15 +77,19 @@ exports.paymentSuccess = async (req, res) => {
 
     if(event_type === 'invoice.payment_failed') {
         console.log('invoice.payment_failed')
-        const subscription = await stripe.subscriptions.retrieve(data.object.subscription);
-        const subs_start = new Date(subscription.current_period_start*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' }); 
-        const subs_end = new Date(subscription.current_period_end*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' });
+        // console.log('cia', req.body)
+        // const subscription = await stripe.subscriptions.retrieve(data.object.subscription);
+        // const subs_start = new Date(subscription.current_period_start*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' }); 
+        // const subs_end = new Date(subscription.current_period_end*1000).toLocaleString('lt-LT', { dateStyle: 'short', timeStyle: 'medium' });
 
-        await db.query('INSERT INTO subscriptions(user_id, stripe_subscription_id, status, current_period_start, current_period_end) VALUES ($1, $2, $3, $4, $5);', [userId, subscription.id, data.object.metadata.subscription_status, subs_start, subs_end]);
+        // await db.query('INSERT INTO subscriptions(user_id, stripe_subscription_id, status, current_period_start, current_period_end) VALUES ($1, $2, $3, $4, $5);', [userId, subscription.id, data.object.metadata.subscription_status, subs_start, subs_end]);
     }
 
     if(event_type === 'customer.subscription.deleted') {
-        const subscription_status = `Canceled_${data.object.plan.metadata.s_plan}`;
+        const plan = data.object.plan.metadata.s_plan;
+        const reason = data.object.cancellation_details.reason;
+        const subscription_status = (plan === 'virtuve' && reason === 'payment_failed') ? 'UNPAID' : `Canceled_${plan}`;
+
         await db.query('UPDATE users SET subscription = $2, subscription_type = $3, subscription_expires = $4, updated_at = $5  WHERE stripe_customer_id = $1', [data.object.customer, 'false', subscription_status, null, new Date().toLocaleString('lt-LT')]);
         await db.query('DELETE from subscriptions WHERE stripe_subscription_id = $1', [data.object.id]);
     }
