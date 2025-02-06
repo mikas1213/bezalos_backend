@@ -24,6 +24,7 @@ const paymentRouter = require('./routes/paymentRoutes');
 const customersRouter = require('./routes/adminRoutes/customersRoutes');
 const nutritionPlansRouter = require('./routes/adminRoutes/nutritionPlansRoutes');
 const servicesRouter = require('./routes/servicesRoutes');
+const recipesRouter = require('./routes/recipesRoutes');
 const discountRouter = require('./routes/discountRoutes');
 
 const limiter = rateLimit({
@@ -65,6 +66,7 @@ app.use('/api/v1/mailer', mailerRouter);
 app.use('/api/v1/payments', paymentRouter);
 app.use('/api/v1/services', servicesRouter);
 app.use('/api/v1/discount', discountRouter);
+app.use('/api/v1/recipes', recipesRouter);
 app.use('/api/v1/admin', [
     customersRouter, 
     nutritionPlansRouter

@@ -110,7 +110,7 @@ exports.getAllUsers = async (req, res) => {
                 CASE 
                     WHEN subscription_type = 'UNPAID' THEN 0
                     ELSE 1
-                END, ${column} ${sort} NULLS LAST;`;
+                END, ${column} ${sort} NULLS LAST, email ASC;`;
         if(service) {
             where = `WHERE role = $1 AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2) AND (o.title = 'Mitybos planas + 🎁' OR o.title = 'Mitybos planas + 4 savaičių priežiūra') AND plan_assign IS NULL`;
             queryString = `SELECT ${columns} FROM users INNER JOIN orders o ON users.id = o.user_id LEFT JOIN subscriptions ON users.id = subscriptions.user_id ${where} ORDER BY ${column} ${sort} NULLS LAST;`;

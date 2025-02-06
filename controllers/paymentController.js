@@ -45,7 +45,7 @@ exports.paymentSuccess = async (req, res) => {
     const data = req.body.data;
     
     if(event_type === 'checkout.session.completed' && data.object.mode === 'subscription' && data.object.payment_status === 'paid') {
-        for_success_subs_page = data.object.metadata.subscription_status;
+        // const for_success_subs_page = data.object.metadata.subscription_status;
         const userId = data.object.metadata.user_id;
         let type = 'free';
         let stripe_username = data.object?.customer_details?.name;
@@ -70,6 +70,10 @@ exports.paymentSuccess = async (req, res) => {
         const price = await stripe.prices.retrieve(data.object.plan.id);
         const stripe_customer = await stripe.customers.retrieve(data.object.customer);
 
+
+    
+        const prod = await stripe.products.retrieve(data.object.plan.product);
+        console.log('Price: ', prod)
         const subscription_status = !data.object.cancel_at ? price.metadata.u_plan : `Cancel_${price.metadata.s_plan}`;
         await db.query('UPDATE users SET subscription_type = $2, stripe_username = $3, updated_at = $4 WHERE stripe_customer_id = $1', [data.object.customer, subscription_status, stripe_customer.name, new Date().toLocaleString('lt-LT')]);
         await db.query('UPDATE subscriptions SET current_period_start = $1, current_period_end = $2, status = $3 WHERE stripe_subscription_id = $4', [subs_start, subs_end, price.metadata.s_plan, data.object.id]);
