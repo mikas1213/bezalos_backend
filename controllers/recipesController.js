@@ -22,7 +22,7 @@ exports.getOneRecipe = async (req, res) => {
     try {
         const { slug } = req.params;
         const recipe = await Recipe.getOneRecipeQuery(slug);
-
+        console.log(recipe)
         if (!recipe) {
             return res.status(404).json({ message: 'Recipe not found' });
         }

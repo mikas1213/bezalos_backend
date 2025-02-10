@@ -149,9 +149,8 @@ exports.getOneUser = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
     const { value, column } = req.body;
-    
     const id = req.params.id;
-    // console.log('id: ', id, '\ncolumn: ', column, '\nvalue: ', value);
+
     const validColumns = [
         'subscription_expires', 
         'subscription_type',
@@ -182,7 +181,8 @@ exports.updateUser = async (req, res) => {
         if(column === 'eats_calories' && isNaN(value)) throw new Error('Turi būti tik skaičiai')
         
         if(column === 'subscription_expires') {
-            const { stripe_type } = req.body
+            const { stripe_type } = req.body;
+            // console.log(value, column, stripe_type)
             if(stripe_type) {
                 queryString = `UPDATE users SET ${column} = $2, updated_at = $3 WHERE id = $1;`;
                 queryParams = [id, value, new Date().    toLocaleString('lt-LT')];

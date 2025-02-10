@@ -5,7 +5,7 @@ class Recipe {
         const where = [];
         const values = [];
         let paramCount = 1;
-        const searchableColumns = ['r.title', 'r.description']; 
+        const searchableColumns = ['r.title', 'r.description', 'p.title']; 
         const ALLOWED_FILTERS = ['is_vegetarian', 'recipe_type', 'logic', 'duration', 'taste', 'search'];
         const validFilters = Object.keys(filters)
             .filter(key => ALLOWED_FILTERS.includes(key))
@@ -56,18 +56,15 @@ class Recipe {
         
         const { whereClause, values } = this.buildWhereClause(filters);
         const offset = (page - 1) * limit;
+        // const countQuery = `SELECT COUNT(*) AS total FROM recipes r ${whereClause};`;
+
         const countQuery = `
-            SELECT COUNT(*) AS total FROM recipes r
+            SELECT COUNT(DISTINCT r.id) AS total 
+            FROM recipes r
+            LEFT JOIN recipe_products rp ON rp.recipe_id = r.id
+            LEFT JOIN food_products p ON rp.product_id = p.id
             ${whereClause};
         `;
-
-        // const countQuery = `
-        //     SELECT COUNT(DISTINCT r.id) AS total 
-        //     FROM recipes r
-        //     LEFT JOIN recipe_products rp ON rp.recipe_id = r.id
-        //     LEFT JOIN food_products p ON rp.product_id = p.id
-        //     ${whereClause};
-        // `;
 
 
         const queryString = `
@@ -85,19 +82,7 @@ class Recipe {
                 COALESCE(SUM((p.proteins / 100) * rp.grams), 0)::float AS b,
                 COALESCE(SUM((p.carbs / 100) * rp.grams), 0)::float AS a,
                 COALESCE(SUM((p.fat / 100) * rp.grams), 0)::float AS r,
-                COALESCE(SUM(((p.proteins * 4) + (p.carbs * 4) + (p.fat * 9)) / 100 * rp.grams), 0)::float AS kcal,
-                JSON_AGG(
-                    JSON_BUILD_OBJECT(
-                        'id', rp.id, 
-                        'product_id', p.id,
-                        'title', p.title,
-                        'grams', rp.grams
-                        -- 'proteins', p.proteins,
-                        -- 'carbs', p.carbs,
-                        -- 'fat', p.fat,
-                        -- 'kcal', (p.proteins * 4) + (p.carbs * 4) + (p.fat * 9)
-                    )
-                ) AS products
+                COALESCE(SUM(((p.proteins * 4) + (p.carbs * 4) + (p.fat * 9)) / 100 * rp.grams), 0)::float AS kcal
             FROM recipe_products rp
             LEFT JOIN recipes r ON rp.recipe_id = r.id
             LEFT JOIN food_products p ON rp.product_id = p.id
@@ -105,7 +90,7 @@ class Recipe {
             GROUP BY r.id ORDER BY r.title ASC
             LIMIT $${values.length + 1} OFFSET $${values.length + 2};
         `;
-
+        
         try {
             const count_result = await db.query(countQuery, values);
             const total_rows = parseInt(count_result.rows[0].total, 10);
@@ -131,10 +116,10 @@ class Recipe {
                 r.duration,
                 r.taste,
                 r.description,
-                COALESCE(SUM((p.proteins / 100) * rp.grams), 0)::float AS b,
-                COALESCE(SUM((p.carbs / 100) * rp.grams), 0)::float AS a,
-                COALESCE(SUM((p.fat / 100) * rp.grams), 0)::float AS r,
-                COALESCE(SUM(((p.proteins * 4) + (p.carbs * 4) + (p.fat * 9)) / 100 * rp.grams), 0)::float AS kcal,
+                COALESCE(ROUND(SUM((p.proteins / 100) * rp.grams))::FLOAT, 0) AS b,
+                COALESCE(ROUND(SUM((p.carbs / 100) * rp.grams))::FLOAT, 0) AS a,
+                COALESCE(ROUND(SUM((p.fat / 100) * rp.grams))::FLOAT, 0) AS r,
+                COALESCE(ROUND(SUM(((p.proteins * 4) + (p.carbs * 4) + (p.fat * 9)) / 100 * rp.grams))::FLOAT, 0) AS kcal,
                 JSON_AGG(
                     JSON_BUILD_OBJECT(
                         'id', rp.id, 
