@@ -14,6 +14,7 @@ exports.getAllServices = async (req, res) => {
 };
 
 exports.getOneService = async (req, res) => {
+    
     const { slug } = req.params;
     try {
         const { rows } = await db.query('SELECT * FROM services WHERE slug = $1', [slug]);

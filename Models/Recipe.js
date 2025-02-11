@@ -82,12 +82,20 @@ class Recipe {
                 COALESCE(SUM((p.proteins / 100) * rp.grams), 0)::float AS b,
                 COALESCE(SUM((p.carbs / 100) * rp.grams), 0)::float AS a,
                 COALESCE(SUM((p.fat / 100) * rp.grams), 0)::float AS r,
-                COALESCE(SUM(((p.proteins * 4) + (p.carbs * 4) + (p.fat * 9)) / 100 * rp.grams), 0)::float AS kcal
+                COALESCE(SUM(((p.proteins * 4) + (p.carbs * 4) + (p.fat * 9)) / 100 * rp.grams), 0)::float AS kcal,
+                -- COALESCE(l.likes_count, 0) AS likes
             FROM recipe_products rp
             LEFT JOIN recipes r ON rp.recipe_id = r.id
             LEFT JOIN food_products p ON rp.product_id = p.id
+            -- LEFT JOIN (
+            --     SELECT like_id, COUNT(*) AS likes_count 
+            --     FROM likes 
+            --     WHERE like_type = 'recipe'
+            --     GROUP BY like_id
+            -- ) l ON l.like_id = r.id
             ${whereClause}
-            GROUP BY r.id ORDER BY r.title ASC
+            GROUP BY r.id, l.likes_count
+            ORDER BY r.title ASC
             LIMIT $${values.length + 1} OFFSET $${values.length + 2};
         `;
         

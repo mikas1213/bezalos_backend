@@ -22,11 +22,10 @@ router.route('/comment').post(
 router.route('/comment/:id/:user_id').delete(
     authController.protect,
     authController.isSubscription('virtuve', 'Virtuvė'),
-    videoController.protectDelete,
     videoController.deleteVideoComment
 );
 
-router.route('/like/:video_id/:user_id').post(
+router.route('/like/:user_id/:video_id').post(
     authController.protect,
     authController.isSubscription('virtuve', 'Virtuvė'),
     videoController.protectDelete,

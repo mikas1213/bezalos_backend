@@ -28,11 +28,11 @@ exports.getKitchenVideo = async (req, res) => {
         let is_liked = false;
 
         if(data.rows[0]) {
-            const likes_c = await db.query('SELECT COUNT(*) FROM likes WHERE video_id = $1', [data.rows[0].id]);
+            const likes_c = await db.query('SELECT COUNT(*) FROM likes_videos WHERE video_id = $1', [data.rows[0].id]);
             likes_count = likes_c.rows[0].count;
 
-            const is_l = await db.query('SELECT COUNT(*) FROM likes WHERE video_id = $1 AND user_id = $2', [data.rows[0].id, req.user_id]);
-            is_liked = !!+is_l.rows[0].count; // + convert from string to integer, !! convert to boolean
+            const is_l = await db.query('SELECT COUNT(*) FROM likes_videos WHERE video_id = $1 AND user_id = $2', [data.rows[0].id, req.user_id]);
+            is_liked = !!+is_l.rows[0].count; // + convert from string to integer, !! convert to boolean  
         }
         
         
@@ -79,23 +79,50 @@ exports.addVideoComment = async (req, res) => {
 }
 
 exports.deleteVideoComment = async (req, res) => {
+    const { user_id } = req;
+    const { id } = req.params;
     try {
-        await db.query('DELETE FROM comments WHERE id = $1', [req.params.id]);
+        const { rows } = await db.query('SELECT user_id FROM comments WHERE id = $1', [id]);
+        if(rows.length > 0) {
+            const c_user_id = rows[0]?.user_id;
+            if(user_id !== c_user_id) {
+                return res.status(403).json({ message: 'Not authorized to remove this comment' });
+            }
+        } else {
+            return res.status(404).json({ message: 'Comment not found' });
+        }
+        
+        await db.query('DELETE FROM comments WHERE id = $1', [id]);
         return res.sendStatus(204);
     } catch (err) {
-        console.log(err)
+        res.status(500).json({
+            message: err.message
+        });
     }
 };
 
-exports.protectDelete = (req, res, next) => {
-    if(!(req.user_id === req.params.user_id)) return res.sendStatus(401);
+exports.protectDelete = async (req, res, next) => {
+
+    const user_id = req.user_id;
+    const { video_id } = req.params;
+    
+    const result = await db.query('SELECT user_id FROM likes_videos WHERE video_id = $1 AND user_id = $2', [video_id, user_id]);
+    if (result.rowCount > 0) {
+        const like_owner_id = result.rows[0].user_id;
+
+        if (user_id !== like_owner_id) {
+            return res.status(403).json({ message: 'Not authorized to remove this like' });
+        }
+    }
     next();
 };
 
 exports.toggleLikes = async (req, res) => {
+    const { user_id, video_id } = req.params;
     try {
-        const like = await db.query('SELECT toggle_likes($1, $2)', [req.params.user_id, req.params.video_id]);
-        const likes = await db.query('SELECT COUNT(*) FROM likes WHERE video_id = $1', [req.params.video_id]);
+        const like = await db.query('SELECT toggle_likes($1, $2)', [user_id, video_id]);
+        const likes = await db.query('SELECT COUNT(*) FROM likes_videos WHERE video_id = $1', [video_id]);
+        
         return res.status(201).json({
             isLiked: !!+like.rows[0].toggle_likes,
             likesCount: likes.rows[0].count
