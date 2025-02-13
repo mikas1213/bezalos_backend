@@ -6,7 +6,7 @@ class Recipe {
         const values = [];
         let paramCount = 1;
         const searchableColumns = ['r.title', 'r.description', 'p.title']; 
-        const ALLOWED_FILTERS = ['is_vegetarian', 'recipe_type', 'logic', 'duration', 'taste', 'search'];
+        const ALLOWED_FILTERS = ['is_vegetarian', 'recipe_type', 'food_logic', 'duration', 'taste', 'search'];
         const validFilters = Object.keys(filters)
             .filter(key => ALLOWED_FILTERS.includes(key))
             .reduce((obj, key) => {
@@ -72,7 +72,7 @@ class Recipe {
                 r.slug, 
                 r.img, 
                 r.is_vegetarian,
-                r.logic AS food_ligic,
+                r.food_logic,
                 r.recipe_type,
                 r.duration,
                 r.taste,
@@ -110,7 +110,8 @@ class Recipe {
             values.push(user_id);
             values.push(limit, offset);
             const { rows } = await db.query(queryString, values);
-            console.log('getAllRecipesQuery: ', rows)
+            console.log('getAllRecipesQuery: ', rows);
+            console.log(whereClause, values)
             return {rows, total_pages, total_rows, current_page: page};
         } catch (err) {
             throw err;
@@ -124,7 +125,7 @@ class Recipe {
                 r.slug, 
                 r.img, 
                 r.is_vegetarian,
-                r.logic,
+                r.food_logic,
                 r.recipe_type,
                 r.duration,
                 r.taste,
@@ -139,10 +140,6 @@ class Recipe {
                         'product_id', p.id,
                         'title', p.title,
                         'grams', rp.grams
-                        -- 'proteins', p.proteins,
-                        -- 'carbs', p.carbs,
-                        -- 'fat', p.fat,
-                        -- 'kcal', (p.proteins * 4) + (p.carbs * 4) + (p.fat * 9)
                     )
                 ) AS products
             FROM recipe_products rp
