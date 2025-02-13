@@ -100,34 +100,3 @@ exports.deleteVideoComment = async (req, res) => {
         });
     }
 };
-
-exports.protectDelete = async (req, res, next) => {
-
-    const user_id = req.user_id;
-    const { video_id } = req.params;
-    
-    const result = await db.query('SELECT user_id FROM likes_videos WHERE video_id = $1 AND user_id = $2', [video_id, user_id]);
-    if (result.rowCount > 0) {
-        const like_owner_id = result.rows[0].user_id;
-
-        if (user_id !== like_owner_id) {
-            return res.status(403).json({ message: 'Not authorized to remove this like' });
-        }
-    }
-    next();
-};
-
-exports.toggleLikes = async (req, res) => {
-    const { user_id, video_id } = req.params;
-    try {
-        const like = await db.query('SELECT toggle_likes($1, $2)', [user_id, video_id]);
-        const likes = await db.query('SELECT COUNT(*) FROM likes_videos WHERE video_id = $1', [video_id]);
-        
-        return res.status(201).json({
-            isLiked: !!+like.rows[0].toggle_likes,
-            likesCount: likes.rows[0].count
-        });
-    } catch (err) {
-        console.log('from toggleLikes: ', err.message);
-    }
-}

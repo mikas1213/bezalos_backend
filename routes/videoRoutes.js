@@ -25,11 +25,4 @@ router.route('/comment/:id/:user_id').delete(
     videoController.deleteVideoComment
 );
 
-router.route('/like/:user_id/:video_id').post(
-    authController.protect,
-    authController.isSubscription('virtuve', 'Virtuvė'),
-    videoController.protectDelete,
-    videoController.toggleLikes
-);
-
 module.exports = router;

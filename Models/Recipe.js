@@ -52,11 +52,10 @@ class Recipe {
         }
     }
 
-    static async getAllRecipesQuery(filters, page = 1, limit = 16) {
-        
+    static async getAllRecipesQuery(filters, page = 1, limit = 16, user_id) {
+
         const { whereClause, values } = this.buildWhereClause(filters);
         const offset = (page - 1) * limit;
-        // const countQuery = `SELECT COUNT(*) AS total FROM recipes r ${whereClause};`;
 
         const countQuery = `
             SELECT COUNT(DISTINCT r.id) AS total 
@@ -65,7 +64,6 @@ class Recipe {
             LEFT JOIN food_products p ON rp.product_id = p.id
             ${whereClause};
         `;
-
 
         const queryString = `
             SELECT 
@@ -79,30 +77,37 @@ class Recipe {
                 r.duration,
                 r.taste,
                 r.description,
-                COALESCE(SUM((p.proteins / 100) * rp.grams), 0)::float AS b,
-                COALESCE(SUM((p.carbs / 100) * rp.grams), 0)::float AS a,
-                COALESCE(SUM((p.fat / 100) * rp.grams), 0)::float AS r,
-                COALESCE(SUM(((p.proteins * 4) + (p.carbs * 4) + (p.fat * 9)) / 100 * rp.grams), 0)::float AS kcal,
-                -- COALESCE(l.likes_count, 0) AS likes
+                -- COALESCE(SUM((p.proteins / 100) * rp.grams), 0)::float AS b,
+                -- COALESCE(SUM((p.carbs / 100) * rp.grams), 0)::float AS a,
+                -- COALESCE(SUM((p.fat / 100) * rp.grams), 0)::float AS r,
+                -- COALESCE(SUM(((p.proteins * 4) + (p.carbs * 4) + (p.fat * 9)) / 100 * rp.grams), 0)::float AS kcal,
+                COALESCE(l.likes_count, 0)::int AS likes,
+                CASE 
+                    WHEN $${values.length + 1} IS NULL THEN false  -- Jei vartotojas neprisijungęs, liked = false
+                    WHEN ul.user_id IS NOT NULL THEN true 
+                    ELSE false 
+                END AS liked
             FROM recipe_products rp
             LEFT JOIN recipes r ON rp.recipe_id = r.id
             LEFT JOIN food_products p ON rp.product_id = p.id
-            -- LEFT JOIN (
-            --     SELECT like_id, COUNT(*) AS likes_count 
-            --     FROM likes 
-            --     WHERE like_type = 'recipe'
-            --     GROUP BY like_id
-            -- ) l ON l.like_id = r.id
+            LEFT JOIN (
+                SELECT recipe_id, COUNT(*) AS likes_count 
+                FROM likes_recipes 
+                GROUP BY recipe_id
+            ) l ON l.recipe_id = r.id
+            LEFT JOIN likes_recipes AS ul ON ul.recipe_id = r.id AND ul.user_id = $${values.length + 1} -- Prisijungusio vartotojo like'ai
             ${whereClause}
-            GROUP BY r.id, l.likes_count
+            GROUP BY r.id, l.likes_count, ul.user_id
             ORDER BY r.title ASC
-            LIMIT $${values.length + 1} OFFSET $${values.length + 2};
+            LIMIT $${values.length + 2} OFFSET $${values.length + 3};
         `;
         
         try {
             const count_result = await db.query(countQuery, values);
             const total_rows = parseInt(count_result.rows[0].total, 10);
             const total_pages = Math.ceil(total_rows / limit);
+            
+            values.push(user_id);
             values.push(limit, offset);
             const { rows } = await db.query(queryString, values);
 

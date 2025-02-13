@@ -6,7 +6,7 @@ router.route('/:slug').get(
     recipesController.getOneRecipe
 );
 
-router.route('/').get(
+router.route('/').post(
     recipesController.getAllRecipes
 );
 

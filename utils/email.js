@@ -2,7 +2,7 @@ const sgMail = require('@sendgrid/mail');
 
 const messages = {
     profilis: {
-        text: 'Jungiantis į bendruomenę pasirinkai, kad tave domina sveikas svorio metimas, šį tikslą lengviausiai tau padės pasiekti narystė "MINI"', 
+        text: 'Jungiantis į bendruomenę pasirinkai, kad tave domina sveikas svorio metimas, šį tikslą lengviausiai tau padės pasiekti narystė "Profilis"', 
         btn: 'Narystė'
     },
     virtuve: {
@@ -10,7 +10,7 @@ const messages = {
         btn: 'Į Virtuvę'
     },
     abu: {
-        text: 'Jungiantis į bendruomenę pasirinkai, kad tave domina išmokti sveikatai palankios mitybos pagrindų bei sveikai sumažinti savo kūno svorį, šį tikslą lengviausiai tau padės pasiekti narystė "MAXI"',
+        text: 'Jungiantis į bendruomenę pasirinkai, kad tave domina išmokti sveikatai palankios mitybos pagrindų bei sveikai sumažinti savo kūno svorį, šį tikslą lengviausiai tau padės pasiekti narystė "Virtuvė"',
         btn: 'Narystė'        
     },
     nezinau: {
