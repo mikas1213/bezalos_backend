@@ -72,7 +72,7 @@ class Recipe {
                 r.slug, 
                 r.img, 
                 r.is_vegetarian,
-                r.logic,
+                r.logic AS food_ligic,
                 r.recipe_type,
                 r.duration,
                 r.taste,
