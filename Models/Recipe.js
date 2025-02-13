@@ -110,7 +110,7 @@ class Recipe {
             values.push(user_id);
             values.push(limit, offset);
             const { rows } = await db.query(queryString, values);
-
+            console.log('getAllRecipesQuery: ', rows)
             return {rows, total_pages, total_rows, current_page: page};
         } catch (err) {
             throw err;
