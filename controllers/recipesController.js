@@ -2,7 +2,7 @@ const db = require('../database/db');
 const Recipe = require('../Models/Recipe');
 const multer = require('multer');
 const sharp = require('sharp');
-var slugify = require('slugify')
+const slugify = require('slugify')
 
 exports.getAllRecipes = async (req, res) => {
     
