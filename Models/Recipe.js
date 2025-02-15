@@ -70,7 +70,10 @@ class Recipe {
                 r.id,
                 r.title AS recipe, 
                 r.slug, 
-                r.img, 
+                r.photo_s, 
+                r.photo_m, 
+                r.photo_l, 
+                r.photo_type,
                 r.is_vegetarian,
                 r.food_logic,
                 r.recipe_type,
@@ -98,7 +101,7 @@ class Recipe {
             LEFT JOIN likes_recipes AS ul ON ul.recipe_id = r.id AND ul.user_id = $${values.length + 1} -- Prisijungusio vartotojo like'ai
             ${whereClause}
             GROUP BY r.id, l.likes_count, ul.user_id
-            ORDER BY r.title ASC
+            ORDER BY r.created_at DESC
             LIMIT $${values.length + 2} OFFSET $${values.length + 3};
         `;
         
@@ -110,8 +113,7 @@ class Recipe {
             values.push(user_id);
             values.push(limit, offset);
             const { rows } = await db.query(queryString, values);
-            console.log('getAllRecipesQuery: ', rows);
-            console.log(whereClause, values)
+
             return {rows, total_pages, total_rows, current_page: page};
         } catch (err) {
             throw err;
@@ -123,7 +125,11 @@ class Recipe {
             SELECT 
                 r.title AS recipe, 
                 r.slug, 
-                r.img, 
+                r.photo_s, 
+                r.photo_m, 
+                r.photo_l, 
+                r.photo_type,
+                r.video_link,
                 r.is_vegetarian,
                 r.food_logic,
                 r.recipe_type,
@@ -151,6 +157,29 @@ class Recipe {
         try {
             const { rows } = await db.query(queryString, [slug]);
             return rows.length ? rows[0] : null;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    static async getMostLikedQuery() {
+        const most_liked_query = `SELECT 
+            r.id,
+            r.title,
+            r.slug,
+            r.duration,
+            r.food_logic,
+            r.photo_s,
+            COUNT(lr.recipe_id) AS like_count
+        FROM recipes r
+        LEFT JOIN likes_recipes lr ON r.id = lr.recipe_id
+        GROUP BY r.id, r.title, r.slug
+        ORDER BY like_count DESC
+        LIMIT 10;`;
+
+        try {
+            const { rows } = await db.query(most_liked_query);
+            return rows.length ? rows : null;
         } catch (err) {
             throw err;
         }

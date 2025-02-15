@@ -3,15 +3,26 @@ const db = require('../../database/db');
 exports.getAllRows = (table, field = 'created_at', sort = 'DESC') => {
     return async (req, res) => {
         try {
-            const data = await db.query(`SELECT * FROM ${table} ORDER BY ${field} ${sort};`);
-            res.status(200).json({
-                [`${table}`]: data.rows
-            });
-        } catch (err) {
-            console.log(err.message)
+            const { rows } = await db.query(`SELECT * FROM ${table} ORDER BY ${field} ${sort};`);
+            res.status(200).json(rows);
+        } catch (err) {            
+            res.status(500).json({message: err.message});
         }
     };
 }
+
+exports.deleteOneRow = (table, id) => {
+    return async (req, res) => {
+        try {
+            await db.query(`DELETE FROM ${table} WHERE id = $1`, [id]);
+            res.sendStatus(204);
+        } catch (err) {
+            res.status(500).json({
+                message: err.message
+            });
+        }
+    };
+};
 
 exports.getStats = async (req, res) => {
     try {

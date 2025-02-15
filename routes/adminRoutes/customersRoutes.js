@@ -17,6 +17,14 @@ router.route('/user/:id')
     .get(validateUUID, customersController.getOneUser)
     .patch(customersController.updateUser);
 
+router.route('/recipes/:id')
+    .all(authController.protect, authController.verifyRoles(roles.admin))
+    .delete(validateUUID, adminControllers.deleteOneRow('recipes'));
+
+router.route('/recipes')
+    .all(authController.protect, authController.verifyRoles(roles.admin))
+    .get(adminControllers.getAllRows('recipes'));
+
 router.route('/users')
     .all(authController.protect, authController.verifyRoles(roles.admin))
     .get(customersController.searchUsers)
