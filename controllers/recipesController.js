@@ -81,8 +81,10 @@ exports.addRecipe = async (req, res) => {
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING id`;
         
         await db.query('BEGIN');
-        const data = await db.query(recipe_query, [title, slug, recipe_type, food_logic, taste, duration, is_vegetarian, description, img_s, img_m, img_l, video_link, photo_type]);    
-        const recipe_id = data.rows[0].id;
+        const { rows: [{ id: recipe_id }]} = await db.query(recipe_query, [title, slug, recipe_type, food_logic, taste, duration, is_vegetarian, description, img_s, img_m, img_l, video_link, photo_type]);    
+        
+        // const recipe_id = rows[0].id;
+        // const recipe_id = id;
         let recipe_date = new Date();
 
         const insert_products_query = 'INSERT INTO recipe_products (recipe_id, product_id, grams, created_at) VALUES ($1, $2, $3, $4)';
@@ -91,7 +93,7 @@ exports.addRecipe = async (req, res) => {
             await db.query(insert_products_query, [recipe_id, prod.product_id, prod.grams, recipe_date.toLocaleString('lt-LT')]);
         }
         await db.query('COMMIT');
-        res.status(200).json(data);
+        res.status(200).json(recipe_id);
 
     } catch(err) {
         await db.query('ROLLBACK');

@@ -11,9 +11,13 @@ exports.getAllRows = (table, field = 'created_at', sort = 'DESC') => {
     };
 }
 
-exports.deleteOneRow = (table, id) => {
+exports.deleteOneRow = (table) => {
     return async (req, res) => {
         try {
+            const { id } = req.params;
+            if(!id) {
+                return res.status(404).json({message: 'Toks receptas nerastas'});
+            }
             await db.query(`DELETE FROM ${table} WHERE id = $1`, [id]);
             res.sendStatus(204);
         } catch (err) {
