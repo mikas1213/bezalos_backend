@@ -8,8 +8,9 @@ module.exports = {
         merge_logs: true,
         time: true,
         autorestart: true,
-        watch: true,
-        ignore_watch: ["logs"],
+        // watch: true,
+        time: true,
+        // ignore_watch: ["logs"],
         instances: "max",
         exec_mode: "cluster"
     }]
