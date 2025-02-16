@@ -2,8 +2,14 @@ module.exports = {
     apps: [{
       name: "bezalos.lt",
       script: "./server.js",
-      error_file: "./logs_pm2/error.log",
-      out_file: "./logs_pm2/out.log",
-      log_file: "./logs_pm2/combined.log"
+      log_file: "./logs/combined.log",
+      out_file: "./logs/out.log",
+      error_file: "./logs/error.log",
+      merge_logs: true,
+      time: true,
+      autorestart: true,
+      watch: true,
+      instances: "max",
+      exec_mode: "cluster"
     }]
   }

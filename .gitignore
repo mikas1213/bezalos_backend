@@ -1,7 +1,5 @@
 .env_bezalos
 logs
-logs_pm2
-pm2_logs
 node_modules
 database/SQL
 database/queries.sql
