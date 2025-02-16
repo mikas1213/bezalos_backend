@@ -9,6 +9,7 @@ module.exports = {
         time: true,
         autorestart: true,
         watch: true,
+        ignore_watch: ["logs"],
         instances: "max",
         exec_mode: "cluster"
     }]
