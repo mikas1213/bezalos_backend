@@ -70,11 +70,8 @@ class Recipe {
                 r.id,
                 r.title, 
                 r.slug, 
-                r.photo_s, 
-                r.photo_m, 
                 r.image_s,
                 r.image_m,
-                r.photo_type,
                 r.is_vegetarian,
                 r.food_logic,
                 r.recipe_type,
@@ -138,9 +135,7 @@ class Recipe {
             SELECT 
                 r.title, 
                 r.slug, 
-                r.photo_l, 
                 r.image_l,
-                r.photo_type,
                 r.video_link,
                 r.is_vegetarian,
                 r.food_logic,
@@ -181,7 +176,6 @@ class Recipe {
             r.slug,
             r.duration,
             r.food_logic,
-            r.photo_s,
             r.image_s,
             COUNT(lr.recipe_id) AS like_count
         FROM recipes r
