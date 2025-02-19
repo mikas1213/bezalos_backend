@@ -88,7 +88,7 @@ exports.addRecipe = async (req, res) => {
         }
         const recipe_query = `
             INSERT INTO recipes (title, slug, recipe_type, food_logic, taste, duration, is_vegetarian, description, photo_s, photo_m, photo_l, video_link, photo_type, img_s, img_m, img_l) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, %16) RETURNING id`;
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING id`;
         
         await db.query('BEGIN');
         const { rows: [{ id: recipe_id }]} = await db.query(recipe_query, [title, slug, recipe_type, food_logic, taste, duration, is_vegetarian, description, img_s, img_m, img_l, video_link, photo_type, image_s, image_m, image_l]);    
