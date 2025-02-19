@@ -4,6 +4,7 @@ const roles = require('../../utils/roles');
 const authController = require('../../controllers/authController');
 const adminControllers = require('../../controllers/adminControllers/adminController');
 const customersController = require('../../controllers/adminControllers/customersController');
+const recipesController = require('../../controllers/recipesController');
 const { validateUUID } = require('../../middleware/validators/validate_uuid');
 
 router.route('/user/plan/:id')
@@ -19,11 +20,26 @@ router.route('/user/:id')
 
 router.route('/recipes/:id')
     .all(authController.protect, authController.verifyRoles(roles.admin))
+    .patch(
+        validateUUID, 
+        recipesController.uploadPhoto,
+        recipesController.resizePhoto,
+        recipesController.editRecipe)
     .delete(validateUUID, adminControllers.deleteOneRow('recipes'));
+
+router.route('/recipes/add').all(
+        authController.protect,
+        authController.verifyRoles(roles.admin))
+    .post(
+        recipesController.uploadPhoto,
+        recipesController.resizePhoto,
+        recipesController.addRecipe
+    );
+    
 
 router.route('/recipes')
     .all(authController.protect, authController.verifyRoles(roles.admin))
-    .get(adminControllers.getAllRows('recipes'));
+    .get(recipesController.getAllRecipes);
 
 router.route('/users')
     .all(authController.protect, authController.verifyRoles(roles.admin))

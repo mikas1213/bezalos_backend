@@ -53,7 +53,7 @@ class Recipe {
     }
 
     static async getAllRecipesQuery(filters, page = 1, limit = 16, user_id) {
-
+        
         const { whereClause, values } = this.buildWhereClause(filters);
         const offset = (page - 1) * limit;
 
@@ -68,11 +68,11 @@ class Recipe {
         const queryString = `
             SELECT 
                 r.id,
-                r.title AS recipe, 
+                r.title, 
                 r.slug, 
                 r.photo_s, 
+                r.img_s,
                 r.photo_m, 
-                -- r.photo_l, 
                 r.photo_type,
                 r.is_vegetarian,
                 r.food_logic,
@@ -80,10 +80,22 @@ class Recipe {
                 r.duration,
                 r.taste,
                 r.description,
-                -- COALESCE(SUM((p.proteins / 100) * rp.grams), 0)::float AS b,
-                -- COALESCE(SUM((p.carbs / 100) * rp.grams), 0)::float AS a,
-                -- COALESCE(SUM((p.fat / 100) * rp.grams), 0)::float AS r,
-                -- COALESCE(SUM(((p.proteins * 4) + (p.carbs * 4) + (p.fat * 9)) / 100 * rp.grams), 0)::float AS kcal,
+                r.video_link,
+                JSON_AGG(
+                    JSON_BUILD_OBJECT(
+                        'id', rp.id, 
+                        'product_id', p.id,
+                        'title', p.title,
+                        'grams', rp.grams,
+                        'proteins', p.proteins, 
+                        'carbs', p.carbs,
+                        'fat', p.fat
+                    )
+                ) AS products,
+                COALESCE(SUM((p.proteins / 100) * rp.grams), 0)::float AS b,
+                COALESCE(SUM((p.carbs / 100) * rp.grams), 0)::float AS a,
+                COALESCE(SUM((p.fat / 100) * rp.grams), 0)::float AS r,
+                COALESCE(SUM(((p.proteins * 4) + (p.carbs * 4) + (p.fat * 9)) / 100 * rp.grams), 0)::float AS kcal,
                 COALESCE(l.likes_count, 0)::int AS likes,
                 CASE 
                     WHEN $${values.length + 1} IS NULL THEN false  -- Jei vartotojas neprisijungęs, liked = false
@@ -123,7 +135,7 @@ class Recipe {
     static async getOneRecipeQuery(slug) {
         const queryString = `
             SELECT 
-                r.title AS recipe, 
+                r.title, 
                 r.slug, 
                 -- r.photo_s, 
                 -- r.photo_m, 
@@ -170,6 +182,7 @@ class Recipe {
             r.duration,
             r.food_logic,
             r.photo_s,
+            r.img_s,
             COUNT(lr.recipe_id) AS like_count
         FROM recipes r
         LEFT JOIN likes_recipes lr ON r.id = lr.recipe_id
