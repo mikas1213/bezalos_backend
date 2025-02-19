@@ -87,7 +87,7 @@ exports.addRecipe = async (req, res) => {
             return res.status(400).json({ message: 'O produktai? 🍔🌭🌮' });
         }
         const recipe_query = `
-            INSERT INTO recipes (title, slug, recipe_type, food_logic, taste, duration, is_vegetarian, description, photo_s, photo_m, photo_l, video_link, photo_type, img_s, img_m, img_l) 
+            INSERT INTO recipes (title, slug, recipe_type, food_logic, taste, duration, is_vegetarian, description, photo_s, photo_m, photo_l, video_link, photo_type, image_s, image_m, image_l) 
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING id`;
         
         await db.query('BEGIN');
@@ -148,9 +148,9 @@ exports.editRecipe = async (req, res) => {
                 photo_m = $11, 
                 photo_l = $12, 
                 photo_type = $13,
-                img_s = $14,
-                img_m = $15, 
-                img_l = $16
+                image_s = $14,
+                image_m = $15, 
+                image_l = $16
             WHERE id = $17`;
         }
 
