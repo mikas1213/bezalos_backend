@@ -46,18 +46,14 @@ exports.resizePhoto = async (req, res, next) => {
     try {
         if (req.file) {
             const { buffer, mimetype } = req.file;
-            const base64_img_s = await sharp(buffer).resize(128, 128).webp({ quality: 50 }).toBuffer();
-            const base64_img_m = await sharp(buffer).resize(512, 384).webp({ quality: 70 }).toBuffer();
-            const base64_img_l = await sharp(buffer).resize(576, 1024).webp({ quality: 95 }).toBuffer();
+            const img_s = await sharp(buffer).resize(128, 128).webp({ quality: 50 }).toBuffer();
+            const img_m = await sharp(buffer).resize(512, 384).webp({ quality: 70 }).toBuffer();
+            const img_l = await sharp(buffer).resize(576, 1024).webp({ quality: 95 }).toBuffer();
              
-            req.body.image_s = `data:${mimetype};base64,${base64_img_s.toString('base64')}`;
-            req.body.image_m = `data:${mimetype};base64,${base64_img_m.toString('base64')}`;
-            req.body.image_l = `data:${mimetype};base64,${base64_img_l.toString('base64')}`;
+            req.body.image_s = `data:${mimetype};base64,${img_s.toString('base64')}`;
+            req.body.image_m = `data:${mimetype};base64,${img_m.toString('base64')}`;
+            req.body.image_l = `data:${mimetype};base64,${img_l.toString('base64')}`;
 
-            req.body.img_s = await sharp(buffer).resize(128, 128).webp({ quality: 50 }).toBuffer();
-            req.body.img_m = await sharp(buffer).resize(512, 384).webp({ quality: 70 }).toBuffer();
-            req.body.img_l = await sharp(buffer).resize(576, 1024).webp({ quality: 95 }).toBuffer();
-            req.body.photo_type = mimetype;
             return next();
         }
         next();
@@ -69,7 +65,7 @@ exports.resizePhoto = async (req, res, next) => {
 exports.addRecipe = async (req, res) => {
     try {
         
-        const { title, recipe_type, food_logic, taste, duration, is_vegetarian, description, img_s, img_m, img_l, video_link, photo_type, products, image_s, image_m, image_l } = req.body;
+        const { title, recipe_type, food_logic, taste, duration, is_vegetarian, description, image_s, image_m, image_l, video_link, products } = req.body;
         const slug = slugify(title, {replacement: '-', lower: true, trim: true, strict: true });
 
         const check_slug_query = 'SELECT 1 FROM recipes WHERE slug = $1';
@@ -87,11 +83,11 @@ exports.addRecipe = async (req, res) => {
             return res.status(400).json({ message: 'O produktai? 🍔🌭🌮' });
         }
         const recipe_query = `
-            INSERT INTO recipes (title, slug, recipe_type, food_logic, taste, duration, is_vegetarian, description, photo_s, photo_m, photo_l, video_link, photo_type, image_s, image_m, image_l) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING id`;
+            INSERT INTO recipes (title, slug, recipe_type, food_logic, taste, duration, is_vegetarian, description, image_s, image_m, image_l, video_link) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`;
         
         await db.query('BEGIN');
-        const { rows: [{ id: recipe_id }]} = await db.query(recipe_query, [title, slug, recipe_type, food_logic, taste, duration, is_vegetarian, description, img_s, img_m, img_l, video_link, photo_type, image_s, image_m, image_l]);    
+        const { rows: [{ id: recipe_id }]} = await db.query(recipe_query, [title, slug, recipe_type, food_logic, taste, duration, is_vegetarian, description, image_s, image_m, image_l, video_link]);    
         let recipe_date = new Date();
         const insert_products_query = 'INSERT INTO recipe_products (recipe_id, product_id, grams, created_at) VALUES ($1, $2, $3, $4)';
 
@@ -110,13 +106,11 @@ exports.addRecipe = async (req, res) => {
     }
 };
 
-
 exports.editRecipe = async (req, res) => {
-
     try {
         const { id: recipe_id } = req.params;
         
-        const { title, recipe_type, food_logic, taste, duration, is_vegetarian, description, img_s, img_m, img_l, video_link, photo_type, products, image_s, image_m, image_l } = req.body;
+        const { title, recipe_type, food_logic, taste, duration, is_vegetarian, description, image_s, image_m, image_l, video_link, products } = req.body;
         const slug = slugify(title, {replacement: '-', lower: true, trim: true, strict: true });
 
         let query_values = [title, slug, recipe_type, food_logic, taste, duration, is_vegetarian, description, video_link, recipe_id]
@@ -133,7 +127,7 @@ exports.editRecipe = async (req, res) => {
         WHERE id = $10`;
 
         if(req.file) {
-            query_values = [title, slug, recipe_type, food_logic, taste, duration, is_vegetarian, description, video_link, img_s, img_m, img_l, photo_type, image_s, image_m, image_l, recipe_id]
+            query_values = [title, slug, recipe_type, food_logic, taste, duration, is_vegetarian, description, video_link, image_s, image_m, image_l, recipe_id]
             query_string = `UPDATE recipes SET 
                 title = $1, 
                 slug = $2, 
@@ -144,14 +138,10 @@ exports.editRecipe = async (req, res) => {
                 is_vegetarian = $7, 
                 description = $8, 
                 video_link = $9, 
-                photo_s = $10, 
-                photo_m = $11, 
-                photo_l = $12, 
-                photo_type = $13,
-                image_s = $14,
-                image_m = $15, 
-                image_l = $16
-            WHERE id = $17`;
+                image_s = $10,
+                image_m = $11, 
+                image_l = $12
+            WHERE id = $13`;
         }
 
         await db.query('BEGIN');
