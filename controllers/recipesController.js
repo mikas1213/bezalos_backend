@@ -2,7 +2,16 @@ const db = require('../database/db');
 const Recipe = require('../Models/Recipe');
 const multer = require('multer');
 const sharp = require('sharp');
-const slugify = require('slugify')
+const slugify = require('slugify');
+
+exports.getFavoriteRecipes = async (req, res) => {
+    try {
+        const most_liked = await Recipe.getMostLikedQuery();
+        res.status(200).json(most_liked);
+    } catch(err) {
+
+    }
+};
 
 exports.getAllRecipes = async (req, res) => {
     
@@ -15,9 +24,8 @@ exports.getAllRecipes = async (req, res) => {
         } 
 
         const data = await Recipe.getAllRecipesQuery(req.query, page, limit, req.body.id);
-        const most_liked = await Recipe.getMostLikedQuery();
         
-        res.json({...data, most_liked});
+        res.json(data);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
