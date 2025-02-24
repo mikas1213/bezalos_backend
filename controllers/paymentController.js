@@ -31,9 +31,9 @@ exports.createServiceSession = async (req, res) => {
         return res.status(405).json({ message: 'Method not allowed' });
     }
 
-    const { user_role, user_id, paslauga, code, isCodeApproved } = req.body;
+    const { user_role, user_id, service, code, isCodeApproved } = req.body;
     try {
-        const session = await stripeServiceSession(user_role, user_id, req.user_name, paslauga, code, isCodeApproved);
+        const session = await stripeServiceSession(user_role, user_id, req.user_name, service, code, isCodeApproved);
         res.status(200).json({session});
     } catch (err) {
         console.log(err.message);

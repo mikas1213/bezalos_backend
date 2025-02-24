@@ -27,6 +27,7 @@ const servicesRouter = require('./routes/servicesRoutes');
 const recipesRouter = require('./routes/recipesRoutes');
 const discountRouter = require('./routes/discountRoutes');
 const likesRouter = require('./routes/likesRoutes');
+const admniRouter = require('./routes/adminRoutes/adminRoutes');
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -70,6 +71,7 @@ app.use('/api/v1/discount', discountRouter);
 app.use('/api/v1/recipes', recipesRouter);
 app.use('/api/v1/likes', likesRouter);
 app.use('/api/v1/admin', [
+    admniRouter,
     customersRouter, 
     nutritionPlansRouter
 ]);

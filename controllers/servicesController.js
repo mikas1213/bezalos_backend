@@ -1,15 +1,14 @@
 const db = require('../database/db');
-// const User = require('../Models/User');
+const slugify = require('slugify');
 
 exports.getAllServices = async (req, res) => {
     try {
         const { rows } = await db.query('SELECT * FROM services WHERE is_active = true ORDER BY sort ASC');
-        
         res.status(200).json(rows);
     } catch (err) {
         res.status(500).json({
             message: err.message
-        })
+        });
     }
 };
 
@@ -25,3 +24,7 @@ exports.getOneService = async (req, res) => {
         })
     }
 };
+
+
+
+

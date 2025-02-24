@@ -23,20 +23,20 @@ const findCustomerById = async customer_id => {
     }
 };
 
-const findCustomerByEmail = async email => {
-    if (!email) {
-        throw new Error('Email is required');
-    }
-    try {
-        const customers = await stripe.customers.list({ 
-            email,
-            limit: 1 
-        });
-        return customers.data[0]?.id || null;
-    } catch (err) {
-        throw err; 
-    }
-}
+// const findCustomerByEmail = async email => {
+//     if (!email) {
+//         throw new Error('Email is required');
+//     }
+//     try {
+//         const customers = await stripe.customers.list({ 
+//             email,
+//             limit: 1 
+//         });
+//         return customers.data[0]?.id || null;
+//     } catch (err) {
+//         throw err; 
+//     }
+// }
 
 const isExistStripeCustomer = async (user_id, email) => {
 
@@ -91,8 +91,8 @@ exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_na
     }
 };
 
-exports.stripeServiceSession = async (user_role, user_id, user_name, paslauga, code, isCodeApproved) => {
-    
+exports.stripeServiceSession = async (user_role, user_id, user_name, service, code, isCodeApproved) => {
+
     try {
         
         let customerId = await isExistStripeCustomer(user_id, user_name);
@@ -114,9 +114,9 @@ exports.stripeServiceSession = async (user_role, user_id, user_name, paslauga, c
             // customer_email: !is_customer_exist ? user_name : undefined,
             metadata: { 
                 user_id, 
-                paslauga_id: paslauga.id, 
-                current_price: paslauga.current_price, 
-                title: paslauga.title,
+                paslauga_id: service.id, 
+                current_price: service.current_price, 
+                title: service.title,
                 code,
                 isCodeApproved
             },
@@ -125,9 +125,9 @@ exports.stripeServiceSession = async (user_role, user_id, user_name, paslauga, c
                 price_data: {
                     currency: 'eur',
                     product_data: {
-                        name: paslauga.title
+                        name: service.title
                     },
-                    unit_amount: paslauga.current_price * 100,
+                    unit_amount: service.current_price * 100,
                 },
                 quantity: 1
             }],
@@ -135,6 +135,7 @@ exports.stripeServiceSession = async (user_role, user_id, user_name, paslauga, c
             success_url: `${hostname}/paslauga-apmoketa?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${hostname}/paslaugos?tab=paslaugos`,
         });
+        
         return session;
     } catch (err) {
         return err;
