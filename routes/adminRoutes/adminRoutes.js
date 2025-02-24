@@ -3,6 +3,7 @@ const router = express.Router();
 const roles = require('../../utils/roles');
 const recipesController = require('../../controllers/recipesController');
 const authController = require('../../controllers/authController');
+const adminControllers = require('../../controllers/adminControllers/adminController'); 
 const adminServicesController = require('../../controllers/adminControllers/adminServicesController');
 const { fillFormValidator } = require('../../middleware/validators/addServiceValidator');
 
@@ -25,10 +26,9 @@ router.route('/services/:id')
         fillFormValidator,
         adminServicesController.updateService
     )
-    // .delete()
+    .delete(validateUUID, adminControllers.deleteOneRow('services'))
 
 router.route('/services')
     .get(adminServicesController.getAdminServices);
-
 
 module.exports = router;
