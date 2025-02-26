@@ -109,7 +109,7 @@ exports.paymentSuccess = async (req, res) => {
         await db.query('INSERT INTO orders(user_id, title, price) VALUES($1, $2, $3)', [user_id, title, current_price]);    
 
         if(JSON.parse(isCodeApproved)) {
-            await db.query('UPDATE promotions SET usage_count = usage_count + 1 WHERE discount_code = $1', [code]);        
+            await db.query('UPDATE promotions SET usage_count = usage_count + 1 WHERE promo_code = $1', [code]);        
         }    
     }
     res.sendStatus(200);

@@ -53,8 +53,8 @@ const fillFormValidator = async (req, res, next) => {
     req.body.quantity = quantity;
     req.body.sort = sort;
     req.body.discount = discount;
-    req.body.popular = popular === 'true';
-    req.body.is_active = is_active === 'true';
+    req.body.popular = popular === 'On';
+    req.body.is_active = is_active === 'On';
     req.body.slug = slug;
     next();
 };

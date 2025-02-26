@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
-const discountController = require('../controllers/discountController');
+const promotionsController = require('../controllers/promotionsController');
 
 router.route('/apply/:code').post(
     authController.protect, 
-    discountController.validateDiscountCode, 
-    discountController.applyDiscountCode
+    promotionsController.validatePromoCode, 
+    promotionsController.applyPromoCode
 );
 
 module.exports = router;

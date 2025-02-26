@@ -3,6 +3,7 @@ const router = express.Router();
 const roles = require('../../utils/roles');
 const authController = require('../../controllers/authController');
 const adminControllers = require('../../controllers/adminControllers/adminController');
+const multerDataController = require('../../controllers/multerDataController');
 const customersController = require('../../controllers/adminControllers/customersController');
 const recipesController = require('../../controllers/recipesController');
 const { validateUUID } = require('../../middleware/validators/validate_uuid');
@@ -22,8 +23,8 @@ router.route('/recipes/:id')
     .all(authController.protect, authController.verifyRoles(roles.admin))
     .patch(
         validateUUID, 
-        recipesController.uploadPhoto,
-        recipesController.resizePhoto,
+        multerDataController.uploadPhoto,
+        multerDataController.resizePhoto,
         recipesController.editRecipe)
     .delete(validateUUID, adminControllers.deleteOneRow('recipes'));
 
@@ -31,12 +32,11 @@ router.route('/recipes/add').all(
         authController.protect,
         authController.verifyRoles(roles.admin))
     .post(
-        recipesController.uploadPhoto,
-        recipesController.resizePhoto,
+        multerDataController.uploadPhoto,
+        multerDataController.resizePhoto,
         recipesController.addRecipe
     );
     
-
 router.route('/recipes')
     .all(authController.protect, authController.verifyRoles(roles.admin))
     .get(recipesController.getAllRecipes);

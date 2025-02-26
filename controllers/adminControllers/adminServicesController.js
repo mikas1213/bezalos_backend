@@ -2,7 +2,31 @@ const db = require('../../database/db');
 
 exports.getAdminServices = async (req, res) => {
     try {
-        const { rows } = await db.query('SELECT * FROM services ORDER BY sort ASC');
+        const { rows } = await db.query(`SELECT 
+            id, 
+            base_price, 
+            current_price, 
+            details, 
+            discount, 
+            grid_desc,  
+            basic_desc,
+            image_s,
+            image_m,
+            CASE 
+                WHEN popular = true THEN 'On' 
+                ELSE 'Off' 
+            END AS popular,
+            CASE 
+                WHEN is_active = true THEN 'On' 
+                ELSE 'Off' 
+            END AS is_active,
+            quantity,
+            slug,
+            sort,
+            title,
+            updated_at,
+            created_at
+            FROM services ORDER BY sort ASC`);
         res.status(200).json(rows);
     } catch (err) {
         res.status(500).json({
@@ -15,6 +39,7 @@ exports.addService = async (req, res) => {
 
     try {
         const { title, slug, base_price, quantity, discount, sort, popular, is_active, image_s, image_m, image_l, grid_desc, basic_desc, details } = req.body;
+        
         await db.query('INSERT INTO services (title, slug, base_price, quantity, discount, sort, popular, is_active, image_s, image_m, image_l, grid_desc, basic_desc, details) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)', [title, slug, base_price, quantity, discount, sort, popular, is_active, image_s, image_m, image_l, grid_desc, basic_desc, details]);
         res.sendStatus(200);
     } catch (err) {
