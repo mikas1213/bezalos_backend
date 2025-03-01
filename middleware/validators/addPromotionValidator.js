@@ -1,12 +1,16 @@
+const db = require('../../database/db');
+
 const promoFormValidator = async (req, res, next) => {
-    const lt_to_en = {
-        'Procentai': 'percentage',
-        'Eurai': 'fixed'
-    }
+    const lt_to_en = { 'Procentai': 'percentage', 'Eurai': 'fixed' };
     const allowed_fields = ['promo_code', 'promo_type', 'usage_limit', 'promo_value', 'valid_until', 'specific_products'];
+    req.body.promo_code = req.body.promo_code.toUpperCase();
     const bad_fields = Object.keys(req.body).filter(field => !allowed_fields.includes(field));
     const { promo_code, promo_type, usage_limit, promo_value, valid_until, specific_products } = req.body;
-
+    const is_exist_promo_code = await db.query('SELECT 1 FROM promotions WHERE promo_code = $1', [promo_code]);
+    
+    if(is_exist_promo_code.rowCount > 0) {
+        return res.status(400).json({ message: 'Toks kodas jau yra' });
+    }
     if(bad_fields.length > 0) {
         return res.status(400).json({message: 'There are unsupported fields'})
     }

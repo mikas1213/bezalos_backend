@@ -15,7 +15,7 @@ const fillFormValidator = async (req, res, next) => {
     const invalideFields = bodyKeys.filter(field => !allow_fields.includes(field));
     
     if(invalideFields.length > 0) {
-        return res.status(400).json({ message: 'Neleistini laukai' });
+        return res.status(400).json({ message: 'There are unsupported fields' });
     }
     if(!req.body.title) {
         return res.status(400).json({ message: 'Reikalingas pavadinimas' });

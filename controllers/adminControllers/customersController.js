@@ -134,9 +134,11 @@ exports.getOneUser = async (req, res) => {
     try {
         const { id } = req.params;
         const { rows } = await db.query(User.getUserDetailsQuery(), [id]);     
+        
         if(rows.length === 0) return res.status(404).json({
             message: 'Toks vartotojas nerastas'
         });
+
         res.status(200).json(rows[0]);
 
     } catch (err) {
@@ -182,7 +184,6 @@ exports.updateUser = async (req, res) => {
         
         if(column === 'subscription_expires') {
             const { stripe_type } = req.body;
-            // console.log(value, column, stripe_type)
             if(stripe_type) {
                 queryString = `UPDATE users SET ${column} = $2, updated_at = $3 WHERE id = $1;`;
                 queryParams = [id, value, new Date().    toLocaleString('lt-LT')];

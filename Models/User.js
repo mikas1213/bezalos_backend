@@ -99,7 +99,20 @@ class User {
                     ) ORDER by up_prod.created_at ASC), '[]'::json) FROM user_products up_prod WHERE up_prod.meal_id = um.id
                 )) ORDER BY um.created_at ASC), '[]'::json) FROM user_meals um WHERE um.plan_id = up.id)
             ) ORDER BY up.created_at ASC) FROM user_plans up WHERE up.user_id = u.id
-        ), '[]'::json) AS plans FROM users u WHERE u.id = $1 GROUP BY u.id;`;
+        ), '[]'::json) AS plans,
+        
+        (SELECT COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
+            'bicepsas', a.bicepsas,
+            'talija', a.talija,
+            'sedmenys', a.sedmenys,
+            'slaunis', a.slaunis,
+            'svoris', a.svoris,
+            'apimtys_sum', a.apimtys_sum,
+            'apimtys_diff', a.apimtys_diff,
+            'created_at', a.created_at
+        )), '[]'::json) FROM apimtys a WHERE a.id = u.id) AS apimtys
+        
+        FROM users u WHERE u.id = $1 GROUP BY u.id;`;
 
         return queryString;
     }

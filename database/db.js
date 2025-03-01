@@ -8,7 +8,9 @@ const pool = new Pool({
 });
 
 module.exports = {
+    
     query: async (text, params) => {
+        
         const client = await pool.connect(); // Get a client from the pool
         try {
             const res = await client.query(text, params); // Execute the query

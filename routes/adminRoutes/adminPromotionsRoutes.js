@@ -17,7 +17,8 @@ router.route('/promo/add')
     );
 
 router.route('/promo/:id')
-    .patch(uploadData, adminPromotionsControllers.updatePromoCode)
     .delete(validateUUID, adminControllers.deleteOneRow('promotions'));
+
+router.route('/promo').get(adminPromotionsControllers.getPromoCodes);
 
 module.exports = router;

@@ -87,8 +87,9 @@ class Recipe {
                         'grams', rp.grams,
                         'proteins', p.proteins, 
                         'carbs', p.carbs,
-                        'fat', p.fat
-                    )
+                        'fat', p.fat,
+                        'created_at', rp.created_at
+                    ) ORDER BY rp.created_at ASC
                 ) AS products,
                 COALESCE(SUM((p.proteins / 100) * rp.grams), 0)::float AS b,
                 COALESCE(SUM((p.carbs / 100) * rp.grams), 0)::float AS a,
@@ -152,8 +153,9 @@ class Recipe {
                         'id', rp.id, 
                         'product_id', p.id,
                         'title', p.title,
-                        'grams', rp.grams
-                    )
+                        'grams', rp.grams,
+                        'created_at', rp.created_at
+                    ) ORDER BY p.created_at ASC
                 ) AS products
             FROM recipe_products rp
             LEFT JOIN recipes r ON rp.recipe_id = r.id
