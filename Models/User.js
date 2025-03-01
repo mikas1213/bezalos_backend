@@ -99,18 +99,23 @@ class User {
                     ) ORDER by up_prod.created_at ASC), '[]'::json) FROM user_products up_prod WHERE up_prod.meal_id = um.id
                 )) ORDER BY um.created_at ASC), '[]'::json) FROM user_meals um WHERE um.plan_id = up.id)
             ) ORDER BY up.created_at ASC) FROM user_plans up WHERE up.user_id = u.id
-        ), '[]'::json) AS plans
+        ), '[]'::json) AS plans,
         
-        -- (SELECT COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
-        --     'bicepsas', a.bicepsas,
-        --     'talija', a.talija,
-        --     'sedmenys', a.sedmenys,
-        --     'slaunis', a.slaunis,
-        --     'svoris', a.svoris,
-        --     'apimtys_sum', a.apimtys_sum,
-        --     'apimtys_diff', a.apimtys_diff,
-        --     'created_at', a.created_at
-        -- )), '[]'::json) FROM apimtys a WHERE a.id = u.id) AS apimtys
+        (SELECT COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
+            'name', a.name,
+            'email', a.email,
+            'svoris_oldest', a.svoris_oldest,
+            'svoris_newest', a.svoris_newest,
+            'svoris_diff', a.svoris_diff,
+            'talija_oldest', a.talija_oldest,
+            'talija_newest', a.talija_newest,
+            'talija_diff', a.talija_diff,
+            'apimtys_sum_oldest', a.apimtys_sum_oldest,
+            'apimtys_sum_newest', a.apimtys_sum_newest,
+            'apimtys_sum_diff', a.apimtys_sum_diff,
+            'date_oldest', a.date_oldest,
+            'date_newest', a.date_newest
+        )), '[]'::json) FROM apimtys a WHERE a.user_id = u.id) AS apimtys
         
         FROM users u WHERE u.id = $1 GROUP BY u.id;`;
 
