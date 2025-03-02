@@ -104,17 +104,28 @@ class User {
         (SELECT COALESCE(JSON_AGG(JSON_BUILD_OBJECT(
             'name', a.name,
             'email', a.email,
-            'svoris_oldest', a.svoris_oldest,
             'svoris_newest', a.svoris_newest,
+            'svoris_oldest', a.svoris_oldest,
             'svoris_diff', a.svoris_diff,
-            'talija_oldest', a.talija_oldest,
+            'bicepsas_newest', a.bicepsas_newest,
+            'bicepsas_oldest', a.bicepsas_oldest,
+            'bicepsas_diff', a.bicepsas_diff,
             'talija_newest', a.talija_newest,
+            'talija_oldest', a.talija_oldest,
             'talija_diff', a.talija_diff,
-            'apimtys_sum_oldest', a.apimtys_sum_oldest,
-            'apimtys_sum_newest', a.apimtys_sum_newest,
-            'apimtys_sum_diff', a.apimtys_sum_diff,
-            'date_oldest', a.date_oldest,
-            'date_newest', a.date_newest
+            'sedmenys_newest', a.sedmenys_newest,
+            'sedmenys_oldest', a.sedmenys_oldest,
+            'sedmenys_diff', a.sedmenys_diff,
+            'slaunis_newest', a.slaunis_newest,
+            'slaunis_oldest', a.slaunis_oldest,
+            'slaunis_diff', a.slaunis_diff,
+            'apimtys_newest', a.apimtys_newest,
+            'apimtys_oldest', a.apimtys_oldest,
+            'apimtys_diff', a.apimtys_diff,
+            'apimtys_oldest_has_nulls', a.apimtys_oldest_has_nulls,
+            'apimtys_newest_has_nulls', a.apimtys_newest_has_nulls,
+            'date_newest', a.date_newest,
+            'date_oldest', a.date_oldest
         )), '[]'::json) FROM apimtys a WHERE a.user_id = u.id) AS apimtys
         
         FROM users u WHERE u.id = $1 GROUP BY u.id;`;

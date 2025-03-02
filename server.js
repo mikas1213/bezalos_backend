@@ -29,7 +29,7 @@ const adminServicesRouter = require('./routes/adminRoutes/adminServicesRoutes');
 const adminPromotionsRoutes = require('./routes/adminRoutes/adminPromotionsRoutes');
 const promotionRouter = require('./routes/promotionRoutes');
 const likesRouter = require('./routes/likesRoutes');
-
+const anthropicRoutes = require('./routes/adminRoutes/anthropicRoutes');
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -78,6 +78,7 @@ app.use('/api/v1/admin', [
     customersRouter, 
     nutritionPlansRouter
 ]);
+app.use('/api/v1/anthropic', anthropicRoutes);
 
 
 app.all('*', (req, res) => {
