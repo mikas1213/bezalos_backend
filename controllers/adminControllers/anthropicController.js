@@ -8,6 +8,7 @@ exports.anthropicApi = async (req, res) => {
     try {
         // const { height, weight, age, goals, allergies } = req.body;
         const height = 175;
+        
         const weight = 73;
         const age = 41;
         const goals = 'Svorio metimas';
