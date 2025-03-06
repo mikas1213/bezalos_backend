@@ -14,11 +14,11 @@ module.exports = {
         const client = await pool.connect(); // Get a client from the pool
         try {
             const res = await client.query(text, params); // Execute the query
-            return res; // Return the result
+            return res;
         } catch (err) {
-            throw err; // Re-throw any errors
+            throw err;
         } finally {
-            client.release(); // Release the client back to the pool
+            client.release();
         }
     },
 };

@@ -1,23 +1,28 @@
 require('dotenv').config({path: './.env_bezalos'});
 
+process.on('uncaughtException', (err) => {
+    console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+    console.error(err.name, err.message, err.stack);
+    process.exit(1);
+});
+
 const express = require('express');
 const app = express();
-const jwt = require('jsonwebtoken');
-
 const cors = require('cors');
-const rateLimit = require('express-rate-limit')
 const cookieParser = require('cookie-parser');
 const hpp = require('hpp');
 const helmet = require('helmet');
 
 const { logger } = require('./middleware/logsMiddleware/logEvents');
-const errorHandler = require('./middleware/logsMiddleware/errorHandler');
-
+const rateLimiter = require('./middleware/rateLimiter');
+// const errorHandler = require('./middleware/logsMiddleware/errorHandler');
+const errorHandler = require('./middleware/errorHandler');
 const corsOptions = require('./config/corsOptions');
 const credentials = require('./middleware/credentials');
 
 const authRouter = require('./routes/authRoutes');
-const videoRouter = require('./routes/videoRoutes');
+const videoRoutes = require('./routes/videoRoutes');
+const commentsRouter = require('./routes/commentsRoutes');
 const profileRouter = require('./routes/profileRoutes');
 const mailerRouter = require('./routes/mailerRoutes');
 const paymentRouter = require('./routes/paymentRoutes');
@@ -29,24 +34,7 @@ const adminServicesRouter = require('./routes/adminRoutes/adminServicesRoutes');
 const adminPromotionsRoutes = require('./routes/adminRoutes/adminPromotionsRoutes');
 const promotionRouter = require('./routes/promotionRoutes');
 const likesRouter = require('./routes/likesRoutes');
-const anthropicRoutes = require('./routes/adminRoutes/anthropicRoutes');
-
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-
-    max: function(req) {
-        let limit = (req.path.indexOf('auth/refresh') > -1 || req.path.indexOf('/videos') > -1) ? 500 : 150;
-        return limit;
-    },
-
-    message: req => {
-        return {
-            status: 429,
-            message: `Too many requests.`
-        };
-    },
-    skip: (req) => req.path.indexOf('/admin') > -1
-});
+// const anthropicRoutes = require('./routes/adminRoutes/anthropicRoutes');
 
 app.use(logger);
 app.use(helmet());
@@ -60,11 +48,12 @@ app.use(require('sanitize').middleware);
 
 app.use(credentials);
 app.use(cors(corsOptions));
-app.use(errorHandler);
-app.use(limiter);
+// app.use(errorHandler);
 
+app.use('/api', rateLimiter);
 app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/videos', videoRouter);
+app.use('/api/v1/videos', videoRoutes);
+app.use('/api/v1/comments', commentsRouter);
 app.use('/api/v1/profile', profileRouter);
 app.use('/api/v1/mailer', mailerRouter);
 app.use('/api/v1/payments', paymentRouter);
@@ -78,15 +67,38 @@ app.use('/api/v1/admin', [
     customersRouter, 
     nutritionPlansRouter
 ]);
-app.use('/api/v1/anthropic', anthropicRoutes);
 
+// app.use('/api/v1/anthropic', anthropicRoutes);
 
 app.all('*', (req, res) => {
     res.status(404).json({
         status: 'not found'
     });
 });
-
-app.listen(process.env.PORT || 3003, function() {
+app.use(errorHandler);
+const server = app.listen(process.env.PORT || 3003, function() {
     console.log(`Server running on ${process.env.PORT }`)
+});
+
+process.on('unhandledRejection', (err) => {
+    console.error('UNHANDLED REJECTION! 💥 Shutting down...');
+    console.error(err.name, err.message);
+    server.close(() => {
+        process.exit(1);
+    });
+});
+
+process.on('SIGTERM', () => {
+    console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
+    server.close(() => {
+        console.log('💥 Process terminated!');
+    });
+});
+
+
+process.on('SIGINT', () => {
+    console.log('SIGINT received. Shutting down 📉 gracefully');
+    server.close(() => {
+        console.log('Process terminated');
+    });
 });

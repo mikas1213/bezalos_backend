@@ -33,6 +33,7 @@ exports.protectDeleteLike = async (req, res, next) => {
 exports.toggleLikes = async (req, res) => {
     
     const { type, user_id, entity_id } = req.body;
+    
     const columns = {
         likes_videos: 'video_id',
         likes_recipes: 'recipe_id'

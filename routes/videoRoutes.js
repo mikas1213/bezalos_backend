@@ -3,26 +3,13 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const videoController = require('../controllers/videoController');
 
-router.route('/').get(
-    videoController.getKitchenVideos
-);
+
+router.route('/').get(videoController.getVideos);
 
 router.route('/:video').get(
     authController.protect,
     authController.isSubscription('virtuve', 'Virtuvė'),
-    videoController.getKitchenVideo
-);
-
-router.route('/comment').post(
-    authController.protect,
-    authController.isSubscription('virtuve', 'Virtuvė'),
-    videoController.addVideoComment
-);
-
-router.route('/comment/:id/:user_id').delete(
-    authController.protect,
-    authController.isSubscription('virtuve', 'Virtuvė'),
-    videoController.deleteVideoComment
+    videoController.getVideo
 );
 
 module.exports = router;

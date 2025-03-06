@@ -46,11 +46,11 @@ router.route('/users')
     .get(customersController.searchUsers)
     .post(customersController.getAllUsers);
 
-router.route('/videos').get(
-    authController.protect,
-    authController.verifyRoles(roles.admin),
-    adminControllers.getAllRows('videos')
-);
+// router.route('/videos').get(
+//     authController.protect,
+//     authController.verifyRoles(roles.admin),
+//     adminControllers.getAllRows('videos')
+// );
 
 router.route('/stats').get(
     authController.protect,
