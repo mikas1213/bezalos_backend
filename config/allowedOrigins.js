@@ -1,4 +1,7 @@
 const allowedOrigins = [
+    'http://127.0.0.1:5173',
+    'http://localhost:5173',
+
     'http://dulevicius.dev',
     'https://dulevicius.dev',
     'http://www.dulevicius.dev',
@@ -21,10 +24,7 @@ const allowedOrigins = [
     'http://checkout.stripe.com',
     'https://checkout.stripe.com',
     'http://www.checkout.stripe.com',
-    'https://www.checkout.stripe.com',
-
-    'http://127.0.0.1:5173',
-    'http://localhost:5173'
+    'https://www.checkout.stripe.com'
 ];
 
 module.exports = allowedOrigins;

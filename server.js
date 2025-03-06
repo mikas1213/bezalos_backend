@@ -15,7 +15,6 @@ const helmet = require('helmet');
 
 const { logger } = require('./middleware/logsMiddleware/logEvents');
 const rateLimiter = require('./middleware/rateLimiter');
-// const errorHandler = require('./middleware/logsMiddleware/errorHandler');
 const errorHandler = require('./middleware/errorHandler');
 const corsOptions = require('./config/corsOptions');
 const credentials = require('./middleware/credentials');
@@ -48,7 +47,6 @@ app.use(require('sanitize').middleware);
 
 app.use(credentials);
 app.use(cors(corsOptions));
-// app.use(errorHandler);
 
 app.use('/api', rateLimiter);
 app.use('/api/v1/auth', authRouter);
@@ -75,6 +73,7 @@ app.all('*', (req, res) => {
         status: 'not found'
     });
 });
+
 app.use(errorHandler);
 const server = app.listen(process.env.PORT || 3003, function() {
     console.log(`Server running on ${process.env.PORT }`)

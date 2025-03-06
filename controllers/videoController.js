@@ -14,3 +14,9 @@ exports.getVideo = catchAsync(async (req, res) => {
     res.status(200).json(data);
 });
 
+// Naujas kontroleris video transliavimui per serverį
+exports.streamVideo = catchAsync(async (req, res) => {
+    const { user_id, params: { video: video_url }} = req;
+    await videoService.streamVideo(user_id, video_url, res);
+});
+
