@@ -17,29 +17,40 @@ class BaseRepository {
         return dbFilters;
     }
 
-    queryBuilder(filters = {}) {
+    queryBuilder(filters = {}, fields = ['*']) {
+        
         const values = [];
-        let query = `SELECT * FROM ${this.tableName}`;
+        const fields_str = fields.join(', ');
+        let query = `SELECT ${fields_str} FROM ${this.tableName}`;
         
         if(Object.keys(filters).length > 0) {
-            const conditions = Object.keys(filters).map((key, index) => {
-                values.push(`%${filters[key]}%`);
-                return `${key} ILIKE $${index+1}`;
+            const conditions = Object.keys(filters).map((key, i) => {
+                const value = filters[key];
+                const index = i + 1;
+
+                if(typeof value === 'boolean') {
+                    values.push(value);
+                    return `${key} = $${index}`;
+                } else {
+                    values.push(`%${filters[key]}%`);
+                    return `${key} ILIKE $${index}`;
+                }
             });
             query += ` WHERE ${conditions.join(' AND ')}`
         } 
+        
         return { query, values };
     };
 
-    async findAll(filters = {}) {
+    async findAll(filters = {}, fields = ['*']) {
+        
         try {
             const mappedFilters = this.mapFilter(filters);
-            const { query, values } = this.queryBuilder(mappedFilters);            
+            const { query, values } = this.queryBuilder(mappedFilters, fields);            
             return await this.db.query(query, values);
         } catch (err) {
             throw new DatabaseError(err.message)
         }
-
     }
 
     async findById(id) {

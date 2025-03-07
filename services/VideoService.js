@@ -27,7 +27,7 @@ class VideoService {
             url: s3_video_url, 
             keyPairId: process.env.CLOUD_FRONT_KEY_PAIR_ID,
             // dateLessThan: new Date(Date.now() + 1000 * 60 * 60 * 24 * 1),
-            dateLessThan: new Date(Date.now() + 1000 * 60 * 60 * 2),
+            dateLessThan: new Date(Date.now() + 1000 * 60 * 60 * 3),
             privateKey,
         });
     }

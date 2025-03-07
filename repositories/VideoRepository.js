@@ -21,6 +21,7 @@ class VideoRepository extends BaseRepository {
             WHERE v.video_type = $1 AND v.video_url = $3
             GROUP BY v.id;
         `;
+        
         try {
             const data = await this.db.query(query, ['virtuve', userId, videoUrl]);
             return data.length ? data[0] : null;

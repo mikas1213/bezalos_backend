@@ -1,8 +1,7 @@
-const { DatabaseError } = require('../utils/errors');
 const BaseRepository = require('./BaseRepository');
 
 class CommentsRepository extends BaseRepository {
-    constructor(db, ) {
+    constructor(db) {
         super(db, 'comments');
     }
 }

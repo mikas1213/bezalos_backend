@@ -1,10 +1,10 @@
 require('dotenv').config({path: './.env_bezalos'});
 
-process.on('uncaughtException', (err) => {
-    console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
-    console.error(err.name, err.message, err.stack);
-    process.exit(1);
-});
+// process.on('uncaughtException', (err) => {
+//     console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+//     console.error(err.name, err.message, err.stack);
+//     process.exit(1);
+// });
 
 const express = require('express');
 const app = express();
@@ -19,6 +19,7 @@ const errorHandler = require('./middleware/errorHandler');
 const corsOptions = require('./config/corsOptions');
 const credentials = require('./middleware/credentials');
 
+const sitemapRouter = require('./routes/sitemapRoutes');
 const authRouter = require('./routes/authRoutes');
 const videoRoutes = require('./routes/videoRoutes');
 const commentsRouter = require('./routes/commentsRoutes');
@@ -33,6 +34,7 @@ const adminServicesRouter = require('./routes/adminRoutes/adminServicesRoutes');
 const adminPromotionsRoutes = require('./routes/adminRoutes/adminPromotionsRoutes');
 const promotionRouter = require('./routes/promotionRoutes');
 const likesRouter = require('./routes/likesRoutes');
+
 // const anthropicRoutes = require('./routes/adminRoutes/anthropicRoutes');
 
 app.use(logger);
@@ -48,7 +50,36 @@ app.use(require('sanitize').middleware);
 app.use(credentials);
 app.use(cors(corsOptions));
 
+// app.get('/sitemap.xml', async (req, res) => {
+    // try {
+    //     const [products] = await pool.query('SELECT slug FROM products');
+
+    //     const baseUrl = 'https://tavo-svetaine.lt';
+    //     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+    //     xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+
+    //     // Pagrindiniai puslapiai
+    //     const staticPages = ['/', '/apie', '/kontaktai'];
+    //     staticPages.forEach(page => {
+    //         xml += `  <url><loc>${baseUrl}${page}</loc></url>\n`;
+    //     });
+
+    //     // Produktų puslapiai
+    //     products.forEach(({ slug }) => {
+    //         xml += `<url><loc>${baseUrl}/produktas/${slug}</loc></url>\n`;
+    //     });
+
+    //     xml += `</urlset>`;
+
+    //     res.header('Content-Type', 'application/xml');
+    //     res.send(xml);
+    // } catch (error) {
+    //     res.status(500).send('Klaida generuojant sitemap.xml');
+    // }
+// });
+
 app.use('/api', rateLimiter);
+app.use('/sitemap.xml', sitemapRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/videos', videoRoutes);
 app.use('/api/v1/comments', commentsRouter);
