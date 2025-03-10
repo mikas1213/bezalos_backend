@@ -10,7 +10,8 @@ class VideoService {
     }
 
     async getAllVideos(filters) {
-        const data = await this.videoRepository.findAll(filters);
+
+        const data = await this.videoRepository.findAll(filters, undefined, {field: 'created_at', direction: 'DESC'});
 
         if(!data) throw new NotFoundError('Video rasti nepavyko');
         return data;

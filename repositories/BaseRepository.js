@@ -17,7 +17,7 @@ class BaseRepository {
         return dbFilters;
     }
 
-    queryBuilder(filters = {}, fields = ['*']) {
+    queryBuilder(filters = {}, fields = ['*'], sortOptions = null) {
         
         const values = [];
         const fields_str = fields.join(', ');
@@ -38,15 +38,20 @@ class BaseRepository {
             });
             query += ` WHERE ${conditions.join(' AND ')}`
         } 
+
+        if (sortOptions && sortOptions.field) {
+            const direction = sortOptions.direction && (sortOptions.direction.toUpperCase() === 'DESC') ? 'DESC' : 'ASC';
+            query += ` ORDER BY ${sortOptions.field} ${direction}`;
+        }
         
         return { query, values };
     };
 
-    async findAll(filters = {}, fields = ['*']) {
+    async findAll(filters = {}, fields = ['*'], sortOptions = null) {
         
         try {
             const mappedFilters = this.mapFilter(filters);
-            const { query, values } = this.queryBuilder(mappedFilters, fields);            
+            const { query, values } = this.queryBuilder(mappedFilters, fields, sortOptions);            
             return await this.db.query(query, values);
         } catch (err) {
             throw new DatabaseError(err.message)
