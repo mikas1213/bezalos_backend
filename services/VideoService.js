@@ -26,7 +26,7 @@ class VideoService {
         
         return getSignedUrl({
             url: s3_video_url, 
-            keyPairId: process.env.CLOUD_FRONT_KEY_PAIR_ID,
+            keyPairId: process.env.CLOUD_FRONT_KEY_PAIR_ID || 'KPQGMPR9KLNK4' ,
             // dateLessThan: new Date(Date.now() + 1000 * 60 * 60 * 24 * 1),
             dateLessThan: new Date(Date.now() + 1000 * 60 * 60 * 3),
             privateKey,

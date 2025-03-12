@@ -1,3 +1,6 @@
+// const fs = require('fs');
+// const path = require('path');
+// const { PDFDocument } = require('pdf-lib');
 const sgMail = require('@sendgrid/mail');
 
 const messages = {
@@ -23,6 +26,13 @@ const messages = {
     }
 }
 
+
+    // if (fs.existsSync(path_to_pdf)) {
+    //     console.log('Failas egzistuoja:', path_to_pdf);
+    // } else {
+    //     console.log('Failas neegzistuoja:', path_to_pdf);
+    // }
+
 module.exports = class Email {
     constructor(email, initial_target, token) {
         this.email = email;
@@ -31,7 +41,22 @@ module.exports = class Email {
     }
 
     async sendEmail(template, subject) {
-        
+        // const path_to_pdf = path.join(__dirname, '..', 'test.pdf');
+        // const pdf_doc = await PDFDocument.load(path_to_pdf);
+        // const encryptedBytes = await pdf_doc.save({
+        //     password: 1234,
+        //     permissions: {
+        //         printing: 'highResolution',
+        //         modifying: false,
+        //         copying: false,
+        //         annotating: false,
+        //         fillingForms: false,
+        //         contentAccessibility: true,
+        //         documentAssembly: false,
+        //     }
+        // });
+        // const pdf_content = Buffer.from(encryptedBytes).toString('base64');
+
         sgMail.setApiKey(process.env.SENDGRID_API_KEY);
         
         const message = {
@@ -51,7 +76,15 @@ module.exports = class Email {
                     'button': messages[this.initial_target]?.btn
                 }
             }],
-            template_id: template
+            template_id: template,
+            // attachments: [
+            //     {
+            //         content: pdf_content,
+            //         filename: 'dokumentas.pdf',
+            //         type: 'application/pdf',
+            //         disposition: 'attachment'
+            //     }
+            // ]
         };
         await sgMail.send(message);
     }
