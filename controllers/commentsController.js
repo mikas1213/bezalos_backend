@@ -3,10 +3,10 @@ const appContainer = require('../utils/appContainer');
 const commentsService = appContainer.resolve(COMMENTS_SERVICE);
 const catchAsync = require('../utils/catchAsync');
 
-
 exports.addComment = catchAsync(async (req, res) => {
-    const {video_id, user_id, user_name, comment} = req.body;
-    await commentsService.addNewComment({video_id, user_id, user_name, comment});
+    
+    const {id, video_id, user_id, user_name, comment} = req.body;
+    await commentsService.addNewComment({id, video_id, user_id, user_name, comment});
     res.sendStatus(204);
 });
 
