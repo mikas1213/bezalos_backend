@@ -7,7 +7,7 @@ exports.getFavoriteRecipes = async (req, res) => {
         const most_liked = await Recipe.getMostLikedQuery();
         res.status(200).json(most_liked);
     } catch(err) {
-
+        res.status(500).json({ message: err.message });
     }
 };
 

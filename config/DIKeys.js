@@ -7,5 +7,7 @@ module.exports = {
     RECIPES_REPOSITORY: 'RecipesRepository',
     RECIPES_SERVICE: 'RecipesService',
     SERVICES_REPOSITORY: 'ServicesRepository',
-    SERVICES_SERVICE: 'ServicesService'
+    SERVICES_SERVICE: 'ServicesService',
+    LIKES_REPOSITORY: 'LikesRepository',
+    LIKES_SERVICE: 'LikesService'
 };

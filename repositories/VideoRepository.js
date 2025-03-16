@@ -9,21 +9,21 @@ class VideoRepository extends BaseRepository {
 
     async findById(userId, videoUrl) {
         const query = `
-            SELECT 
-                v.*,
+            SELECT v.*,
                 COALESCE(json_agg(c ORDER BY c.created_at DESC) FILTER (WHERE c.id IS NOT NULL), '[]') AS video_comments,
-                (SELECT COUNT(*) FROM likes_videos WHERE video_id = v.id) AS likes_count,
+                (SELECT COUNT(*) FROM likes WHERE entity_id = v.id AND category_id = $3) AS likes_count,
                 EXISTS (
-                    SELECT 1 FROM likes_videos WHERE video_id = v.id AND user_id = $2
+                    SELECT 1 FROM likes WHERE entity_id = v.id AND user_id = $2 AND category_id = $3
                 ) AS is_liked
             FROM videos v
             LEFT JOIN comments c ON v.id = c.video_id
-            WHERE v.video_type = $1 AND v.video_url = $3
+            WHERE v.video_type = $1 AND v.video_url = $4
             GROUP BY v.id;
         `;
         
         try {
-            const data = await this.db.query(query, ['virtuve', userId, videoUrl]);
+            const cat = await this.db.query(`SELECT id FROM like_categories WHERE category_name = 'video'`);
+            const data = await this.db.query(query, ['virtuve', userId, cat[0].id, videoUrl]);
             return data.length ? data[0] : null;
         } catch(err) {
             throw new DatabaseError(err.message, err);

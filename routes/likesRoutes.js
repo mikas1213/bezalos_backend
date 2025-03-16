@@ -3,17 +3,14 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const likesController = require('../controllers/likesController');
 
+router.use(authController.protect);
 router.route('/video').post(
-    authController.protect, 
     authController.isSubscription('virtuve', 'Virtuvė'),
-    likesController.protectDeleteLike,
-    likesController.toggleLikes
+    likesController.likesToggle
 );
 
 router.route('/recipe').post(
-    authController.protect, 
-    likesController.protectDeleteLike,
-    likesController.toggleLikes
+    likesController.likesToggle
 );
 
 module.exports = router;
