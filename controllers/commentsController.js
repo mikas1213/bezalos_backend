@@ -4,7 +4,6 @@ const commentsService = appContainer.resolve(COMMENTS_SERVICE);
 const catchAsync = require('../utils/catchAsync');
 
 exports.addComment = catchAsync(async (req, res) => {
-    
     const {id, video_id, user_id, user_name, comment} = req.body;
     await commentsService.addNewComment({id, video_id, user_id, user_name, comment});
     res.sendStatus(204);

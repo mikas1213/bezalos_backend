@@ -1,30 +1,15 @@
-const db = require('../database/db');
-const slugify = require('slugify');
+const { SERVICES_SERVICE } = require('../config/DIKeys');
+const appContainer = require('../utils/appContainer');
+const servicesService = appContainer.resolve(SERVICES_SERVICE);
+const catchAsync = require('../utils/catchAsync');
 
-exports.getAllServices = async (req, res) => {
-    try {
-        const { rows } = await db.query('SELECT * FROM services WHERE is_active = true ORDER BY sort ASC');
-        res.status(200).json(rows);
-    } catch (err) {
-        res.status(500).json({
-            message: err.message
-        });
-    }
-};
+exports.getServices = catchAsync(async (req, res) => {
+    const data = await servicesService.getAllServices();
+    res.status(200).json(data);
+});
 
-exports.getOneService = async (req, res) => {
-    
+exports.getService = catchAsync(async (req, res) => {
     const { slug } = req.params;
-    try {
-        const { rows } = await db.query('SELECT * FROM services WHERE slug = $1', [slug]);
-        res.status(200).json(rows);
-    } catch (err) {
-        res.status(500).json({
-            message: err.message
-        })
-    }
-};
-
-
-
-
+    const data = await servicesService.getOneService(slug);
+    res.status(200).json(data);
+});

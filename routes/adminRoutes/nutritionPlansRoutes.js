@@ -1,4 +1,4 @@
-const roles = require('../../utils/roles');
+const roles = require('../../config/roles');
 const express = require('express');
 const router = express.Router();
 const authController = require('../../controllers/authController');

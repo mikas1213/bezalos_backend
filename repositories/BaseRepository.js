@@ -48,7 +48,6 @@ class BaseRepository {
     };
 
     async findAll(filters = {}, fields = ['*'], sortOptions = null) {
-        
         try {
             const mappedFilters = this.mapFilter(filters);
             const { query, values } = this.queryBuilder(mappedFilters, fields, sortOptions);            
@@ -58,18 +57,25 @@ class BaseRepository {
         }
     }
 
-    async findById(id) {
+    async findByField(fieldName, value) {
         try {
-            const data = await this.db.query(`SELECT * FROM ${this.tableName} WHERE id = $1`, [id]);
+            const data = await this.db.query(`SELECT * FROM ${this.tableName} WHERE ${fieldName} = $1`, [value]);
             return data[0] || null;
         } catch(err) {
             throw new DatabaseError(err.message);
         }
     };
+    async findById(id) {
+        return this.findByField('id', id);
+    };
+    
+    async findBySlug(slug) {        
+        return this.findByField('slug', slug);
+    };
 
     async create(data) {
         try {
-            const keys = Object.keys(data).join(", ");
+            const keys = Object.keys(data).join(', ');
             const values = Object.values(data);
             const params = values.map((_, index) => `$${index+1}`).join(', ');
             const query = `INSERT INTO ${this.tableName} (${keys}) VALUES (${params})`;

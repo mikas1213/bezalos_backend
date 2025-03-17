@@ -5,7 +5,6 @@ class SitemapService {
     }   
 
     async generateSitemap() {
-        
         const [recipes, services] = await Promise.all([
             this.recipesRepository.findAll({}, ['slug', 'updated_at']),
             this.servicesRepository.findAll({'is_active': true}, ['slug', 'updated_at'])

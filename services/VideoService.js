@@ -10,9 +10,7 @@ class VideoService {
     }
 
     async getAllVideos(filters) {
-
         const data = await this.videoRepository.findAll(filters, undefined, {field: 'created_at', direction: 'DESC'});
-
         if(!data) throw new NotFoundError('Video rasti nepavyko');
         return data;
     }
@@ -34,12 +32,9 @@ class VideoService {
     }
     
     async getOneVideo(user_id, video_url) {
-        
         const data = await this.videoRepository.findById(user_id, video_url);
-        
         if(!data) throw new NotFoundError('Video įrašo rasti nepavyko');
         data.s3_video_url = this.generateSignedUrl(data.s3_file_name);
-        
         return data;
     }   
 
