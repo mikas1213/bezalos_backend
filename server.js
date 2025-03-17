@@ -1,10 +1,10 @@
 require('dotenv').config({path: './.env_bezalos'});
 
-// process.on('uncaughtException', (err) => {
-//     console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
-//     console.error(err.name, err.message, err.stack);
-//     process.exit(1);
-// });
+process.on('uncaughtException', (err) => {
+    console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+    console.error(err.name, err.message, err.stack);
+    process.exit(1);
+});
 
 const express = require('express');
 const app = express();
@@ -12,6 +12,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const hpp = require('hpp');
 const helmet = require('helmet');
+const compression = require('compression');
 
 const { logger } = require('./middleware/logsMiddleware/logEvents');
 const rateLimiter = require('./middleware/rateLimiter');
@@ -39,6 +40,7 @@ const likesRouter = require('./routes/likesRoutes');
 
 app.use(logger);
 app.use(helmet());
+app.use(compression());
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
@@ -101,6 +103,6 @@ process.on('SIGTERM', () => {
 process.on('SIGINT', () => {
     console.log('SIGINT received. Shutting down 📉 gracefully');
     server.close(() => {
-        console.log('Process terminated');
+        console.log('Process terminated!');
     });
 });
