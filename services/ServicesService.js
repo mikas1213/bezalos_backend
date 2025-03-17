@@ -27,8 +27,8 @@ class ServicesService {
         return await this.servicesRepository.create(data);
     }
 
-    async updateOneService(id, fields) {
-        return await this.servicesRepository.updateById(id, fields);
+    async updateOneService(id, data) {
+        return await this.servicesRepository.updateById(id, data);
     }
 
     async deleteOneServiceAdmin(id) {

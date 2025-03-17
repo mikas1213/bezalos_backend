@@ -86,9 +86,14 @@ class BaseRepository {
         }
     };
 
-    async updateById(id, fields) {
+    async updateById(id, data) {
         try {
-            console.log('updateById: ', id, fields)
+            const fields = Object.keys(data);
+            const query_values = fields.map(field => data[field]);
+            const query_fields = fields.map((field, i) => `${field} = $${i+1}`).join(', ');
+            query_values.push(id);
+            const query_string = `UPDATE services SET ${query_fields} WHERE id = $${query_values.length}`;
+            return await this.db.query(query_string, query_values);          
         } catch(err) {
             throw new DatabaseError(err.message, err);
         }
