@@ -86,7 +86,15 @@ class BaseRepository {
         }
     };
 
-    async delete(id) {
+    async updateById(id, fields) {
+        try {
+            console.log('updateById: ', id, fields)
+        } catch(err) {
+            throw new DatabaseError(err.message, err);
+        }
+    }
+
+    async deleteById(id) {
         try {
             return await this.db.query(`DELETE FROM ${this.tableName} WHERE id = $1`, [id]);
         } catch (err) {

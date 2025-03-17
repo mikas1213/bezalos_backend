@@ -6,7 +6,7 @@ class ServicesService {
     }
 
     async getAllServices() {
-        const data = await this.servicesRepository.findAll({is_active: true});
+        const data = await this.servicesRepository.findAll({is_active: true}, undefined, {field: 'sort', direction: 'ASC'});
         if(!data) throw new NotFoundError('Services not found');
         return data;
     }
@@ -16,6 +16,24 @@ class ServicesService {
         if(!data) throw new NotFoundError('Service not found');
         return data;
     } 
+    
+    async getAllServicesAdmin() {
+        const data = await this.servicesRepository.findAllAdmin();
+        if(!data) throw new NotFoundError('Services not found');
+        return data;
+    }
+
+    async addOneService(data) {
+        return await this.servicesRepository.create(data);
+    }
+
+    async updateOneService(id, fields) {
+        return await this.servicesRepository.updateById(id, fields);
+    }
+
+    async deleteOneServiceAdmin(id) {
+        return await this.servicesRepository.deleteById(id);
+    }
 }
 
 module.exports = ServicesService;

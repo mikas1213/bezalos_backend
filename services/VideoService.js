@@ -42,7 +42,6 @@ class VideoService {
         try {
             // Gauname video duomenis iš repozitorijos
             const data = await this.videoRepository.findById(user_id, video_url);
-            
             if(!data) throw new NotFoundError('Video įrašo rasti nepavyko');
             
             // Gauname pasirašytą URL
@@ -62,16 +61,13 @@ class VideoService {
                 url: signedUrl,
                 responseType: 'stream',
             });
-            
-            // Perduodame srautą į kliento atsakymą
             response.data.pipe(res);
             
-        } catch (error) {
-            console.error('Klaida transliuojant video:', error);
-            
-            // Tikriname, ar antraštės dar nebuvo išsiųstos
+        } catch (err) {
             if (!res.headersSent) {
                 res.status(500).json({ message: 'Nepavyko transliuoti video' });
+            } else {
+                res.status(500).json({ message: err.message });
             }
         }
     }

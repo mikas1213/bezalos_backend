@@ -25,9 +25,9 @@ router.route('/services/:id')
         fillFormValidator,
         adminServicesController.updateService
     )
-    .delete(validateUUID, adminControllers.deleteOneRow('services'))
+    .delete(validateUUID, adminServicesController.deleteService)
 
 router.route('/services')
-    .get(adminServicesController.getAdminServices);
+    .get(adminServicesController.getServicesAdmin);
 
 module.exports = router;
