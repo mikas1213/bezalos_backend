@@ -22,10 +22,11 @@ exports.addService = catchAsync(async (req, res) => {
     res.sendStatus(200);
 });
 
-exports.updateService = catchAsync(async (req, res) => {    
+exports.updateService = async (req, res) => {    
     const { id } = req.params;
     const serviceDTO = new ServiceDTO(req.body);
+
     await servicesService.updateOneService(id, serviceDTO);
     res.sendStatus(200);
-});
+};
 
