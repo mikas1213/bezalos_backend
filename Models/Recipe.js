@@ -65,57 +65,6 @@ class Recipe {
             ${whereClause};
         `;
 
-        // const queryString = `
-        //     SELECT 
-        //         r.id,
-        //         r.title, 
-        //         r.slug, 
-        //         r.image_s,
-        //         r.image_m,
-        //         r.is_vegetarian,
-        //         r.food_logic,
-        //         r.recipe_type,
-        //         r.duration,
-        //         r.taste,
-        //         r.description,
-        //         r.video_link,
-        //         JSON_AGG(
-        //             JSON_BUILD_OBJECT(
-        //                 'id', rp.id, 
-        //                 'product_id', p.id,
-        //                 'title', p.title,
-        //                 'grams', rp.grams,
-        //                 'proteins', p.proteins, 
-        //                 'carbs', p.carbs,
-        //                 'fat', p.fat,
-        //                 'created_at', rp.created_at
-        //             ) ORDER BY rp.created_at ASC
-        //         ) AS products,
-        //         COALESCE(SUM((p.proteins / 100) * rp.grams), 0)::float AS b,
-        //         COALESCE(SUM((p.carbs / 100) * rp.grams), 0)::float AS a,
-        //         COALESCE(SUM((p.fat / 100) * rp.grams), 0)::float AS r,
-        //         COALESCE(SUM(((p.proteins * 4) + (p.carbs * 4) + (p.fat * 9)) / 100 * rp.grams), 0)::float AS kcal,
-        //         COALESCE(l.likes_count, 0)::int AS likes,
-        //         CASE 
-        //             WHEN $${values.length + 1} IS NULL THEN false  -- Jei vartotojas neprisijungęs, liked = false
-        //             WHEN ul.user_id IS NOT NULL THEN true 
-        //             ELSE false 
-        //         END AS liked
-        //     FROM recipe_products rp
-        //     LEFT JOIN recipes r ON rp.recipe_id = r.id
-        //     LEFT JOIN food_products p ON rp.product_id = p.id
-        //     LEFT JOIN (
-        //         SELECT recipe_id, COUNT(*) AS likes_count 
-        //         FROM likes_recipes 
-        //         GROUP BY recipe_id
-        //     ) l ON l.recipe_id = r.id
-        //     LEFT JOIN likes_recipes AS ul ON ul.recipe_id = r.id AND ul.user_id = $${values.length + 1} -- Prisijungusio vartotojo like'ai
-        //     ${whereClause}
-        //     GROUP BY r.id, l.likes_count, ul.user_id
-        //     ORDER BY r.created_at DESC
-        //     LIMIT $${values.length + 2} OFFSET $${values.length + 3};
-        // `;
-
         const queryString = `
         SELECT 
             r.id,
@@ -181,7 +130,8 @@ class Recipe {
             throw err;
         }
     }
-
+    
+/*
     static async getOneRecipeQuery(slug) {
         const queryString = `
             SELECT 
@@ -206,13 +156,13 @@ class Recipe {
                         'title', p.title,
                         'grams', rp.grams,
                         'created_at', rp.created_at
-                    ) ORDER BY p.created_at ASC
+                    ) ORDER BY rp.created_at ASC
                 ) AS products
             FROM recipe_products rp
             LEFT JOIN recipes r ON rp.recipe_id = r.id
             LEFT JOIN food_products p ON rp.product_id = p.id
             WHERE r.slug = $1
-            GROUP BY r.id ORDER BY r.title ASC;`;
+            GROUP BY r.id;`;
 
         try {
             const { rows } = await db.query(queryString, [slug]);
@@ -221,7 +171,9 @@ class Recipe {
             throw err;
         }
     }
+*/
 
+/*
     static async getMostLikedQuery() {
         const most_liked_query = `SELECT 
             r.id,
@@ -245,6 +197,7 @@ class Recipe {
             throw err;
         }
     }
+*/
 };
 
 module.exports = Recipe;

@@ -7,7 +7,7 @@ class ServicesService {
 
     async getAllServices() {
         const data = await this.servicesRepository.findAll({is_active: true}, undefined, {field: 'sort', direction: 'ASC'});
-        if(!data) throw new NotFoundError('Services not found');
+        if(data.length === 0) throw new NotFoundError('Services not found');
         return data;
     }
 
@@ -19,7 +19,7 @@ class ServicesService {
     
     async getAllServicesAdmin() {
         const data = await this.servicesRepository.findAllAdmin();
-        if(!data) throw new NotFoundError('Services not found');
+        if(data.length === 0) throw new NotFoundError('Services not found');
         return data;
     }
 

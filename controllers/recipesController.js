@@ -1,18 +1,38 @@
+const { RECIPES_SERVICE } = require('../config/DIKeys');
+const appContainer = require('../utils/appContainer');
+const recipesService = appContainer.resolve(RECIPES_SERVICE);
+const catchAsync = require('../utils/catchAsync');
+
+exports.getFavoriteRecipes = catchAsync(async (req, res) => {
+    const data = await recipesService.getFavoriteRecipes();
+    res.status(200).json(data);
+});
+
+exports.getRecipe = catchAsync(async (req, res) => {
+    const { slug } = req.params;
+    const data = await recipesService.getRecipeWithProducts(slug);
+    res.status(200).json(data);
+});
+
+
+/* O-L-D- - - -I-M-P-L-E-M-E-N-T-A-T-I-O-N */
+
 const db = require('../database/db');
 const Recipe = require('../Models/Recipe');
 const slugify = require('slugify');
 
-exports.getFavoriteRecipes = async (req, res) => {
-    try {
-        const most_liked = await Recipe.getMostLikedQuery();
-        res.status(200).json(most_liked);
-    } catch(err) {
-        res.status(500).json({ message: err.message });
-    }
-};
+
+// exports.getFavoriteRecipes = async (req, res) => {
+//     try {
+//         const most_liked = await Recipe.getMostLikedQuery();
+//         res.status(200).json(most_liked);
+//     } catch(err) {
+//         res.status(500).json({ message: err.message });
+//     }
+// };
 
 exports.getAllRecipes = async (req, res) => {
-    
+
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit);
@@ -29,20 +49,20 @@ exports.getAllRecipes = async (req, res) => {
     }
 };
 
-exports.getOneRecipe = async (req, res) => {
-    try {
-        const { slug } = req.params;
-        const recipe = await Recipe.getOneRecipeQuery(slug);
+// exports.getRecipe = async (req, res) => {
+//     try {
+//         const { slug } = req.params;
+//         const recipe = await Recipe.getOneRecipeQuery(slug);
 
-        if (!recipe) {
-            return res.status(404).json({ message: 'Receptas nerastas' });
-        }
+//         if (!recipe) {
+//             return res.status(404).json({ message: 'Receptas nerastas' });
+//         }
 
-        res.json(recipe);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-};
+//         res.json(recipe);
+//     } catch (err) {
+//         res.status(500).json({ message: err.message });
+//     }
+// };
 
 exports.addRecipe = async (req, res) => {
     try {

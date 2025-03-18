@@ -7,7 +7,7 @@ router.route('/favorite').get(
 )
 
 router.route('/:slug').get(
-    recipesController.getOneRecipe
+    recipesController.getRecipe
 );
 
 router.route('/').post(

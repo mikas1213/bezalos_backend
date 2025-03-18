@@ -53,7 +53,7 @@ class BaseRepository {
             const { query, values } = this.queryBuilder(mappedFilters, fields, sortOptions);            
             return await this.db.query(query, values);
         } catch (err) {
-            throw new DatabaseError(err.message)
+            throw new DatabaseError(err.message, err)
         }
     }
 
@@ -62,13 +62,12 @@ class BaseRepository {
             const data = await this.db.query(`SELECT * FROM ${this.tableName} WHERE ${fieldName} = $1`, [value]);
             return data[0] || null;
         } catch(err) {
-            throw new DatabaseError(err.message);
+            throw new DatabaseError(err.message, err);
         }
     };
     async findById(id) {
         return this.findByField('id', id);
     };
-    
     async findBySlug(slug) {        
         return this.findByField('slug', slug);
     };
@@ -109,3 +108,4 @@ class BaseRepository {
 }
 
 module.exports = BaseRepository;
+
