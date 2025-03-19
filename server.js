@@ -30,8 +30,10 @@ const paymentRouter = require('./routes/paymentRoutes');
 const customersRouter = require('./routes/adminRoutes/customersRoutes');
 const nutritionPlansRouter = require('./routes/adminRoutes/nutritionPlansRoutes');
 const servicesRouter = require('./routes/servicesRoutes');
+
 const recipesRouter = require('./routes/recipesRoutes');
 const adminServicesRouter = require('./routes/adminRoutes/adminServicesRoutes');
+const adminRecipesRoutes = require('./routes/adminRoutes/adminRecipesRoutes');
 const adminPromotionsRoutes = require('./routes/adminRoutes/adminPromotionsRoutes');
 const promotionRouter = require('./routes/promotionRoutes');
 const likesRouter = require('./routes/likesRoutes');
@@ -67,6 +69,7 @@ app.use('/api/v1/likes', likesRouter);
 app.use('/api/v1/admin', [
     adminPromotionsRoutes,
     adminServicesRouter,
+    adminRecipesRoutes,
     customersRouter, 
     nutritionPlansRouter
 ]);

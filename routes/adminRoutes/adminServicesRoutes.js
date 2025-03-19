@@ -3,8 +3,7 @@ const router = express.Router();
 const roles = require('../../config/roles');
 const multerDataController = require('../../controllers/multerDataController');
 const authController = require('../../controllers/authController');
-const adminControllers = require('../../controllers/adminControllers/adminController'); 
-const adminServicesController = require('../../controllers/adminControllers/adminServicesController');
+const servicesController = require('../../controllers/servicesController');
 const { fillFormValidator } = require('../../middleware/validators/addServiceValidator');
 const { validateUUID } = require('../../middleware/validators/validate_uuid');
 
@@ -14,7 +13,7 @@ router.route('/services/add')
         multerDataController.uploadPhoto,
         multerDataController.resizePhoto, 
         fillFormValidator,
-        adminServicesController.addService
+        servicesController.addService
     );
 
 router.route('/services/:id')
@@ -23,11 +22,10 @@ router.route('/services/:id')
         multerDataController.resizePhoto, 
         validateUUID,
         fillFormValidator,
-        adminServicesController.updateService
+        servicesController.updateService
     )
-    .delete(validateUUID, adminServicesController.deleteService)
+    .delete(validateUUID, servicesController.deleteService)
 
-router.route('/services')
-    .get(adminServicesController.getServicesAdmin);
+router.route('/services').get(servicesController.getServicesAdmin);
 
 module.exports = router;

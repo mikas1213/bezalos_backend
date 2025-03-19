@@ -10,7 +10,7 @@ class BaseRepository {
     mapFilter(filters) {
         const dbFilters = {};
         for(const [key, val] of Object.entries(filters)) {
-            if(this.filterMapping[key]) {
+            if(this.filterMapping[key] && !!val) {
                 dbFilters[this.filterMapping[key]] = val;
             }
         }
@@ -18,7 +18,6 @@ class BaseRepository {
     }
 
     queryBuilder(filters = {}, fields = ['*'], sortOptions = null) {
-        
         const values = [];
         const fields_str = fields.join(', ');
         let query = `SELECT ${fields_str} FROM ${this.tableName}`;
@@ -43,7 +42,6 @@ class BaseRepository {
             const direction = sortOptions.direction && (sortOptions.direction.toUpperCase() === 'DESC') ? 'DESC' : 'ASC';
             query += ` ORDER BY ${sortOptions.field} ${direction}`;
         }
-        
         return { query, values };
     };
 
@@ -77,8 +75,8 @@ class BaseRepository {
             const keys = Object.keys(data).join(', ');
             const values = Object.values(data);
             const params = values.map((_, index) => `$${index+1}`).join(', ');
-            const query = `INSERT INTO ${this.tableName} (${keys}) VALUES (${params})`;
-
+            const query = `INSERT INTO ${this.tableName} (${keys}) VALUES (${params}) RETURNING id`;
+            
             return await this.db.query(query, values);            
         } catch (err) {
             throw new DatabaseError(err.message, err);
@@ -91,7 +89,8 @@ class BaseRepository {
             const query_values = fields.map(field => data[field]);
             const query_fields = fields.map((field, i) => `${field} = $${i+1}`).join(', ');
             query_values.push(id);
-            const query_string = `UPDATE services SET ${query_fields} WHERE id = $${query_values.length}`;
+            const query_string = `UPDATE ${this.tableName} SET ${query_fields} WHERE id = $${query_values.length}`;
+            
             return await this.db.query(query_string, query_values);          
         } catch(err) {
             throw new DatabaseError(err.message, err);
