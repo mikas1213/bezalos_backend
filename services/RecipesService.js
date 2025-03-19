@@ -24,7 +24,6 @@ class RecipesService {
         const offset = (page - 1) * limit;
         
         const data = await this.recipesRepository.findRecipes(filters, limit, offset, user_id);
-        if(data.length === 0) throw new NotFoundError('Recipes not found');
         return { data, total_pages, total_rows, current_page: page };
     }
 
