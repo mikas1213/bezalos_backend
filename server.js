@@ -12,7 +12,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const hpp = require('hpp');
 const helmet = require('helmet');
-// const compression = require('compression');
+const compression = require('compression');
 
 const { logger } = require('./middleware/logsMiddleware/logEvents');
 const rateLimiter = require('./middleware/rateLimiter');
@@ -42,7 +42,7 @@ const likesRouter = require('./routes/likesRoutes');
 
 app.use(logger);
 app.use(helmet());
-// app.use(compression());
+app.use(compression());
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());

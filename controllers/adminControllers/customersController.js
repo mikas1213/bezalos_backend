@@ -27,7 +27,6 @@ exports.getAllUsers = async (req, res) => {
 
         const { search } = req.query;
         const { column, sort = 'ASC', week, month, maintenance, service } = req.body;
-        console.log('service: ', service)
         const validColumns = ['s_subscription_expires', 'name', 'email', 'subscription_expires', 'last_activity', 'plan_prepare', 'plan_assign', 'subscription_type', 'eat_status', 'eat_calories', 'created_at'];
         
         const columns = `
