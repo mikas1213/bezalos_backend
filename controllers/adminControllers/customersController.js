@@ -96,13 +96,13 @@ exports.getAllUsers = async (req, res) => {
         } else if(week) {
             from.setDate(from.getDate() - 28);
             to.setDate(to.getDate() - 14);
-            queryParams = [2324, from.toLocaleString('lt-LT'), to.toLocaleString('lt-LT')];
-            where = `WHERE role = $1 AND plan_assign BETWEEN $2 AND $3`;
+            queryParams = [2324, from.toLocaleString('lt-LT'), to.toLocaleString('lt-LT'), 'week'];
+            where = `WHERE role = $1 AND plan_assign BETWEEN $2 AND $3 AND plan_assign_status NOT LIKE $4`;
 
         } else if(month) {
             from.setDate(from.getDate() - 28);
             queryParams = [2324, from.toLocaleString('lt-LT'), 'month'];
-            where = `WHERE role = $1 AND plan_assign < $2 AND plan_assign_status NOT LIKE $3`;
+            where = `WHERE role = $1 AND plan_assign <= $2 AND plan_assign_status NOT LIKE $3`;
 
         } else if(maintenance) {
             where = `WHERE role = $1 AND maintenance IS NOT null AND maintenance_status NOT LIKE '4 sav' AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2)`;
