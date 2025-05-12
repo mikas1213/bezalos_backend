@@ -46,6 +46,7 @@ class BaseRepository {
     };
 
     async findAll(filters = {}, fields = ['*'], sortOptions = null) {
+        
         try {
             const mappedFilters = this.mapFilter(filters);
             const { query, values } = this.queryBuilder(mappedFilters, fields, sortOptions);            

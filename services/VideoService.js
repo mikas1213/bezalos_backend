@@ -37,40 +37,6 @@ class VideoService {
         data.s3_video_url = this.generateSignedUrl(data.s3_file_name);
         return data;
     }   
-
-    async streamVideo(user_id, video_url, res) {
-        try {
-            // Gauname video duomenis iš repozitorijos
-            const data = await this.videoRepository.findById(user_id, video_url);
-            if(!data) throw new NotFoundError('Video įrašo rasti nepavyko');
-            
-            // Gauname pasirašytą URL
-            const signedUrl = this.generateSignedUrl(data.s3_file_name);
-            
-            // Nustatome HTTP antraštes, kad išvengtume parsisiuntimo
-            res.setHeader('Content-Type', 'video/mp4');
-            res.setHeader('Content-Disposition', 'inline'); // Nurodo naršyklei rodyti, o ne parsisiųsti
-            res.setHeader('Cache-Control', 'no-store, private');
-            res.setHeader('X-Frame-Options', 'SAMEORIGIN'); // Neleidžia įkelti video į iFrames iš kitų domenų
-            res.setHeader('X-Content-Type-Options', 'nosniff'); // Papildoma apsauga
-            res.setHeader('Cross-Origin-Resource-Policy', 'same-site');
-            
-            // Perduodame video srautą nuo CloudFront į kliento atsakymą
-            const response = await axios({
-                method: 'get',
-                url: signedUrl,
-                responseType: 'stream',
-            });
-            response.data.pipe(res);
-            
-        } catch (err) {
-            if (!res.headersSent) {
-                res.status(500).json({ message: 'Nepavyko transliuoti video' });
-            } else {
-                res.status(500).json({ message: err.message });
-            }
-        }
-    }
 }
 
 module.exports = VideoService;

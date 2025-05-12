@@ -27,6 +27,7 @@ exports.getAllUsers = async (req, res) => {
 
         const { search } = req.query;
         const { column, sort = 'ASC', week, month, maintenance, service } = req.body;
+        console.log('service: ', service)
         const validColumns = ['s_subscription_expires', 'name', 'email', 'subscription_expires', 'last_activity', 'plan_prepare', 'plan_assign', 'subscription_type', 'eat_status', 'eat_calories', 'created_at'];
         
         const columns = `
@@ -64,9 +65,15 @@ exports.getAllUsers = async (req, res) => {
             ), '[]'::json) AS orders,
 
             CASE WHEN EXISTS (
-                SELECT 1 FROM orders o WHERE o.user_id = users.id
-                AND (o.title = 'Mitybos planas + 🎁' OR o.title = 'Mitybos planas + 4 savaičių priežiūra')
-            ) THEN true ELSE false END as has_order
+                SELECT 1 FROM orders AS o
+                LEFT JOIN services AS s ON s.id = o.service_id
+                WHERE o.user_id = users.id AND s.category = 'plan' ORDER BY o.created_at DESC LIMIT 1
+            ) THEN true ELSE false END as has_plan
+
+            --CASE WHEN EXISTS (
+                --SELECT 1 FROM orders o WHERE o.user_id = users.id
+              --  AND (o.title = 'Mitybos planas + 🎁' OR o.title = 'Mitybos planas + 4 savaičių priežiūra')
+            --) THEN true ELSE false END as has_order
         `;
 
         let where = `WHERE role = $1 AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2)`;
@@ -112,8 +119,21 @@ exports.getAllUsers = async (req, res) => {
                     ELSE 1
                 END, ${column} ${sort} NULLS LAST, email ASC;`;
         if(service) {
-            where = `WHERE role = $1 AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2) AND (o.title = 'Mitybos planas + 🎁' OR o.title = 'Mitybos planas + 4 savaičių priežiūra') AND plan_assign IS NULL`;
-            queryString = `SELECT ${columns} FROM users INNER JOIN orders o ON users.id = o.user_id LEFT JOIN subscriptions ON users.id = subscriptions.user_id ${where} ORDER BY ${column} ${sort} NULLS LAST;`;
+            // where = `WHERE role = $1 AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2) AND (o.title = 'Mitybos planas + 🎁' OR o.title = 'Mitybos planas + 4 savaičių priežiūra') AND plan_assign IS NULL`;
+            // queryString = `SELECT ${columns} FROM users INNER JOIN orders o ON users.id = o.user_id LEFT JOIN subscriptions ON users.id = subscriptions.user_id ${where} ORDER BY ${column} ${sort} NULLS LAST;`;
+
+            where = `WHERE role = $1 AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2) AND plan_assign IS NULL`;
+            queryString = `SELECT ${columns} FROM users 
+                LEFT JOIN subscriptions ON users.id = subscriptions.user_id  
+                    ${where} 
+                    AND EXISTS (
+                        SELECT 1 
+                        FROM orders o 
+                        JOIN services s ON s.id = o.service_id
+                        WHERE o.user_id = users.id 
+                        AND s.category = 'plan'
+                    )
+                ORDER BY ${column} ${sort} NULLS LAST;`;
         }
 
         const { rows } = await db.query(queryString, queryParams);       

@@ -105,7 +105,7 @@ exports.paymentSuccess = async (req, res) => {
         
         await stripe.customers.update(data.object.customer, { metadata: { user_id }});
         await db.query('UPDATE services SET quantity = quantity - $1 WHERE id = $2', [1, paslauga_id]);        
-        await db.query('INSERT INTO orders(user_id, title, price) VALUES($1, $2, $3)', [user_id, title, current_price]);    
+        await db.query('INSERT INTO orders(user_id, title, price, promo_code, service_id) VALUES($1, $2, $3, $4, $5)', [user_id, title, current_price, code, paslauga_id]);    
 
         if(JSON.parse(isCodeApproved)) {
             await db.query('UPDATE promotions SET usage_count = usage_count + 1 WHERE promo_code = $1', [code]);        

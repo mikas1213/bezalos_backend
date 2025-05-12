@@ -4,7 +4,8 @@ const videoService = appContainer.resolve(VIDEO_SERVICE);
 const catchAsync = require('../utils/catchAsync');
 
 exports.getVideos = catchAsync(async (req, res) => {
-    const data = await videoService.getAllVideos(req.query);
+    const filters = req.query.cat === 'kursai' ? {type: 'kursai'} : {...req.query, type: 'virtuve'};
+    const data = await videoService.getAllVideos(filters);
     res.status(200).json(data);
 });
 
@@ -13,10 +14,3 @@ exports.getVideo = catchAsync(async (req, res) => {
     const data = await videoService.getOneVideo(user_id, video_url);
     res.status(200).json(data);
 });
-
-// Naujas kontroleris video transliavimui per serverį
-exports.streamVideo = catchAsync(async (req, res) => {
-    const { user_id, params: { video: video_url }} = req;
-    await videoService.streamVideo(user_id, video_url, res);
-});
-

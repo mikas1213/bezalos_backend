@@ -59,9 +59,21 @@ exports.login = async (req, res) => {
         const validPassword = await bcrypt.compare(password, user.rows[0].password);
         if(!validPassword) return res.status(401).json({errors: [{path: 'auth', type: 'server', msg: 'Netinkamas el. paštas arba slaptažodis!'}]});
 
+        const { rows: [user_order] } = await db.query(`SELECT o.id, o.created_at, s.title,
+            CASE 
+                WHEN o.created_at IS NULL THEN false
+                WHEN (CURRENT_TIMESTAMP - o.created_at) <= INTERVAL '90 days' THEN true
+                    ELSE false
+                END AS is_course
+            FROM orders AS o
+            LEFT JOIN services AS s ON s.id = o.service_id
+            WHERE o.user_id = $1 AND s.category = 'kursai' 
+            ORDER BY o.created_at DESC 
+            LIMIT 1`, [user.rows[0].id]);
+        
         const today = Date.parse(new Date().toLocaleString('lt-LT', {dateStyle: 'short'}));
         const subs_exp = Date.parse(new Date(user.rows[0].subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
-        const s_subs_exp = Date.parse(new Date(user.rows[0].s_subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
+        const s_subs_exp = Date.parse(new Date(user.rows[0].s_subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'})); 
         
         const accessToken = jwt.sign({ 
             user_id: user.rows[0].id,
@@ -71,7 +83,8 @@ exports.login = async (req, res) => {
             user_subscription: subs_exp >= today,
             user_s_subscription: s_subs_exp >= today,
             u_status: user.rows[0].u_status,
-            s_status: user.rows[0].s_status
+            s_status: user.rows[0].s_status,
+            is_course: user_order?.is_course ? user_order?.is_course : false
         }, process.env.ACCESS_TOKEN_SECRET, {
             expiresIn: process.env.ACCESS_TOKEN_EXPIRES
         });
@@ -84,7 +97,8 @@ exports.login = async (req, res) => {
             user_subscription: subs_exp >= today,
             user_s_subscription: s_subs_exp >= today,
             u_status: user.rows[0].u_status,
-            s_status: user.rows[0].s_status
+            s_status: user.rows[0].s_status,
+            is_course: user_order?.is_course ? user_order?.is_course : false
         }, process.env.REFRESH_TOKEN_SECRET, {
             expiresIn: process.env.REFRESH_TOKEN_EXPIRES
         });
@@ -118,18 +132,12 @@ exports.refresh = async (req, res) => {
         refreshToken,
         process.env.REFRESH_TOKEN_SECRET,
         (err, decoded) => {
-            
             if(err || user.rows[0].id !== decoded.user_id) return res.sendStatus(403);
             const accessToken = jwt.sign({ 
                 user_id: decoded.user_id,
                 user_name: decoded.user_name,
                 user_role: decoded.user_role,
-    
-                // str_cus_id: decoded.str_cus_id,
-                // user_subscription: decoded.user_subscription,
-                // user_s_subscription: decoded.user_s_subscription,
-                // s_status: decoded.s_status,
-
+                is_course: decoded.is_course,
                 str_cus_id: user.rows[0].stripe_customer_id,
                 user_subscription: subs_exp >= today,
                 user_s_subscription: s_subs_exp >= today,
@@ -265,6 +273,7 @@ exports.protect = (req, res, next) => {
         req.user_name = decoded.user_name;
         req.user_role = decoded.user_role;
         req.user_subscription = decoded.user_subscription;
+        req.is_course = decoded.is_course,
         req.str_cus_id = decoded.str_cus_id;
         req.user_s_subscription = decoded.user_s_subscription
         req.s_status = decoded.s_status;
@@ -280,10 +289,23 @@ exports.isSubscription = (...allowedSubscriptionTypes) => {
         const s_sub = user_s_subscription && allowedSubscriptionTypes.includes(s_status);
         const is_sub = !(u_sub || s_sub);
 
-        if(is_sub) return res.sendStatus(402);
+        if(is_sub) return res.status(402).json({
+            error: 'Payment Required',
+            type: 'subscription'
+        });
+
         next();
     };
 }
+
+exports.isCourse = (req, res, next) => {
+    if(!req.is_course) return res.status(402).json({
+        error: 'Payment Required',
+        type: 'course'
+    });
+
+    next();
+};
 
 exports.verifyRoles = (...allowedRoles) => {
     return (req, res, next) => {
