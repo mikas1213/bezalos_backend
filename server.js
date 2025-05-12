@@ -99,6 +99,7 @@ process.on('SIGTERM', () => {
     console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
     server.close(() => {
         console.log('💥 Process terminated!');
+        process.exit(1);
     });
 });
 
@@ -107,5 +108,6 @@ process.on('SIGINT', () => {
     console.log('SIGINT received. Shutting down 📉 gracefully');
     server.close(() => {
         console.log('Process terminated!');
+        process.exit(1);
     });
 });
