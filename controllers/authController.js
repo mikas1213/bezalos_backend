@@ -123,6 +123,19 @@ exports.refresh = async (req, res) => {
     const user = await db.query('SELECT users.id, stripe_customer_id, subscription, subscription_expires, refresh_token, subscription_type AS u_status, s.status AS s_status, s.current_period_end AS s_subscription_expires FROM users LEFT JOIN subscriptions as s ON s.user_id = users.id WHERE refresh_token = $1', [refreshToken]);
     
     if(!user.rows[0]) return res.sendStatus(403); // Forbidden
+
+    const { rows: [user_order] } = await db.query(`SELECT o.id, o.created_at, s.title,
+        CASE 
+            WHEN o.created_at IS NULL THEN false
+            WHEN (CURRENT_TIMESTAMP - o.created_at) <= INTERVAL '90 days' THEN true
+                ELSE false
+            END AS is_course
+        FROM orders AS o
+        LEFT JOIN services AS s ON s.id = o.service_id
+        WHERE o.user_id = $1 AND s.category = 'kursai' 
+        ORDER BY o.created_at DESC 
+        LIMIT 1`, [user.rows[0].id]);
+
     
     const today = Date.parse(new Date().toLocaleString('lt-LT', {dateStyle: 'short'}));
     const subs_exp = Date.parse(new Date(user.rows[0].subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
@@ -137,7 +150,7 @@ exports.refresh = async (req, res) => {
                 user_id: decoded.user_id,
                 user_name: decoded.user_name,
                 user_role: decoded.user_role,
-                is_course: decoded.is_course,
+                is_course: user_order?.is_course,
                 str_cus_id: user.rows[0].stripe_customer_id,
                 user_subscription: subs_exp >= today,
                 user_s_subscription: s_subs_exp >= today,
@@ -298,8 +311,8 @@ exports.isSubscription = (...allowedSubscriptionTypes) => {
     };
 }
 
-exports.isCourse = (req, res, next) => {
-    if(!req.is_course) return res.status(402).json({
+exports.isCourse = async (req, res, next) => {
+    if(!req?.is_course) return res.status(402).json({
         error: 'Payment Required',
         type: 'course'
     });
