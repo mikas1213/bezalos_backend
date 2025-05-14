@@ -6,7 +6,8 @@ class ServiceDTO {
         if(data.quantity !== undefined) this.quantity = data.quantity;
         if(data.discount !== undefined) this.discount = data.discount;
         if(data.sort !== undefined) this.sort = data.sort;
-        if(data.popular !== undefined) this.popular = data.popular;
+        if(data.status !== undefined) this.status = data.status;
+        if(data.category !== undefined) this.category = data.category;
         if(data.is_active !== undefined) this.is_active = data.is_active;
         if(data.image_s !== undefined) this.image_s = data.image_s;
         if(data.image_m !== undefined) this.image_m = data.image_m;

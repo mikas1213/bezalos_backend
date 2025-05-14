@@ -101,15 +101,20 @@ exports.paymentSuccess = async (req, res) => {
     /* O-N-E---P-A-Y-M-E-N-T---W-E-B-H-O-O-K-S */
     if(event_type === 'checkout.session.completed' && data.object.mode === 'payment' && data.object.payment_status === 'paid') {
 
-        const { user_id, paslauga_id, title, current_price, code, isCodeApproved } = data.object.metadata;
+        const { user_id, category, paslauga_id, title, current_price, code, isCodeApproved } = data.object.metadata;
         
+        console.log('Payments metadata: ', data.object.metadata);
         await stripe.customers.update(data.object.customer, { metadata: { user_id }});
         await db.query('UPDATE services SET quantity = quantity - $1 WHERE id = $2', [1, paslauga_id]);        
         await db.query('INSERT INTO orders(user_id, title, price, promo_code, service_id) VALUES($1, $2, $3, $4, $5)', [user_id, title, current_price, code, paslauga_id]);    
 
         if(JSON.parse(isCodeApproved)) {
             await db.query('UPDATE promotions SET usage_count = usage_count + 1 WHERE promo_code = $1', [code]);        
-        }    
+        }
+        
+        if(category === 'Kursai') {
+            console.log('Taip cia kursai')
+        }
     }
     res.sendStatus(200);
 }

@@ -92,9 +92,8 @@ exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_na
 };
 
 exports.stripeServiceSession = async (user_role, user_id, user_name, service, code, isCodeApproved) => {
-
+    const service_category = service?.category === 'Kursai' ? 'course' : 'regular';
     try {
-        
         let customerId = await isExistStripeCustomer(user_id, user_name);
         if (!customerId) {
             const customer = await stripe.customers.create({
@@ -115,6 +114,7 @@ exports.stripeServiceSession = async (user_role, user_id, user_name, service, co
             metadata: { 
                 user_id, 
                 paslauga_id: service.id, 
+                category: service.category,
                 current_price: service.current_price, 
                 title: service.title,
                 code,
@@ -132,7 +132,7 @@ exports.stripeServiceSession = async (user_role, user_id, user_name, service, co
                 quantity: 1
             }],
 
-            success_url: `${hostname}/paslauga-apmoketa?session_id={CHECKOUT_SESSION_ID}`,
+            success_url: `${hostname}/paslauga-apmoketa?service=${service_category}&session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${hostname}/paslaugos?tab=paslaugos`,
         });
         

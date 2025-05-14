@@ -66,13 +66,8 @@ exports.getAllUsers = async (req, res) => {
             CASE WHEN EXISTS (
                 SELECT 1 FROM orders AS o
                 LEFT JOIN services AS s ON s.id = o.service_id
-                WHERE o.user_id = users.id AND s.category = 'plan' ORDER BY o.created_at DESC LIMIT 1
+                WHERE o.user_id = users.id AND s.category = 'Planas' ORDER BY o.created_at DESC LIMIT 1
             ) THEN true ELSE false END as has_plan
-
-            --CASE WHEN EXISTS (
-                --SELECT 1 FROM orders o WHERE o.user_id = users.id
-              --  AND (o.title = 'Mitybos planas + 🎁' OR o.title = 'Mitybos planas + 4 savaičių priežiūra')
-            --) THEN true ELSE false END as has_order
         `;
 
         let where = `WHERE role = $1 AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2)`;
@@ -96,19 +91,19 @@ exports.getAllUsers = async (req, res) => {
         } else if(week) {
             from.setDate(from.getDate() - 28);
             to.setDate(to.getDate() - 14);
-            queryParams = [2324, from.toLocaleString('lt-LT'), to.toLocaleString('lt-LT'), 'week'];
-            where = `WHERE role = $1 AND plan_assign BETWEEN $2 AND $3 AND plan_assign_status NOT LIKE $4`;
+            queryParams = [2324, from.toLocaleString('lt-LT'), to.toLocaleString('lt-LT'), 'week', 'month'];
+            where = `WHERE role = $1 AND plan_assign BETWEEN $2 AND $3 AND plan_assign_status NOT IN ($4, $5)`;
 
         } else if(month) {
             from.setDate(from.getDate() - 28);
             queryParams = [2324, from.toLocaleString('lt-LT'), 'month'];
+            // where = `WHERE role = $1 AND plan_assign <= $2 AND plan_assign_status NOT LIKE $3`;
             where = `WHERE role = $1 AND plan_assign <= $2 AND plan_assign_status NOT LIKE $3`;
 
         } else if(maintenance) {
             where = `WHERE role = $1 AND maintenance IS NOT null AND maintenance_status NOT LIKE '4 sav' AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2)`;
         } 
 
-        // let queryString = `SELECT ${columns} FROM users LEFT JOIN subscriptions ON users.id = subscriptions.user_id ${where} ORDER BY ${column} ${sort} NULLS LAST;`;
         let queryString = `SELECT ${columns} 
             FROM users 
             LEFT JOIN subscriptions ON users.id = subscriptions.user_id ${where} 
@@ -118,9 +113,6 @@ exports.getAllUsers = async (req, res) => {
                     ELSE 1
                 END, ${column} ${sort} NULLS LAST, email ASC;`;
         if(service) {
-            // where = `WHERE role = $1 AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2) AND (o.title = 'Mitybos planas + 🎁' OR o.title = 'Mitybos planas + 4 savaičių priežiūra') AND plan_assign IS NULL`;
-            // queryString = `SELECT ${columns} FROM users INNER JOIN orders o ON users.id = o.user_id LEFT JOIN subscriptions ON users.id = subscriptions.user_id ${where} ORDER BY ${column} ${sort} NULLS LAST;`;
-
             where = `WHERE role = $1 AND (LOWER(email) LIKE $2 OR LOWER(name) LIKE $2 OR LOWER(stripe_username) LIKE $2 OR TO_CHAR(last_activity, 'YYYY-MM-DD') LIKE $2) AND plan_assign IS NULL`;
             queryString = `SELECT ${columns} FROM users 
                 LEFT JOIN subscriptions ON users.id = subscriptions.user_id  
@@ -130,7 +122,7 @@ exports.getAllUsers = async (req, res) => {
                         FROM orders o 
                         JOIN services s ON s.id = o.service_id
                         WHERE o.user_id = users.id 
-                        AND s.category = 'plan'
+                        AND s.category = 'Planas'
                     )
                 ORDER BY ${column} ${sort} NULLS LAST;`;
         }

@@ -32,7 +32,7 @@ exports.addService = catchAsync(async (req, res) => {
     res.sendStatus(200);
 });
 
-exports.updateService = catchAsync(async (req, res) => {    
+exports.updateService = catchAsync(async (req, res) => {  
     const { id } = req.params;
     const serviceDTO = new ServiceDTO(req.body);
 

@@ -3,8 +3,8 @@ const slugify = require('slugify');
 
 const fillFormValidator = async (req, res, next) => {
     
-    const allow_fields = ['id', 'title', 'slug', 'base_price', 'current_price', 'quantity', 'discount', 'sort', 'popular', 'is_active', 'image_s', 'image_m', 'image_l', 'grid_desc', 'basic_desc', 'details', 'created_at', 'updated_at'];
-    let { title, base_price = '', quantity, discount = '0', sort, popular, is_active } = req.body;
+    const allow_fields = ['id', 'title', 'slug', 'base_price', 'current_price', 'quantity', 'discount', 'sort', 'status', 'category', 'is_active', 'image_s', 'image_m', 'image_l', 'grid_desc', 'basic_desc', 'details', 'created_at', 'updated_at'];
+    let { title, base_price = '', quantity, discount = '0', sort, status, category, is_active } = req.body;
     base_price = base_price.replace(',', '.');
     quantity = parseInt(quantity);
     sort = parseInt(sort);
@@ -45,15 +45,20 @@ const fillFormValidator = async (req, res, next) => {
         return res.status(400).json({ message: 'Nuolaida turi būti teigiamas skaičius'});
     }
     
+    if(!['-', 'Planas', 'Kursai'].includes(category)) {
+        return res.status(400).json({ message: 'Pasirinkite kategoriją' });
+    }
     if(!req.file && req.method === 'POST') {
         return res.status(400).json({ message: 'Nope, reik fotkės! 🏞' });
     }
+
 
     req.body.base_price = base_price;
     req.body.quantity = quantity;
     req.body.sort = sort;
     req.body.discount = discount;
-    req.body.popular = popular === 'On';
+    req.body.status = ['-', 'Populiarus', 'Naujas'].includes(status) ? status : '-';
+    req.body.category = ['Planas', 'Kursai'].includes(category) ? category : null;
     req.body.is_active = is_active === 'On';
     req.body.slug = slug;
     next();

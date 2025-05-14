@@ -67,7 +67,7 @@ exports.login = async (req, res) => {
                 END AS is_course
             FROM orders AS o
             LEFT JOIN services AS s ON s.id = o.service_id
-            WHERE o.user_id = $1 AND s.category = 'kursai' 
+            WHERE o.user_id = $1 AND s.category = 'Kursai' 
             ORDER BY o.created_at DESC 
             LIMIT 1`, [user.rows[0].id]);
         
@@ -132,7 +132,7 @@ exports.refresh = async (req, res) => {
             END AS is_course
         FROM orders AS o
         LEFT JOIN services AS s ON s.id = o.service_id
-        WHERE o.user_id = $1 AND s.category = 'kursai' 
+        WHERE o.user_id = $1 AND s.category = 'Kursai' 
         ORDER BY o.created_at DESC 
         LIMIT 1`, [user.rows[0].id]);
 
