@@ -113,6 +113,7 @@ exports.stripeServiceSession = async (user_role, user_id, user_name, service, co
             // customer_email: !is_customer_exist ? user_name : undefined,
             metadata: { 
                 user_id, 
+                email: user_name,
                 paslauga_id: service.id, 
                 category: service.category,
                 current_price: service.current_price, 

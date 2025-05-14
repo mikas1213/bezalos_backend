@@ -1,5 +1,6 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const db = require('../database/db');
+const Email = require('../utils/email');
 const { stripeSubscriptionSession, stripeServiceSession } = require('../utils/payments');
 
 const prices_ids = {
@@ -101,9 +102,8 @@ exports.paymentSuccess = async (req, res) => {
     /* O-N-E---P-A-Y-M-E-N-T---W-E-B-H-O-O-K-S */
     if(event_type === 'checkout.session.completed' && data.object.mode === 'payment' && data.object.payment_status === 'paid') {
 
-        const { user_id, category, paslauga_id, title, current_price, code, isCodeApproved } = data.object.metadata;
+        const { user_id, email, category, paslauga_id, title, current_price, code, isCodeApproved } = data.object.metadata;
         
-        console.log('Payments metadata: ', data.object.metadata);
         await stripe.customers.update(data.object.customer, { metadata: { user_id }});
         await db.query('UPDATE services SET quantity = quantity - $1 WHERE id = $2', [1, paslauga_id]);        
         await db.query('INSERT INTO orders(user_id, title, price, promo_code, service_id) VALUES($1, $2, $3, $4, $5)', [user_id, title, current_price, code, paslauga_id]);    
@@ -113,7 +113,8 @@ exports.paymentSuccess = async (req, res) => {
         }
         
         if(category === 'Kursai') {
-            console.log('Taip cia kursai')
+            console.log('metadaeta: ', data.object.metadata);
+            await new Email(email, '', '').sendCourse();
         }
     }
     res.sendStatus(200);
