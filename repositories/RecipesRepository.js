@@ -46,6 +46,7 @@ class RecipesRepository extends BaseRepository {
                 r.duration,
                 r.taste,
                 r.description,
+                r.created_at,
                 COALESCE(ROUND(SUM((p.proteins / 100) * rp.grams))::FLOAT, 0) AS b,
                 COALESCE(ROUND(SUM((p.carbs / 100) * rp.grams))::FLOAT, 0) AS a,
                 COALESCE(ROUND(SUM((p.fat / 100) * rp.grams))::FLOAT, 0) AS r,
