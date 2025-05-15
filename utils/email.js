@@ -2,6 +2,7 @@
 // const path = require('path');
 // const { PDFDocument } = require('pdf-lib');
 const sgMail = require('@sendgrid/mail');
+const { text } = require('express');
 
 const messages = {
     profilis: {
@@ -23,7 +24,12 @@ const messages = {
     offer: {
         text: '',
         btn: 'ŽIŪRĖTI ĮRAŠĄ'
+    },
+    course: {
+        text: 'Sveikiname prisijungus prie kurso',
+        btn: 'Į kursą'
     }
+
 }
 
 
@@ -40,8 +46,7 @@ module.exports = class Email {
         this.token = token;
     }
 
-    async sendEmail(template, subject) {
-        console.log('Meilas buvo išsiųstas:', template, subject);
+    async sendEmail(template, subject) {    
         // const path_to_pdf = path.join(__dirname, '..', 'test.pdf');
         // const pdf_doc = await PDFDocument.load(path_to_pdf);
         // const encryptedBytes = await pdf_doc.save({
@@ -107,6 +112,6 @@ module.exports = class Email {
     }
 
     async sendCourse() {
-        await this.sendEmail(process.env.SENDGRID_TEMPLATE_COURSE || 'd-bae566213d914f589bf0e376b024fcb9', 'Labas, įsigyjai kursą!');
+        await this.sendEmail(process.env.SENDGRID_TEMPLATE_COURSE || 'd-bae566213d914f589bf0e376b024fcb9', '📩 Tavo kursas jau paruoštas!');
     }
 }

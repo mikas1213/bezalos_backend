@@ -46,7 +46,6 @@ const isExistStripeCustomer = async (user_id, email) => {
     if (str_cust_id) {
         const validCustomer = await findCustomerById(str_cust_id);
         if (validCustomer) {
-            // console.log('user exist by id')
             return str_cust_id;
         }
     }
@@ -54,13 +53,12 @@ const isExistStripeCustomer = async (user_id, email) => {
     try {
         const customers = await stripe.customers.list({ email, limit: 1 });
         if (customers.data.length > 0) {
-            // console.log('user exist by email')
             return customers.data[0].id;
         }
     } catch (err) {
         throw err;
     }
-    // console.log('user don\'t exist')
+
     return undefined;
 };
 

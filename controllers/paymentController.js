@@ -113,8 +113,7 @@ exports.paymentSuccess = async (req, res) => {
         }
         
         if(category === 'Kursai') {
-            console.log('metadaeta: ', data.object.metadata);
-            await new Email(email, '', '').sendCourse();
+            await new Email(email, 'course', 'https://bezalos.lt/virtuve?cat=kursai').sendCourse();
         }
     }
     res.sendStatus(200);
