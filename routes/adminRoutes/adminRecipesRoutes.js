@@ -14,8 +14,12 @@ router.route('/recipes/:id')
         validateUUID, 
         multerDataController.uploadPhoto,
         multerDataController.resizePhoto,
-        recipesController.editRecipe)
-    .delete(validateUUID, recipesController.deleteRecipe);
+        recipesController.editRecipe
+    )
+    .delete(
+        validateUUID, 
+        recipesController.deleteRecipe
+    );
 
 router.route('/recipes/add')
     .post(

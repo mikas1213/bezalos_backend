@@ -1,11 +1,11 @@
 const AppError = require('./AppError');
 
-class DatabaseError extends AppError {
+class S3_Error extends AppError {
     constructor(message, originalError = null) {
         super(message, 500, true);
-        this.name = 'DatabaseError';
+        this.name = 'S3_Error';
         this.originalError = originalError;
     }
 }
 
-module.exports = DatabaseError;
+module.exports = S3_Error;

@@ -5,6 +5,12 @@ class RecipesService {
         this.recipesRepository = recipesRepository;
     }
 
+    async getOneRecipe(id) {
+        const data = await this.recipesRepository.findById(id);
+        if(!data) throw new NotFoundError('Receptų rasti nepavyko');
+        return data;
+    }
+
     async getFavoriteRecipes() {
         const data = await this.recipesRepository.findAllFavorites();
         if(data.length === 0) throw new NotFoundError('Nėra mėgstamiausių receptų');
@@ -34,7 +40,7 @@ class RecipesService {
     }
     async updateOneRecipe(recipe_id, recipeDTO, products) {
         if(!recipe_id) throw new NotFoundError('Recipe not found');
-        await this.recipesRepository.updateRecipe(recipe_id, recipeDTO, products);
+        return await this.recipesRepository.updateRecipe(recipe_id, recipeDTO, products);
     }
 
     async deleteOneRecipe(id) {

@@ -39,6 +39,7 @@ class RecipesRepository extends BaseRepository {
                 r.title, 
                 r.slug, 
                 r.image_l,
+                r.image_s3,
                 r.video_link,
                 r.is_vegetarian,
                 r.food_logic,
@@ -96,7 +97,6 @@ class RecipesRepository extends BaseRepository {
 
             } else if(key === 'duration') {
                 const [from, to] = value.split('-');
-                console.log(from, to);
                 where.push(`duration BETWEEN $${param_count} AND $${param_count + 1}`);
                 values.push(Number(from), Number(to));
                 param_count++; 
@@ -201,7 +201,8 @@ class RecipesRepository extends BaseRepository {
     async createRecipe(recipeDTO, products) {
         try {
             await this.db.query('BEGIN');
-            const [{ id: recipe_id }] = await this.create(recipeDTO);
+            const [{ id: recipe_id, slug: recipe_slug }] = await this.create(recipeDTO, ['id', 'slug']);
+            
             let recipe_date = new Date();
             const insert_products_query = 'INSERT INTO recipe_products (recipe_id, product_id, grams, created_at) VALUES ($1, $2, $3, $4)';
             
@@ -211,7 +212,7 @@ class RecipesRepository extends BaseRepository {
             }
 
             await this.db.query('COMMIT');
-            return recipe_id;
+            return {recipe_id, recipe_slug};
         } catch (err) {
             await this.db.query('ROLLBACK');
             throw new DatabaseError(err.message, err);

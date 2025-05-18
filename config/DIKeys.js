@@ -9,5 +9,6 @@ module.exports = {
     SERVICES_REPOSITORY: 'ServicesRepository',
     SERVICES_SERVICE: 'ServicesService',
     LIKES_REPOSITORY: 'LikesRepository',
-    LIKES_SERVICE: 'LikesService'
+    LIKES_SERVICE: 'LikesService',
+    S3_SERVICE: 'S3Service'
 };

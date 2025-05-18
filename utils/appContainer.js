@@ -11,6 +11,7 @@ const ServicesRepository = require('../repositories/ServicesReposotory');
 const ServicesService = require('../services/ServicesService');
 const LikesRepository = require('../repositories/LikesRepository');
 const LikesService = require('../services/LikesService');
+const S3Service = require('../services/S3Service');
 
 const { 
     VIDEO_REPOSITORY, 
@@ -23,7 +24,7 @@ const {
     SERVICES_SERVICE,
     LIKES_REPOSITORY,
     LIKES_SERVICE,
-
+    S3_SERVICE,
     SITEMAP_SERVICE
 } = require('../config/DIKeys');
 
@@ -38,7 +39,7 @@ container.register(SERVICES_REPOSITORY, new ServicesRepository(db));
 container.register(SERVICES_SERVICE, new ServicesService(container.resolve(SERVICES_REPOSITORY)));
 container.register(LIKES_REPOSITORY, new LikesRepository(db));
 container.register(LIKES_SERVICE, new LikesService(container.resolve(LIKES_REPOSITORY)));
-
+container.register(S3_SERVICE, new S3Service());
 container.register(SITEMAP_SERVICE, new SitemapService(
     container.resolve(RECIPES_REPOSITORY),
     container.resolve(SERVICES_REPOSITORY)

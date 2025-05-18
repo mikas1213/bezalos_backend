@@ -6,7 +6,7 @@ exports.uploadPhoto = upload.single('photo');
 exports.uploadData = multer().none();
 
 exports.resizePhoto = async (req, res, next) => {
-
+    
     let img_width_l = 576;
     let img_height_l = 1024;
 
@@ -41,6 +41,7 @@ exports.resizePhoto = async (req, res, next) => {
             req.body.image_m = `data:${mimetype};base64,${img_m.toString('base64')}`;
             req.body.image_l = `data:${mimetype};base64,${img_l.toString('base64')}`;
 
+            req.body_data = img_m;
             return next();
         }
         next();

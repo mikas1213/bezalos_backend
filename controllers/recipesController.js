@@ -1,8 +1,9 @@
-const { RECIPES_SERVICE } = require('../config/DIKeys');
+const appContainer = require('../utils/appContainer');
+const { RECIPES_SERVICE, S3_SERVICE } = require('../config/DIKeys');
+const s3Service = appContainer.resolve(S3_SERVICE);
+const recipesService = appContainer.resolve(RECIPES_SERVICE);
 const { ValidationError } = require('../utils/errors');
 const RecipeDTO = require('../dto/recipe-create.dto');
-const appContainer = require('../utils/appContainer');
-const recipesService = appContainer.resolve(RECIPES_SERVICE);
 const catchAsync = require('../utils/catchAsync');
 const slugify = require('slugify');
 
@@ -31,6 +32,12 @@ exports.getRecipes = catchAsync(async (req, res) => {
 });
 
 exports.addRecipe = catchAsync(async (req, res) => {
+    const slug = slugify(req.body.title, {replacement: '-', lower: true, trim: true, strict: true });
+    const aws_key = `images/recipes/${slug}.webp`;
+    
+    req.body.slug = slug;
+    req.body.image_s3 = `${process.env.AWS_URL}/${aws_key}`;
+    
     const recipeDTO = new RecipeDTO(req.body);
     const { products } = req.body;
 
@@ -38,23 +45,87 @@ exports.addRecipe = catchAsync(async (req, res) => {
     if (!req.file) throw new ValidationError('Nope, reik fotkės! 🏞');
     if(JSON.parse(products).length === 0) throw new ValidationError('O produktai? 🍔🌭🌮');
 
-    const recipe_id = await recipesService.addOneRecipe(recipeDTO, products);
-    res.status(200).json(recipe_id);
+    JSON.parse(products).forEach((product) => {
+        if(isNaN(product.grams)) throw new ValidationError('Gramai turi būti skaičius 1️⃣ 2️⃣ 3️⃣');
+    });
+
+    const { recipe_id, recipe_slug } = await recipesService.addOneRecipe(recipeDTO, products);
+    s3Service.uploadFile({
+        Bucket: process.env.AWS_BUCKET_NAME, 
+        Key: aws_key, 
+        Body: req.body_data, 
+        ContentType: 'image/webp',
+        Metadata: {recipe_id}
+    });
+
+    res.status(200).json({recipe_id, recipe_slug});
 });
 
 exports.editRecipe = catchAsync(async (req, res) => {
+    
     const { id: recipe_id } = req.params;
     const recipeDTO = new RecipeDTO(req.body);
     const { products } = req.body;
+    
+
     if (!recipeDTO.title) throw new ValidationError('Recepto pavadinimas');
     if(JSON.parse(products).length === 0) throw new ValidationError('O produktai? 🍔🌭🌮');
 
+    const old_row = await recipesService.getOneRecipe(recipe_id);
+    const new_slug = slugify(recipeDTO.title, {replacement: '-', lower: true, trim: true, strict: true });
+
+    const new_s3_key = `images/recipes/${new_slug}.webp`;
+    const old_s3_key = `images/recipes/${old_row.slug}.webp`;
+
+    recipeDTO.slug = new_slug;
+    recipeDTO.image_s3 = `${process.env.AWS_URL}/${new_s3_key}`;
+    
     await recipesService.updateOneRecipe(recipe_id, recipeDTO, products);
-    res.sendStatus(204);
+    
+
+    /* - - - AWS OPERATIONS - - - */
+
+    const params = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: `images/recipes/${old_row.slug}.webp`
+    };
+    const isFileExist = await s3Service.isFileExist(params);
+
+    if(!req.body_data && isFileExist && old_s3_key !== new_s3_key) {
+        
+        await s3Service.renameFile({
+            Bucket: process.env.AWS_BUCKET_NAME,
+            CopySource: `${process.env.AWS_BUCKET_NAME}/${old_s3_key}`,
+            Key: new_s3_key,
+            Old_Key: old_s3_key
+        });
+
+    } else if(req.body_data && isFileExist) {
+  
+        await s3Service.deleteFile(params);
+        s3Service.uploadFile({
+            Bucket: process.env.AWS_BUCKET_NAME, 
+            Key: new_s3_key, 
+            Body: req.body_data, 
+            ContentType: 'image/webp',
+            Metadata: {recipe_id}
+        });
+    }
+    
+    res.status(200).json({isFileExist, slug: new_slug});
 });
 
 exports.deleteRecipe = catchAsync(async (req, res) => {
+    
     const { id } = req.params;
+    const params = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: `images/recipes/${req.body.slug}.webp`
+    };
+
     await recipesService.deleteOneRecipe(id);
-    res.sendStatus(204);
+    const isFileExist = await s3Service.isFileExist(params);
+    await s3Service.deleteFile(params);
+
+    res.status(200).json(isFileExist);
 });

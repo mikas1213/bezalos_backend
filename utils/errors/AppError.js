@@ -11,14 +11,6 @@ class AppError extends Error {
             Error.captureStackTrace(this, this.constructor);
         }
     }
-
-    // static unauthorized(message = 'Neteisinga autentifikacija') {
-    //     return new AppError(message, 401, true);
-    // }
-      
-    // static forbidden(message = 'Prieiga uždrausta') {
-    //     return new AppError(message, 403, true);
-    // }
 }
 
 module.exports = AppError;

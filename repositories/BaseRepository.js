@@ -71,19 +71,20 @@ class BaseRepository {
         return this.findByField('slug', slug);
     };
 
-    async create(data) {
+    async create(data, returningFields = ['id']) {
         try {
             const keys = Object.keys(data).join(', ');
             const values = Object.values(data);
             const params = values.map((_, index) => `$${index+1}`).join(', ');
-            const query = `INSERT INTO ${this.tableName} (${keys}) VALUES (${params}) RETURNING id`;
+            const returningClause = returningFields.join(', ');
+            const query = `INSERT INTO ${this.tableName} (${keys}) VALUES (${params}) RETURNING ${returningClause}`;
             
             return await this.db.query(query, values);            
         } catch (err) {
             throw new DatabaseError(err.message, err);
         }
     };
-
+    
     async updateById(id, data) {
         try {
             const fields = Object.keys(data);
