@@ -55,7 +55,7 @@ exports.addRecipe = catchAsync(async (req, res) => {
         Key: aws_key, 
         Body: req.body_data, 
         ContentType: 'image/webp',
-        Metadata: {recipe_id}
+        Metadata: {recipe_id, host: process.env.PROJECT}
     });
 
     res.status(200).json({recipe_id, recipe_slug});
@@ -108,7 +108,7 @@ exports.editRecipe = catchAsync(async (req, res) => {
             Key: new_s3_key, 
             Body: req.body_data, 
             ContentType: 'image/webp',
-            Metadata: {recipe_id}
+            Metadata: {recipe_id, host: process.env.PROJECT}
         });
     }
     
