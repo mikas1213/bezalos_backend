@@ -102,7 +102,7 @@ exports.editRecipe = catchAsync(async (req, res) => {
             Old_Key: old_s3_key
         });
 
-    } else if(req.body_data && isFileExist) {
+    } else if(req.body_data) {
   
         await s3Service.deleteFile(params);
         s3Service.uploadFile({
