@@ -134,6 +134,7 @@ class RecipesRepository extends BaseRepository {
             SELECT 
                 r.id,
                 r.title, 
+                r.title_short,
                 r.slug, 
                 r.image_s,
                 r.image_m,

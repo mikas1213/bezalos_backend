@@ -42,6 +42,7 @@ exports.addRecipe = catchAsync(async (req, res) => {
     const { products } = req.body;
 
     if (!recipeDTO.title) throw new ValidationError('Recepto pavadinimas');
+    if (!recipeDTO.title_short) throw new ValidationError('Trumpas (SEO) pavadinimas');
     if (!req.file) throw new ValidationError('Nope, reik fotkės! 🏞');
     if(JSON.parse(products).length === 0) throw new ValidationError('O produktai? 🍔🌭🌮');
 
@@ -69,6 +70,7 @@ exports.editRecipe = catchAsync(async (req, res) => {
     
 
     if (!recipeDTO.title) throw new ValidationError('Recepto pavadinimas');
+    if (!recipeDTO.title_short) throw new ValidationError('Trumpas (SEO) pavadinimas');
     if(JSON.parse(products).length === 0) throw new ValidationError('O produktai? 🍔🌭🌮');
 
     const old_row = await recipesService.getOneRecipe(recipe_id);

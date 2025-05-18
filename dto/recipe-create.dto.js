@@ -1,6 +1,7 @@
 class RecipeDTO {
     constructor(data = {}) {
         if(data.title !== undefined) this.title = data.title;
+        if(data.title_short !== undefined) this.title_short = data.title_short;
         if(data.slug !== undefined) this.slug = data.slug;
         if(data.recipe_type !== undefined) this.recipe_type = data.recipe_type;
         if(data.food_logic !== undefined) this.food_logic = data.food_logic;
