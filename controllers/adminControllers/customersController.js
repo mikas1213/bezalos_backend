@@ -27,12 +27,13 @@ exports.getAllUsers = async (req, res) => {
 
         const { search } = req.query;
         const { column, sort = 'ASC', week, month, maintenance, service } = req.body;
-        const validColumns = ['s_subscription_expires', 'name', 'email', 'subscription_expires', 'last_activity', 'plan_prepare', 'plan_assign', 'subscription_type', 'eat_status', 'eat_calories', 'created_at'];
+        const validColumns = ['s_subscription_expires', 'name', 'facebook_name', 'email', 'subscription_expires', 'last_activity', 'plan_prepare', 'plan_assign', 'subscription_type', 'eat_status', 'eat_calories', 'created_at'];
         
         const columns = `
             users.id, 
             role, 
             name, 
+            facebook_name,
             email, 
             stripe_username, 
             initial_target, 
@@ -165,6 +166,7 @@ exports.updateUser = async (req, res) => {
     const id = req.params.id;
 
     const validColumns = [
+        'facebook_name',
         'subscription_expires', 
         'subscription_type',
         'plan_prepare', 
