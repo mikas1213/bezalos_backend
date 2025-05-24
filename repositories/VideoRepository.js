@@ -6,33 +6,6 @@ class VideoRepository extends BaseRepository {
         const mappings = { 'cat': 'search_tag', 'search': 'title', type: 'video_type' };
         super(db, 'videos', mappings);
     }
-/*
-    SELECT 
-    v.*,
-    COALESCE(l.likes_count, 0) AS likes_count,
-    COALESCE(c.comments_count, 0) AS comments_count
-FROM videos v
-LEFT JOIN (
-    SELECT 
-        entity_id,
-        COUNT(*) AS likes_count
-    FROM likes
-    WHERE category_id = (
-        SELECT id 
-        FROM like_categories 
-        WHERE category_name = 'video'
-    )
-    GROUP BY entity_id
-) l ON v.id = l.entity_id
-LEFT JOIN (
-    SELECT 
-        video_id,
-        COUNT(*) AS comments_count
-    FROM comments
-    GROUP BY video_id
-) c ON v.id = c.video_id;
-*/
-
 
     async findAllAdmin() {
         const query = `SELECT 
