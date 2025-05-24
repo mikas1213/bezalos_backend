@@ -90,6 +90,7 @@ exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_na
 };
 
 exports.stripeServiceSession = async (user_role, user_id, user_name, service, code, isCodeApproved) => {
+    console.log('stripeSubscriptionSession: ', hostname)
     const service_category = service?.category === 'Kursai' ? 'course' : 'regular';
     try {
         let customerId = await isExistStripeCustomer(user_id, user_name);

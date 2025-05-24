@@ -22,7 +22,7 @@ const credentials = require('./middleware/credentials');
 
 const sitemapRouter = require('./routes/sitemapRoutes');
 const authRouter = require('./routes/authRoutes');
-const videoRoutes = require('./routes/videoRoutes');
+const videoRouter = require('./routes/videoRoutes');
 const commentsRouter = require('./routes/commentsRoutes');
 const profileRouter = require('./routes/profileRoutes');
 const mailerRouter = require('./routes/mailerRoutes');
@@ -30,13 +30,14 @@ const paymentRouter = require('./routes/paymentRoutes');
 const customersRouter = require('./routes/adminRoutes/customersRoutes');
 const nutritionPlansRouter = require('./routes/adminRoutes/nutritionPlansRoutes');
 const servicesRouter = require('./routes/servicesRoutes');
-
 const recipesRouter = require('./routes/recipesRoutes');
-const adminServicesRouter = require('./routes/adminRoutes/adminServicesRoutes');
-const adminRecipesRoutes = require('./routes/adminRoutes/adminRecipesRoutes');
-const adminPromotionsRoutes = require('./routes/adminRoutes/adminPromotionsRoutes');
 const promotionRouter = require('./routes/promotionRoutes');
 const likesRouter = require('./routes/likesRoutes');
+
+const adminRecipesRouter = require('./routes/adminRoutes/adminRecipesRoutes');
+const adminServicesRouter = require('./routes/adminRoutes/adminServicesRoutes');
+const adminPromotionsRouter = require('./routes/adminRoutes/adminPromotionsRoutes');
+const adminVideosRouter = require('./routes/adminRoutes/adminVideoRoutes');
 
 // const anthropicRoutes = require('./routes/adminRoutes/anthropicRoutes');
 
@@ -57,7 +58,7 @@ app.use(cors(corsOptions));
 app.use('/api', rateLimiter);
 app.use('/sitemap.xml', sitemapRouter);
 app.use('/api/v1/auth', authRouter);
-app.use('/api/v1/videos', videoRoutes);
+app.use('/api/v1/videos', videoRouter);
 app.use('/api/v1/comments', commentsRouter);
 app.use('/api/v1/profile', profileRouter);
 app.use('/api/v1/mailer', mailerRouter);
@@ -67,9 +68,10 @@ app.use('/api/v1/promo', promotionRouter);
 app.use('/api/v1/recipes', recipesRouter);
 app.use('/api/v1/likes', likesRouter);
 app.use('/api/v1/admin', [
-    adminPromotionsRoutes,
+    adminPromotionsRouter,
     adminServicesRouter,
-    adminRecipesRoutes,
+    adminRecipesRouter,
+    adminVideosRouter,
     customersRouter, 
     nutritionPlansRouter
 ]);
