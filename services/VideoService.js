@@ -1,8 +1,7 @@
 const { NotFoundError } = require('../utils/errors');
 const fs = require('fs');
 const path = require('path');
-const { getSignedUrl, getSignedCookies } = require('@aws-sdk/cloudfront-signer');
-// const axios = require('axios');
+const { getSignedUrl } = require('@aws-sdk/cloudfront-signer');
 
 class VideoService {
     constructor(videoRepository) {
@@ -43,7 +42,6 @@ class VideoService {
         
         return getSignedUrl({
             url: s3_video_url, 
-            // keyPairId: process.env.CLOUD_FRONT_KEY_PAIR_ID || 'KPQGMPR9KLNK4' ,
             keyPairId: process.env.CLOUD_FRONT_KEY_PAIR_ID,
             dateLessThan: new Date(Date.now() + 1000 * 60 * 60 * 24 * 1),
             privateKey,
