@@ -16,15 +16,20 @@ exports.getVideo = catchAsync(async (req, res) => {
     res.status(200).json(data);
 });
 
+exports.updateVideoPlayCount = catchAsync(async (req, res) => {
+    const { id: video_id } = req.params;
+    const { data: column } = req.body;
+    
+    await videoService.updateOneVideoPlayCount(video_id, column);
+    res.sendStatus(204);
+});
+
 
 /* - - - A D M I N   C O N T R O L L E R S - - - */
 exports.getVideosAdmin = catchAsync(async (req, res) => {
     const images = await s3Service.getAllImages({ 
         Bucket: process.env.AWS_BUCKET_NAME,
-        Prefix: 'images/recipes/',
-        // metadataFilter: {
-        //     'recipe_id': 'd504d9fc-d9dc-43aa-a82c-e9087dc578b8'
-        // }
+        Prefix: 'images/recipes/'
     });
 
     const data = await videoService.getAllVideosAdmin();

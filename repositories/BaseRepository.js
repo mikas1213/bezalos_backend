@@ -92,7 +92,6 @@ class BaseRepository {
             const query_fields = fields.map((field, i) => `${field} = $${i+1}`).join(', ');
             query_values.push(id);
             const query_string = `UPDATE ${this.tableName} SET ${query_fields} WHERE id = $${query_values.length}`;
-            
             return await this.db.query(query_string, query_values);          
         } catch(err) {
             throw new DatabaseError(err.message, err);

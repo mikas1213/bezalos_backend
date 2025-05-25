@@ -3,8 +3,6 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const videoController = require('../controllers/videoController');
 
-router.route('/').get(videoController.getVideos);
-
 router.route('/v/:video').get(
     authController.protect,
     authController.isSubscription('virtuve', 'Virtuvė'),
@@ -16,6 +14,9 @@ router.route('/c/:video').get(
     authController.isCourse,
     videoController.getVideo
 );
+
+router.route('/').get(videoController.getVideos);
+router.route('/:id').post(videoController.updateVideoPlayCount);
 
 
 module.exports = router;

@@ -45,8 +45,7 @@ class VideoService {
             url: s3_video_url, 
             // keyPairId: process.env.CLOUD_FRONT_KEY_PAIR_ID || 'KPQGMPR9KLNK4' ,
             keyPairId: process.env.CLOUD_FRONT_KEY_PAIR_ID,
-            // dateLessThan: new Date(Date.now() + 1000 * 60 * 60 * 24 * 1),
-            dateLessThan: new Date(Date.now() + 1000 * 60 * 60 * 3),
+            dateLessThan: new Date(Date.now() + 1000 * 60 * 60 * 24 * 1),
             privateKey,
         });
     }
@@ -57,6 +56,10 @@ class VideoService {
         data.s3_video_url = this.generateSignedUrl(data.s3_file_name);
         return data;
     }   
+
+    async updateOneVideoPlayCount(video_id, column) {
+        await this.videoRepository.updateVideoPlayCount(video_id, column);
+    }
 
     async deleteOneVideo(video_id) {
         await this.videoRepository.deleteById(video_id);

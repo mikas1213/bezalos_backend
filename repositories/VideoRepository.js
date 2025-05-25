@@ -63,6 +63,22 @@ class VideoRepository extends BaseRepository {
             throw new DatabaseError(err.message, err);
         }
     }
+
+    async updateVideoPlayCount(video_id, column) {
+        const valid_columns = ['play_count', 'play_count_25', 'play_count_50', 'play_count_80'];
+        
+        if(!valid_columns.includes(column)) {
+            throw new DatabaseError('bad column');
+        }
+
+        try {
+            
+            const data = await this.db.query(`UPDATE videos SET ${column} = ${column} + 1 WHERE id = $1 RETURNING play_count, play_count_25, play_count_50, play_count_80`, [video_id]);
+            console.log(data[0])
+        } catch(err) {
+            throw new DatabaseError(err.message, err);
+        }
+    }
 }
 
 module.exports = VideoRepository;
