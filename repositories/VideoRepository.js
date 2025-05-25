@@ -31,7 +31,7 @@ class VideoRepository extends BaseRepository {
                 COUNT(*) AS comments_count
             FROM comments
             GROUP BY video_id
-        ) c ON v.id = c.video_id;`;
+        ) c ON v.id = c.video_id ORDER BY v.created_at DESC;`;
 
         try {
             const data = await this.db.query(query);
