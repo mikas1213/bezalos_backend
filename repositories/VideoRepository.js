@@ -3,7 +3,7 @@ const BaseRepository = require('./BaseRepository');
 
 class VideoRepository extends BaseRepository {
     constructor(db) {
-        const mappings = { 'cat': 'search_tag', 'search': 'title', type: 'video_type' };
+        const mappings = { is_active: 'is_active', 'cat': 'search_tag', 'search': 'title', type: 'video_type' };
         super(db, 'videos', mappings);
     }
 
@@ -51,7 +51,7 @@ class VideoRepository extends BaseRepository {
                 ) AS is_liked
             FROM videos v
             LEFT JOIN comments c ON v.id = c.video_id
-            WHERE v.video_url = $3
+            WHERE v.slug = $3
             GROUP BY v.id;
         `;
         
@@ -77,6 +77,8 @@ class VideoRepository extends BaseRepository {
             throw new DatabaseError(err.message, err);
         }
     }
+
+    
 }
 
 module.exports = VideoRepository;

@@ -2,7 +2,7 @@ const db = require('../../database/db');
 const slugify = require('slugify');
 
 const fillFormValidator = async (req, res, next) => {
-    
+    console.log('slug: ', req.body.slug)
     const allow_fields = ['id', 'title', 'slug', 'base_price', 'current_price', 'quantity', 'discount', 'sort', 'status', 'category', 'is_active', 'image_s', 'image_m', 'image_l', 'grid_desc', 'basic_desc', 'details', 'created_at', 'updated_at'];
     let { title, base_price = '', quantity, discount = '0', sort, status, category, is_active } = req.body;
     base_price = base_price.replace(',', '.');

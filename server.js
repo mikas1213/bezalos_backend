@@ -13,6 +13,7 @@ const cookieParser = require('cookie-parser');
 const hpp = require('hpp');
 const helmet = require('helmet');
 const compression = require('compression');
+const { Server } = require('socket.io');
 
 const { logger } = require('./middleware/logsMiddleware/logEvents');
 const rateLimiter = require('./middleware/rateLimiter');
@@ -88,6 +89,41 @@ app.use(errorHandler);
 const server = app.listen(process.env.PORT || 3003, function() {
     console.log(`Server running on ${process.env.PORT }`)
 });
+
+// Socket.io Setup
+const io = new Server(server, {
+    cors: {
+        origin: [
+            "http://localhost:3000",
+            "http://localhost:5173",  // Vite dev server
+            "http://127.0.0.1:5173",
+            process.env.FRONTEND_URL
+        ].filter(Boolean), // Pašalinti undefined values
+        methods: ["GET", "POST"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+        credentials: true
+    },
+    allowEIO3: true, // Backward compatibility
+    transports: ['websocket', 'polling']
+});
+
+// Socket.io Connection Handling
+io.on('connection', (socket) => {
+    console.log(`Client connected: ${socket.id}`);
+    
+    socket.on('disconnect', (reason) => {
+        console.log(`Client disconnected: ${socket.id}, reason: ${reason}`);
+    });
+
+    // Klausyti custom event'ų jei reikia
+    socket.on('joinRoom', (roomId) => {
+        socket.join(roomId);
+        console.log(`Socket ${socket.id} joined room: ${roomId}`);
+    });
+});
+
+// Global socket.io prieiga
+global.io = io;
 
 process.on('unhandledRejection', (err) => {
     console.error('UNHANDLED REJECTION! 💥 Shutting down...');

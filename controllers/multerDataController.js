@@ -1,9 +1,29 @@
+// const catchAsync = require('../utils/catchAsync');
+const fs = require('fs');
 const multer = require('multer');
 const sharp = require('sharp');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 exports.uploadPhoto = upload.single('photo');
 exports.uploadData = multer().none();
+
+exports.uploadFiles= multer({
+    dest: 'temp/',
+    limits: { fileSize: 5 * 1024 * 1024 * 1024 }, // Limit to 5GB
+    fileFilter: (req, file, cb) => {
+        const isImage = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'].includes(file.mimetype);
+        const isVideo = ['video/mp4', 'video/quicktime', 'video/webm'].includes(file.mimetype);
+
+        if (isImage || isVideo) {
+            cb(null, true);
+        } else {
+            cb(new Error('Unsupported file type'), false);
+        }
+    }
+}).fields([
+    { name: 'video', maxCount: 1 },
+    { name: 'photo', maxCount: 1 }
+]);
 
 exports.resizePhoto = async (req, res, next) => {
     
@@ -47,5 +67,41 @@ exports.resizePhoto = async (req, res, next) => {
         next();
     } catch(err) {
         res.status(500).json({ message: err.message });
+    }
+};
+
+exports.resizePhotoDisk = async (req, res, next) => {
+try {
+    if (!req.files || !req.files.photo) {
+        return next();
+    }
+
+        const photoFile = req.files.photo[0];
+        const originalPath = photoFile.path;
+        const tempPath = originalPath + '_resized';
+
+        // Sukuriame modifikuotą nuotrauką
+        await sharp(originalPath)
+            .resize(1200, null, { 
+                fit: 'inside',
+                withoutEnlargement: true 
+            })
+            .webp({ quality: 70 })
+            .toFile(tempPath);
+
+        // Atomiškai keičiame failus
+        fs.renameSync(tempPath, originalPath);
+
+        // Atnaujiname failo informaciją
+        const stats = fs.statSync(originalPath);
+        req.files.photo[0].size = stats.size;
+
+        next();
+    } catch (error) {
+        // Valome temp failą jei kažkas nepavyko
+        if (fs.existsSync(tempPath)) {
+            fs.unlinkSync(tempPath);
+        }
+        next(error);
     }
 };

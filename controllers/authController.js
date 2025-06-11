@@ -4,7 +4,6 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
 const Email = require('../utils/email');
-const queries = require('../utils/sqlQueries');
 const { validationResult } = require('express-validator');
 
 exports.signup = async (req, res) => {
@@ -258,9 +257,8 @@ exports.updatePassword = async (req, res, next) => {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
-
-    await db.query(queries.resetPasswordUpdate, [hashedPassword, null, null, user.rows[0].email]);
     
+    await db.query('UPDATE users SET password = $1, password_reset_token = $2, password_reset_expires = $3 WHERE email = $4', [hashedPassword, null, null, user.rows[0].email]);    
     res.status(200).json({
         status: 'Success',
         message: 'Slaptažodis sėkmingai pakeistas.'

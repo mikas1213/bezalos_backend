@@ -6,6 +6,7 @@ const { ValidationError } = require('../utils/errors');
 const RecipeDTO = require('../dto/recipe-create.dto');
 const catchAsync = require('../utils/catchAsync');
 const slugify = require('slugify');
+const AWS_PATH_TO_IMAGES =  'images/recipes/';
 
 exports.getFavoriteRecipes = catchAsync(async (req, res) => {
     const data = await recipesService.getFavoriteRecipes();
@@ -33,7 +34,7 @@ exports.getRecipes = catchAsync(async (req, res) => {
 
 exports.addRecipe = catchAsync(async (req, res) => {
     const slug = slugify(req.body.title, {replacement: '-', lower: true, trim: true, strict: true });
-    const aws_key = `${process.env.AWS_IMAGES_FOLDER_NAME}${slug}.webp`;
+    const aws_key = `${process.env.AWS_FOLDER_NAME}/${AWS_PATH_TO_IMAGES}${slug}.webp`;
     
     req.body.slug = slug;
     req.body.image_s3 = `${process.env.AWS_URL}/${aws_key}`;
@@ -51,7 +52,7 @@ exports.addRecipe = catchAsync(async (req, res) => {
     });
 
     const { recipe_id, recipe_slug } = await recipesService.addOneRecipe(recipeDTO, products);
-    s3Service.uploadFile({
+    await s3Service.uploadFile({
         Bucket: process.env.AWS_BUCKET_NAME, 
         Key: aws_key, 
         Body: req.body_data, 
@@ -76,8 +77,8 @@ exports.editRecipe = catchAsync(async (req, res) => {
     const old_row = await recipesService.getOneRecipe(recipe_id);
     const new_slug = slugify(recipeDTO.title, {replacement: '-', lower: true, trim: true, strict: true });
 
-    const new_s3_key = `${process.env.AWS_IMAGES_FOLDER_NAME}${new_slug}.webp`;
-    const old_s3_key = `${process.env.AWS_IMAGES_FOLDER_NAME}${old_row.slug}.webp`;
+    const new_s3_key = `${process.env.AWS_FOLDER_NAME}/${AWS_PATH_TO_IMAGES}${new_slug}.webp`;
+    const old_s3_key = `${process.env.AWS_FOLDER_NAME}/${AWS_PATH_TO_IMAGES}${old_row.slug}.webp`;
 
     recipeDTO.slug = new_slug;
     recipeDTO.image_s3 = `${process.env.AWS_URL}/${new_s3_key}`;
@@ -89,7 +90,7 @@ exports.editRecipe = catchAsync(async (req, res) => {
 
     const params = {
         Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `${process.env.AWS_IMAGES_FOLDER_NAME}${old_row.slug}.webp`
+        Key: `${process.env.AWS_FOLDER_NAME}/${AWS_PATH_TO_IMAGES}${old_row.slug}.webp`
     };
     const isFileExist = await s3Service.isFileExist(params);
 
@@ -105,7 +106,7 @@ exports.editRecipe = catchAsync(async (req, res) => {
     } else if(req.body_data) {
   
         await s3Service.deleteFile(params);
-        s3Service.uploadFile({
+        await s3Service.uploadFile({
             Bucket: process.env.AWS_BUCKET_NAME, 
             Key: new_s3_key, 
             Body: req.body_data, 
@@ -122,7 +123,7 @@ exports.deleteRecipe = catchAsync(async (req, res) => {
     const { id } = req.params;
     const params = {
         Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `${process.env.AWS_IMAGES_FOLDER_NAME}${req.body.slug}.webp`
+        Key: `${process.env.AWS_FOLDER_NAME}/${AWS_PATH_TO_IMAGES}${req.body.slug}.webp`
     };
 
     await recipesService.deleteOneRecipe(id);

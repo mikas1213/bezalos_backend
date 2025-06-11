@@ -45,8 +45,11 @@ class BaseRepository {
         return { query, values };
     };
 
+    begin = async () => await this.db.query('BEGIN');
+    commit = async () => await this.db.query('COMMIT');
+    rollback = async () => await this.db.query('ROLLBACK');
+
     async findAll(filters = {}, fields = ['*'], sortOptions = null) {
-        
         try {
             const mappedFilters = this.mapFilter(filters);
             const { query, values } = this.queryBuilder(mappedFilters, fields, sortOptions);            
@@ -87,8 +90,13 @@ class BaseRepository {
     
     async updateById(id, data) {
         try {
-            const fields = Object.keys(data);
-            const query_values = fields.map(field => data[field]);
+            const dataWithTimestamp = {
+                ...data,
+                updated_at: 'NOW()'
+            };
+
+            const fields = Object.keys(dataWithTimestamp);
+            const query_values = fields.map(field => dataWithTimestamp[field]);
             const query_fields = fields.map((field, i) => `${field} = $${i+1}`).join(', ');
             query_values.push(id);
             const query_string = `UPDATE ${this.tableName} SET ${query_fields} WHERE id = $${query_values.length}`;
