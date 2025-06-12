@@ -100,21 +100,20 @@ server.headersTimeout = 615000;    // 10 min + 15 sec
 const io = new Server(server, {
     cors: {
         origin: [
-            "http://localhost:3000",
-            "http://localhost:5173",  // Vite dev server
-            "http://127.0.0.1:5173",
-            "http://bezalos.lt",
-            "http://www.bezalos.lt",
-            "http://bezalos.dulevicius.dev",
-            "http://www.bezalos.dulevicius.dev",
-            "https://bezalos.lt",
-            "https://www.bezalos.lt",
-            "https://bezalos.dulevicius.dev",
-            "https://www.bezalos.dulevicius.dev",
-            process.env.FRONTEND_URL
+            'http://localhost:3000',
+            'http://localhost:5173',  // Vite dev server
+            'http://127.0.0.1:5173',
+            'http://bezalos.lt',
+            'http://www.bezalos.lt',
+            'http://bezalos.dulevicius.dev',
+            'http://www.bezalos.dulevicius.dev',
+            'https://bezalos.lt',
+            'https://www.bezalos.lt',
+            'https://bezalos.dulevicius.dev',
+            'https://www.bezalos.dulevicius.dev'
         ].filter(Boolean), // Pašalinti undefined values
-        methods: ["GET", "POST"],
-        allowedHeaders: ["Content-Type", "Authorization"],
+        methods: ['GET', 'POST'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true
     },
     allowEIO3: true, // Backward compatibility
