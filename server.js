@@ -90,6 +90,10 @@ const server = app.listen(process.env.PORT || 3003, function() {
     console.log(`Server running on ${process.env.PORT }`)
 });
 
+server.timeout = 600000;           // 10 minutes (default: 120000 = 2 min)
+server.keepAliveTimeout = 610000;  // 10 min + 10 sec
+server.headersTimeout = 615000;    // 10 min + 15 sec
+
 // Socket.io Setup
 const io = new Server(server, {
     cors: {
@@ -132,10 +136,6 @@ io.on('connection', (socket) => {
 
 // Global socket.io prieiga
 global.io = io;
-/* TESTING */
-console.log('🌍 Server.js:', !!global.io); // ← Patikrinti
-console.log('🌍 Global.io available:', !!global.io); // ← Patikrinti
-/* TESTING */
 
 process.on('unhandledRejection', (err) => {
     console.error('UNHANDLED REJECTION! 💥 Shutting down...');
