@@ -76,7 +76,9 @@ app.use('/api/v1/admin', [
     customersRouter, 
     nutritionPlansRouter
 ]);
-
+app.get('/api/v1/config', (req, res) => {
+    res.json(process.env.SOCKET_URL);
+});
 // app.use('/api/v1/anthropic', anthropicRoutes);
 
 app.all('*', (req, res) => {
