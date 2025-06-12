@@ -11,6 +11,12 @@ exports.getVideos = catchAsync(async (req, res) => {
 });
 
 exports.getVideo = catchAsync(async (req, res) => {
+    /* TESTING */
+    const socketId = req.headers['x-socket-id'];
+    console.log('🔍 videoController addVideo:', socketId); // ← Pridėti šį log'ą
+    /* TESTING */
+
+
     const { user_id, params: { video: slug }} = req;
     const data = await videoService.getOneVideo(user_id, slug);
     res.status(200).json(data);

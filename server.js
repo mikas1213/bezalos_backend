@@ -117,7 +117,7 @@ const io = new Server(server, {
 
 // Socket.io Connection Handling
 io.on('connection', (socket) => {
-    console.log(`Client connected: ${socket.id}`);
+    console.log(`SERVER: Client connected: ${socket.id}`);
     
     socket.on('disconnect', (reason) => {
         console.log(`Client disconnected: ${socket.id}, reason: ${reason}`);
@@ -132,6 +132,10 @@ io.on('connection', (socket) => {
 
 // Global socket.io prieiga
 global.io = io;
+/* TESTING */
+console.log('🌍 Server.js:', !!global.io); // ← Patikrinti
+console.log('🌍 Global.io available:', !!global.io); // ← Patikrinti
+/* TESTING */
 
 process.on('unhandledRejection', (err) => {
     console.error('UNHANDLED REJECTION! 💥 Shutting down...');
