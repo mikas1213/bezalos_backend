@@ -12,7 +12,8 @@ exports.uploadFiles= multer({
     limits: { fileSize: 5 * 1024 * 1024 * 1024 }, // Limit to 5GB
     fileFilter: (req, file, cb) => {
         const isImage = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'].includes(file.mimetype);
-        const isVideo = ['video/mp4', 'video/quicktime', 'video/webm'].includes(file.mimetype);
+        const isVideo = ['video/mp4', 'video/quicktime', 'video/webm', 'video/x-msvideo', 'video/x-matroska'].includes(file.mimetype);
+
 
         if (isImage || isVideo) {
             cb(null, true);

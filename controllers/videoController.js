@@ -35,6 +35,7 @@ exports.addVideo = catchAsync(async (req, res) => {
     const socketId = req.headers['x-socket-id'];
     const videoDTO = new VideoDTO(req.body);
     await videoService.addOneVideo(videoDTO, req.files, socketId); 
+    res.sendStatus(201);
 });
 
 exports.updateVideo = catchAsync(async (req, res) => {
