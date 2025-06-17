@@ -113,7 +113,6 @@ class VideoService {
         updatedData.image_s3_key = `${process.env.AWS_FOLDER_NAME}/images/virtuve-video-covers/${updatedData.slug}.${image_extention}`;
         updatedData.video_s3_key = `${process.env.AWS_FOLDER_NAME}/videos/virtuve/${updatedData.slug}.${video_extention}`;
 
-        console.log(video, photo)
         // IF THE NAME HAS NOT BEEN CHANFED
         if(old_slug !== updatedData.slug) {
             if(!video) {
