@@ -43,6 +43,7 @@ exports.updateVideo = catchAsync(async (req, res) => {
     const socketId = req.headers['x-socket-id'];
     const videoDTO = new VideoDTO(req.body);
     await videoService.updateOneVideo(videoDTO, req.files, video_id, socketId);
+    res.sendStatus(201);
 });
 
 exports.deleteVideo = catchAsync(async (req, res) => {
