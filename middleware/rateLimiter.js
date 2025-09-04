@@ -5,7 +5,7 @@ const limiter = rateLimit({
     // 15 minute 60 seconds 1000 milliseconds
     windowMs: 15 * 60 * 1000,
     max: req => {
-        let limit = (req.path.indexOf('auth/refresh') > -1 || req.path.indexOf('/videos') > -1) ? 500 : 150;
+        let limit = (req.path.indexOf('auth/refresh') > -1 || req.path.indexOf('/videos') > -1) ? 1000 : 375;
         return limit;
     },
 
