@@ -92,9 +92,9 @@ const server = app.listen(process.env.PORT || 3003, function() {
     console.log(`Server running on ${process.env.PORT }`)
 });
 
-server.timeout = 600000;           // 10 minutes (default: 120000 = 2 min)
-server.keepAliveTimeout = 610000;  // 10 min + 10 sec
-server.headersTimeout = 615000;    // 10 min + 15 sec
+server.timeout = 1800000;           // 30.00 minutes (default: 120000 = 2 min)
+server.keepAliveTimeout = 1810000; // 30.16 minutes
+server.headersTimeout = 1815000;    // 30.25 minutes
 
 // Socket.io Setup
 const io = new Server(server, {
