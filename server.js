@@ -118,11 +118,11 @@ const io = new Server(server, {
     },
     allowEIO3: true, // Backward compatibility
     transports: ['websocket', 'polling'],
-    pingTimeout: 120000,
-    pingInterval: 60000,
-    upgradeTimeout: 30000,
-    maxHttpBufferSize: 5e9,
-    connectTimeout: 60000
+    // pingTimeout: 120000,
+    // pingInterval: 60000,
+    // upgradeTimeout: 30000,
+    // maxHttpBufferSize: 5e9,
+    // connectTimeout: 60000
 });
 
 // Socket.io Connection Handling
