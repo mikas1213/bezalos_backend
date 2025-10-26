@@ -32,6 +32,7 @@ exports.getVideosAdmin = catchAsync(async (req, res) => {
 });
 
 exports.addVideo = catchAsync(async (req, res) => {
+    console.log('addVideo');
     const socketId = req.headers['x-socket-id'];
     const videoDTO = new VideoDTO(req.body);
 

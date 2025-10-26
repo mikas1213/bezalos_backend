@@ -44,6 +44,7 @@ class VideoService {
 
     async addOneVideo(videoDTO, files, socketId) {
         // INSERT DATA TO DB
+        console.log('addOneVideo');
         const videoFile = files.video[0];
         const photoFile = files.photo[0];
         const video_extention = videoFile.originalname.split('.').pop();
@@ -58,6 +59,7 @@ class VideoService {
         const [{ id: video_id }] = await this.videoRepository.create(videoData);
 
         try {     
+            console.log('addOneVideo Try');
             // UPLOAD PHOTO FILE TO AWS S3        
             await this.s3Service.uploadFileDisk(photoFile, videoData.image_s3_key, video_id);
            
@@ -65,6 +67,7 @@ class VideoService {
             await this.s3Service.uploadVideo(videoFile, videoData.video_s3_key, video_id, socketId);
 
         } catch (err) {
+            console.log('addOneVideo catch: ', err);
             // DELETE VIDEO FROM DISK
             if (videoFile.path && fs.existsSync(videoFile.path)) {
                 fs.unlinkSync(videoFile.path);
