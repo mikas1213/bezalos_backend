@@ -34,8 +34,23 @@ exports.getVideosAdmin = catchAsync(async (req, res) => {
 exports.addVideo = catchAsync(async (req, res) => {
     const socketId = req.headers['x-socket-id'];
     const videoDTO = new VideoDTO(req.body);
-    await videoService.addOneVideo(videoDTO, req.files, socketId); 
-    res.sendStatus(201);
+
+    // await videoService.addOneVideo(videoDTO, req.files, socketId); 
+    // res.sendStatus(201);
+
+    res.status(201).json({ message: 'Upload started' });
+    setImmediate(async () => {
+        try {
+            await videoService.addOneVideo(videoDTO, req.files, socketId);
+        } catch (err) {
+            console.error('Upload error from addVideo:', err);
+            if (socketId && global.io) {
+                global.io.to(socketId).emit('uploadError', {
+                    message: err.message
+                });
+            }
+        }
+    });
 });
 
 exports.updateVideo = catchAsync(async (req, res) => {
