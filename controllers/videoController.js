@@ -38,19 +38,23 @@ exports.addVideo = catchAsync(async (req, res) => {
     // await videoService.addOneVideo(videoDTO, req.files, socketId); 
     // res.sendStatus(201);
 
-    res.status(201).json({ message: 'Upload started' });
-    setImmediate(async () => {
+    res.status(201).json({ success: true, 
+        message: 'Upload started' 
+    });
+    
+    (async () => {
         try {
             await videoService.addOneVideo(videoDTO, req.files, socketId);
+            console.log('✅ Video upload completed');
         } catch (err) {
-            console.error('Upload error from addVideo:', err);
+            console.error('❌ Background upload error:', err);
             if (socketId && global.io) {
                 global.io.to(socketId).emit('uploadError', {
-                    message: err.message
+                    message: err.message || 'Video įkėlimas nepavyko'
                 });
             }
         }
-    });
+    })();
 });
 
 exports.updateVideo = catchAsync(async (req, res) => {
