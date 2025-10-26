@@ -95,6 +95,11 @@ const server = app.listen(process.env.PORT || 3003, function() {
 server.timeout = 600000;           // 10 minutes (default: 120000 = 2 min)
 server.keepAliveTimeout = 610000;  // 10 min + 10 sec
 server.headersTimeout = 615000;    // 10 min + 15 sec
+server.pingTimeout = 120000;        // 2 minutės
+server.pingInterval = 60000;        // 1 minutė
+server.upgradeTimeout = 30000;      // 30 sekundžių
+server.maxHttpBufferSize = 5e9;     // 5 GB (5000 MB) - pakanka 4GB video failams
+server.connectTimeout = 60000;       // 60 sek
 
 // Socket.io Setup
 const io = new Server(server, {

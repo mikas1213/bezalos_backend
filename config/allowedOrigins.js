@@ -1,4 +1,6 @@
 const allowedOrigins = [
+    'http://3.64.80.2',
+    'https://3.64.80.2',
     "http://localhost:3000",
     'http://127.0.0.1:5173',
     'http://localhost:5173',
