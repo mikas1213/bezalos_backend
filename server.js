@@ -8,6 +8,7 @@ process.on('uncaughtException', (err) => {
 
 const express = require('express');
 const app = express();
+const logRoutes = require('./utils/listRoutes');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const hpp = require('hpp');
@@ -89,7 +90,8 @@ app.all('*', (req, res) => {
 
 app.use(errorHandler);
 const server = app.listen(process.env.PORT || 3003, function() {
-    console.log(`Server running on ${process.env.PORT }`)
+    console.log(`Server running on ${process.env.PORT }`);
+    // logRoutes(app);
 });
 
 server.timeout = 1800000;           // 30.00 minutes (default: 120000 = 2 min)
