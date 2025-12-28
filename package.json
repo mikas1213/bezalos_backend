@@ -39,5 +39,9 @@
         "stripe": "^15.9.0",
         "uuid": "^9.0.1",
         "xss": "^1.0.15"
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.19",
+        "@types/dotenv": "^6.1.1"
     }
 }
