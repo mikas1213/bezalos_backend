@@ -30,10 +30,10 @@ router.route('/stats').get(
     adminControllers.getStats
 );
 
-router.route('/offers').get(
+router.route('/emails').get(
     authController.protect,
     authController.verifyRoles(roles.admin),
-    adminControllers.getAllRows('offers')
+    adminControllers.getAllRows('emails')
 );
 
 

@@ -32,8 +32,7 @@ exports.getStats = async (req, res) => {
     try {
         const data = await db.query(`SELECT 
             (SELECT COUNT(*)::INTEGER FROM users WHERE role = 2324) AS users,
-            (SELECT COUNT(*)::INTEGER FROM mailer_list) AS mailer_list_mails,
-            (SELECT COUNT(*)::INTEGER FROM offers) AS offer_mails,
+            (SELECT COUNT(*)::INTEGER FROM emails) AS emails,
             (SELECT COUNT(*)::INTEGER from users WHERE subscription_type = 'Virtuvė' AND role = 2324) AS virtuve_active,
             (SELECT COUNT(*)::INTEGER from users WHERE subscription_type = 'Profilis' AND role = 2324) AS profilis_active,
             (SELECT COUNT(*)::INTEGER from food_plans) AS plans,

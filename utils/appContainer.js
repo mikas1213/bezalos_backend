@@ -49,5 +49,4 @@ container.register(SITEMAP_SERVICE, new SitemapService(
     container.resolve(SERVICES_REPOSITORY)
 ));
 
-// console.log(container)
 module.exports = container;

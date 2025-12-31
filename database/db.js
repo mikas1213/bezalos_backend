@@ -18,6 +18,7 @@ module.exports = {
         } catch (err) {
             throw err;
         } finally {
+            // console.log('db: ', 'yra yra', await client.query("SELECT txid_current()"));
             client.release();
         }
     },
