@@ -3,9 +3,7 @@ const router = express.Router();
 const roles = require('../../config/roles');
 const authController = require('../../controllers/authController');
 const adminControllers = require('../../controllers/adminControllers/adminController');
-const multerDataController = require('../../controllers/multerDataController');
 const customersController = require('../../controllers/adminControllers/customersController');
-const recipesController = require('../../controllers/recipesController');
 const { validateUUID } = require('../../middleware/validators/validate_uuid');
 
 router.route('/user/plan/:id')
@@ -35,7 +33,5 @@ router.route('/emails').get(
     authController.verifyRoles(roles.admin),
     adminControllers.getAllRows('emails')
 );
-
-
 
 module.exports = router;

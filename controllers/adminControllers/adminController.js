@@ -37,7 +37,8 @@ exports.getStats = async (req, res) => {
             (SELECT COUNT(*)::INTEGER from users WHERE subscription_type = 'Profilis' AND role = 2324) AS profilis_active,
             (SELECT COUNT(*)::INTEGER from food_plans) AS plans,
             (SELECT COUNT(*)::INTEGER from food_meals) AS meals,
-            (SELECT COUNT(*)::INTEGER from food_products) AS products;
+            (SELECT COUNT(*)::INTEGER from food_products) AS products,
+            (SELECT jsonb_build_object( 'subscriber', COUNT(*) FILTER (WHERE email_source = 'subscriber'), 'offer', COUNT(*) FILTER (WHERE email_source = 'offer'), 'test', COUNT(*) FILTER (WHERE email_source = 'test') ) FROM email_sources ) AS email_stats;
         `);
         
         res.status(200).json(data.rows[0]);
