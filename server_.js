@@ -41,8 +41,6 @@ const adminServicesRouter = require('./routes/adminRoutes/adminServicesRoutes');
 const adminPromotionsRouter = require('./routes/adminRoutes/adminPromotionsRoutes');
 const adminVideosRouter = require('./routes/adminRoutes/adminVideoRoutes');
 
-// const anthropicRoutes = require('./routes/adminRoutes/anthropicRoutes');
-
 app.use(logger);
 app.use(helmet());
 app.use(compression());
@@ -80,7 +78,6 @@ app.use('/api/v1/admin', [
 app.get('/api/v1/config', (req, res) => {
     res.json(process.env.SOCKET_URL);
 });
-// app.use('/api/v1/anthropic', anthropicRoutes);
 
 app.all('*', (req, res) => {
     res.status(404).json({
@@ -120,11 +117,6 @@ const io = new Server(server, {
     },
     allowEIO3: true, // Backward compatibility
     transports: ['websocket', 'polling'],
-    // pingTimeout: 120000,
-    // pingInterval: 60000,
-    // upgradeTimeout: 30000,
-    // maxHttpBufferSize: 5e9,
-    // connectTimeout: 60000
 });
 
 // Socket.io Connection Handling
