@@ -4,7 +4,6 @@ process.on('uncaughtException', (err) => {
     process.exit(1);
 });
 
-
 import dotenv, { DotenvConfigOptions } from 'dotenv';
 import express from 'express';
 import { logger } from './common/middleware/logger';
@@ -38,7 +37,7 @@ const customersRouter = require('../routes/adminRoutes/customersRoutes');
 const nutritionPlansRouter = require('../routes/adminRoutes/nutritionPlansRoutes');
 
 import { globalErrorHandler } from './common/middleware/globalErrorHandler';
-import { listApiEndpoints } from './common/utils/listApiEndPoints';
+import { listApiEndpoints } from './common/utils/listApiEndpoints';
 import { Server } from 'socket.io';
 import { allowedOrigins } from './common/config/allowedOrigins';
 
@@ -59,8 +58,8 @@ app.use(xss());
 app.use(credentials);
 app.use(cors(corsOptions));
 
-app.use('/api', rateLimiter);
 app.use('/sitemap.xml', sitemapRouter);
+app.use('/api', rateLimiter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/videos', videoRouter);
 app.use('/api/v1/comments', commentsRouter);
@@ -110,7 +109,6 @@ const io = new Server(server, {
     transports: ['websocket', 'polling'],
 });
 
-
 io.on('connection', (socket) => {
     console.log(`SERVER: Client connected: ${socket.id}`);
     
@@ -125,7 +123,6 @@ io.on('connection', (socket) => {
 });
 
 global.io = io;
-
 
 process.on('unhandledRejection', (err: unknown) => {
     console.error('UNHANDLED REJECTION! 💥 Shutting down...');

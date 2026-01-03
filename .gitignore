@@ -7,3 +7,4 @@ database/SQL
 database/queries.sql
 *_key.pem
 temp/*
+dist
