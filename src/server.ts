@@ -5,6 +5,10 @@ process.on('uncaughtException', (err) => {
 });
 
 import dotenv, { DotenvConfigOptions } from 'dotenv';
+const options: DotenvConfigOptions = {
+    path: './.env_bezalos'
+};
+dotenv.config(options);
 import express from 'express';
 import { logger } from './common/middleware/logger';
 import helmet from 'helmet';
@@ -19,7 +23,8 @@ import { rateLimiter } from './common/middleware/rateLimiter';
 
 /* R-O-U-T-E-S */
 const sitemapRouter = require('../routes/sitemapRoutes');
-const authRouter = require('../routes/authRoutes');
+// const authRouter = require('../routes/authRoutes');
+import authRouter from './features/auth/routes/authRoutes';
 const videoRouter = require('../routes/videoRoutes');
 const commentsRouter = require('../routes/commentsRoutes');
 const profileRouter = require('../routes/profileRoutes');
@@ -41,10 +46,6 @@ import { listApiEndpoints } from './common/utils/listApiEndpoints';
 import { Server } from 'socket.io';
 import { allowedOrigins } from './common/config/allowedOrigins';
 
-const options: DotenvConfigOptions = {
-    path: './.env_bezalos'
-};
-dotenv.config(options);
 
 const app = express();
 app.use(logger);
