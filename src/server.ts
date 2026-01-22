@@ -21,10 +21,14 @@ import { corsOptions } from './common/config/corsOptions';
 import cors from 'cors';
 import { rateLimiter } from './common/middleware/rateLimiter';
 
+import container from './container';
+import { AuthController } from './features/auth/controller/AuthController';
+import { createAuthRouter } from './features/auth/routes/authRoutes';
+const authController = container.resolve<AuthController>('AuthController');
+
+
 /* R-O-U-T-E-S */
 const sitemapRouter = require('../routes/sitemapRoutes');
-// const authRouter = require('../routes/authRoutes');
-import authRouter from './features/auth/routes/authRoutes';
 const videoRouter = require('../routes/videoRoutes');
 const commentsRouter = require('../routes/commentsRoutes');
 const profileRouter = require('../routes/profileRoutes');
@@ -61,7 +65,7 @@ app.use(cors(corsOptions));
 
 app.use('/sitemap.xml', sitemapRouter);
 app.use('/api', rateLimiter);
-app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/auth', createAuthRouter(authController));
 app.use('/api/v1/videos', videoRouter);
 app.use('/api/v1/comments', commentsRouter);
 app.use('/api/v1/profile', profileRouter);
