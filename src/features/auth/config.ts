@@ -1,10 +1,9 @@
-type RefreshTokenCookie = 'jwt';
-type SameSite = 'strict' | 'lax' | 'none';
+const authCookie = 'bz_auth' as const;
 
 type CookieOptions = {
 	httpOnly: boolean;
 	secure: boolean;
-	sameSite: SameSite;
+	sameSite: 'none' | 'lax';
 	maxAge: number;
 };
 
@@ -13,7 +12,7 @@ interface AuthConfig {
     ACCESS_TOKEN_EXPIRES: string;
     REFRESH_TOKEN_EXPIRES: string;
     PASSWORD_RESET_EXPIRES_MINUTES: number;
-	REFRESH_TOKEN_COOKIE: RefreshTokenCookie;
+	REFRESH_TOKEN_COOKIE: typeof authCookie;
 	COOKIE_OPTIONS: CookieOptions;
   readonly ACCESS_TOKEN_SECRET: string; 
   readonly REFRESH_TOKEN_SECRET: string;
@@ -24,11 +23,11 @@ export const authConfig: AuthConfig = {
     ACCESS_TOKEN_EXPIRES: process.env.ACCESS_TOKEN_EXPIRES || '15m',
     REFRESH_TOKEN_EXPIRES: process.env.REFRESH_TOKEN_EXPIRES || '7d',
     PASSWORD_RESET_EXPIRES_MINUTES: 10,
-	REFRESH_TOKEN_COOKIE: 'jwt',
+	REFRESH_TOKEN_COOKIE: authCookie,
 	COOKIE_OPTIONS: {
 		httpOnly: true,
 		secure: process.env.NODE_ENV === 'production',
-		sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+		sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 		maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
 	},
 

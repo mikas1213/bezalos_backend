@@ -2,20 +2,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { authConfig } from '../config';
 import { AppError } from '../../../common/errors/AppError';
-// import type { User,TokenPayload } from './types';
-
-
-interface TokenPair {
-	accessToken: string;
-	refreshToken: string;
-	refreshTokenHash: string;
-}
-
-interface PasswordResetResult {
-	token: string;
-	hashedToken: string;
-	expiresAt: Date;
-}
+import type { PasswordResetResponseDto, UserWithSubscription, TokenPayload, TokenPair } from '../types';
 
 export class TokenService {
 	generateAccessToken(payload: TokenPayload): string {
@@ -50,9 +37,7 @@ export class TokenService {
 		return crypto.createHash('sha256').update(token).digest('hex');
 	}
 
-	generateTokenPair(user: User): TokenPair {
-		// Minimalus payload - tik user_id
-		// Kita informacija bus gaunama iš DB kai reikės
+	generateTokenPair(user: UserWithSubscription): TokenPair {
 		const payload = {
 			user_id: user.id,
 			role: user.role,
@@ -69,7 +54,7 @@ export class TokenService {
 		};
 	}
 
-	generatePasswordResetToken(): PasswordResetResult {
+	generatePasswordResetToken(): PasswordResetResponseDto {
 		const token = this.generateRandomToken();
 		const hashedToken = this.hashToken(token);
 		const expiresAt = new Date(

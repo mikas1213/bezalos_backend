@@ -2,35 +2,7 @@ import bcrypt from 'bcrypt';
 import { AuthRepository } from '../repositories/AuthRepository';
 import { TokenService } from './TokenService';
 import { AppError } from '../../../common/errors/AppError';
-import type { TokenPayload, User } from './types';
-
-// export interface RefreshResult {
-//   accessToken: string;
-//   newRefreshToken: string;
-//   user: User;
-// }
-
-// interface CourseOrder {
-//   id: string;
-//   user_id: string;
-//   course_id: string;
-//   status: string;
-//   is_course: boolean
-// }
-
-// o.id, o.created_at, s.title, is_course
-
-// export interface UserInfo {
-//   id: string;
-//   email: string;
-//   username: string;
-//   role: string;
-//   courseOrder: CourseOrder | null;
-//   subscription_expires: Date;
-//   subscription_period_end: Date;
-//   subscription_type: string;
-//   subscription_status: string;
-// }
+import type { UserWithSubscription, CourseOrder, LoginResponseDto, RefreshResponseDto } from '../types';
 
 export class AuthService {
 	private authRepository: AuthRepository;
@@ -41,9 +13,8 @@ export class AuthService {
 		this.tokenService = tokenService;
 	}
 
-	async login(email: string, password: string) {
+	async login(email: string, password: string): Promise<LoginResponseDto> {
 		const user = await this.authRepository.findByEmail(email);
-        console.log('user: ', user)
 		if (!user) {
 			throw AppError.unauthorized(
 				'Netinkamas el. paštas arba slaptažodis',
@@ -75,18 +46,17 @@ export class AuthService {
 		};
 	}
 
-	async refresh(refreshToken: string): Promise<RefreshResult> {
+	async refresh(refreshToken: string): Promise<RefreshResponseDto> {
 		let decoded;
 		try {
 			decoded = await this.tokenService.verifyRefreshToken(refreshToken);
 		} catch (err) {
-			throw AppError.forbidden('Neteisingas arba pasibaigęs token');
+			throw AppError.forbidden('Invalid or expired token');
 		}
 
 		// Patikrinti ar token hash atitinka DB
 		const tokenHash = this.tokenService.hashToken(refreshToken);
-		const user =
-			await this.authRepository.findByRefreshTokenHash(tokenHash);
+		const user = await this.authRepository.findByRefreshTokenHash(tokenHash);
 
 		if (!user || user.id !== decoded.user_id) {
 			// Possible token reuse attack - invalidate all tokens
@@ -120,37 +90,33 @@ export class AuthService {
 		};
 	}
 
-	private buildUserInfo(user: UserInfo, courseOrder: CorsOptions) {
-		const now = new Date();
-		//   user_id: decoded.user_id,
-		//                 user_name: decoded.user_name,
-		//                 user_role: decoded.user_role,
-		//                 is_course: user_order?.is_course,
-		//                 str_cus_id: user.rows[0].stripe_customer_id,
-		//                 user_subscription: subs_exp >= today,
-		//                 user_s_subscription: s_subs_exp >= today,
-		//                 u_status: user.rows[0].u_status,
-		//                 s_status: user.rows[0].s_status,
-		return {
-			id: user.id,
-			email: user.email,
-			role: user.role,
-			hasActiveSubscription: this.isDateValid(
-				user.subscription_expires,
-				now,
-			),
-			hasActiveStripeSubscription: this.isDateValid(
-				user.subscription_period_end,
-				now,
-			),
-			subscriptionType: user.subscription_type,
-			subscriptionStatus: user.subscription_status,
-			hasCourseAccess: courseOrder?.is_course || false,
-		};
-	}
+    async logout(refreshToken: string) {
+        console.log('SERVICE logout refreshToken: ', refreshToken)
+        if (!refreshToken) return;
 
-	private isDateValid(date: Date, now: Date) {
-		if (!date) return false;
-		return new Date(date) >= now;
+        const tokenHash = this.tokenService.hashToken(refreshToken);
+        const user = await this.authRepository.findByRefreshTokenHash(tokenHash);
+
+        if (user) {
+            await this.authRepository.clearRefreshToken(user.id);
+        }
+    }
+
+	private buildUserInfo(user: UserWithSubscription, courseOrder: CourseOrder | null) {
+        const today = Date.parse(new Date().toLocaleString('lt-LT', {dateStyle: 'short'}));
+        const subs_exp = Date.parse(new Date(user.subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
+        const s_subs_exp = Date.parse(new Date(user.s_subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
+
+        return {
+            user_id: user.id,
+            user_name: user.email,
+            user_role: user.role,
+            str_cus_id: user.stripe_customer_id,
+            user_subscription: subs_exp >= today,
+            user_s_subscription: s_subs_exp >= today,
+            u_status: user.u_status,
+            s_status: user.s_status,
+            is_course: courseOrder?.is_course || false,
+        }
 	}
 }

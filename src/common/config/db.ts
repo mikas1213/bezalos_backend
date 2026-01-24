@@ -1,7 +1,7 @@
 import { Pool, QueryResult, QueryResultRow } from 'pg';
 import { AppError } from '../errors/AppError';
 
-type QueryParams = any[] | undefined;
+type QueryParams = unknown[];
 type QueryResultRows<T extends QueryResultRow = QueryResultRow> = T[];
 
 export interface TransactionClient {
@@ -9,6 +9,11 @@ export interface TransactionClient {
 		query: string,
 		params?: QueryParams,
 	): Promise<QueryResultRows<T>>;
+
+	queryOne<T extends QueryResultRow = QueryResultRow>(
+		query: string,
+		params?: QueryParams,
+	): Promise<T | null>;
 }
 
 export class Database {
@@ -46,6 +51,14 @@ export class Database {
 		}
 	}
 
+	async queryOne<T extends QueryResultRow = QueryResultRow>(
+		query: string,
+		params?: QueryParams,
+	): Promise<T | null> {
+		const rows = await this.query<T>(query, params);
+		return rows[0] ?? null;
+	}
+
 	async transaction<T>(
 		callback: (client: TransactionClient) => Promise<T>,
 	): Promise<T> {
@@ -64,6 +77,17 @@ export class Database {
 						params,
 					);
 					return res.rows;
+				},
+
+				async queryOne<T extends QueryResultRow = QueryResultRow>(
+					query: string,
+					params?: QueryParams,
+				): Promise<T | null> {
+					const res: QueryResult<T> = await client.query(
+						query,
+						params,
+					);
+					return res.rows[0] ?? null;
 				},
 			};
 

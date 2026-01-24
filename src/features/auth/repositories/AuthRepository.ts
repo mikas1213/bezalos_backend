@@ -1,95 +1,58 @@
-import { Pool } from 'pg';
-import type { 
-    UserWithPassword,
-    UserWithName,
-    UserWithRefreshToken,
-    CourseOrder,
-    CreateUserData
-} from './types';
+import { Database } from '../../../common/config/db';
 
-import type { UserInfo } from '../service/AuthService';
+import type { 
+    UserWithSubscription,
+    CourseOrder
+} from '../types';
 
 export class AuthRepository {
-	constructor(private  readonly db: Pool) {
+	constructor(private  readonly db: Database) {
 		this.db = db;
 	}
 
-	async findByEmail(email: string): Promise<UserWithPassword> {
+	async findByEmail(email: string): Promise<UserWithSubscription | null> {
 		const query = `
             SELECT 
                 u.id, 
+                u.role,
                 u.email, 
                 u.password, 
-                u.role,
                 u.stripe_customer_id,
-                u.subscription_expires,
-                u.subscription_type,
                 u.refresh_token_hash,
-                s.status AS subscription_status,
-                s.current_period_end AS subscription_period_end
+                s.status AS s_status,
+                u.subscription_expires,
+                u.subscription_type AS u_status,
+                s.current_period_end AS s_subscription_expires
             FROM users AS u
             LEFT JOIN subscriptions AS s ON s.user_id = u.id
             WHERE u.email = $1
         `;
-        `users.id, 
-        stripe_customer_id, 
-        role, 
-        email, 
-        password, 
-        subscription_expires, 
-        subscription_type AS u_status, 
 
-        s.status AS s_status, 
-        s.current_period_end AS s_subscription_expires 
-        FROM users LEFT JOIN subscriptions as s ON s.user_id = users.id WHERE email = $1`
-
-		const rows = await this.db.query<UserWithPassword>(query, [email]);
-		return rows[0] || null;
+		return await this.db.queryOne<UserWithSubscription>(query, [email]);
 	} 
 
-    async findById(id: string): Promise<UserWithName> {
+    async findByRefreshTokenHash(tokenHash: string): Promise<UserWithSubscription | null> {
         const query = `
             SELECT 
                 u.id, 
-                u.name,
-                u.email, 
                 u.role,
-                u.stripe_customer_id,
-                u.subscription_expires,
-                u.subscription_type,
-                s.status AS subscription_status,
-                s.current_period_end AS subscription_period_end
-            FROM users u
-            LEFT JOIN subscriptions s ON s.user_id = u.id
-            WHERE u.id = $1
-        `;
-        
-        const { rows } = await this.db.query<UserWithName>(query, [id]);
-        return rows[0] || null;
-    }
-
-    async findByRefreshTokenHash(tokenHash: string): Promise<UserInfo> {
-        const query = `
-            SELECT 
-                u.id, 
                 u.email, 
-                u.role,
+                u.password,
                 u.stripe_customer_id,
-                u.subscription_expires,
-                u.subscription_type,
                 u.refresh_token_hash,
-                s.status AS subscription_status,
-                s.current_period_end AS subscription_period_end
-            FROM users u
-            LEFT JOIN subscriptions s ON s.user_id = u.id
+                s.status AS s_status,
+                u.subscription_expires,
+                u.subscription_type AS u_status,
+                s.current_period_end AS s_subscription_expires
+            FROM users AS u
+            LEFT JOIN subscriptions AS s ON s.user_id = u.id
             WHERE u.refresh_token_hash = $1
         `;
         
-        const { rows } = await this.db.query<UserInfo>(query, [tokenHash]);
-        return rows[0] || null;
+        return await this.db.queryOne<UserWithSubscription>(query, [tokenHash]);
     }
 
-	async getUserCourseOrder(userId: string): Promise<CourseOrder> {
+	async getUserCourseOrder(userId: string): Promise<CourseOrder | null> {
 		const query = `
             SELECT 
                 o.id, 
@@ -107,8 +70,7 @@ export class AuthRepository {
             LIMIT 1
         `;
 
-		const rows = await this.db.query<CourseOrder>(query, [userId]);
-		return rows[0] || null;
+		return await this.db.queryOne<CourseOrder>(query, [userId]);	
 	}
 
 	async updateRefreshToken(userId: string, tokenHash: string | null): Promise<void> {
@@ -118,7 +80,7 @@ export class AuthRepository {
             WHERE id = $2
         `;
 
-		await this.db.query(query, [tokenHash, userId]);
+		await this.db.queryOne(query, [tokenHash, userId]);
 	}
 
     async emailExists(email: string): Promise<boolean> {
