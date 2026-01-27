@@ -1,39 +1,59 @@
 import bcrypt from 'bcrypt';
 import { AuthRepository } from '../repositories/AuthRepository';
 import { TokenService } from './TokenService';
+import { EmailService } from '../../../common/email/EmailService';
 import { AppError } from '../../../common/errors/AppError';
-import type { UserWithSubscription, CourseOrder, LoginResponseDto, RefreshResponseDto } from '../types';
+import { authConfig } from '../config';
+import type { SignupRequestDto } from '../schemas';
+import type { LoginResponseDto, RefreshResponseDto } from './types';
+import type { UserWithSubscription, CourseOrder } from '../types';
+import type { ForgotPasswordResponseDto } from '../repositories/types';
 
 export class AuthService {
 	private authRepository: AuthRepository;
 	private tokenService: TokenService;
+	private emailService: EmailService;
 
-	constructor(authRepository: AuthRepository, tokenService: TokenService) {
+	constructor(authRepository: AuthRepository, tokenService: TokenService, emailService: EmailService) {
 		this.authRepository = authRepository;
 		this.tokenService = tokenService;
+		this.emailService = emailService;
+	}
+
+	async signup(userData: SignupRequestDto): Promise<void> {
+		const { name, email, initialTarget, password } = userData as SignupRequestDto;
+
+		const exists = await this.authRepository.emailExists(email);
+		if (exists) {
+			throw AppError.conflict('Toks vartotojas jau yra');
+		}
+
+		const passwordHash = await bcrypt.hash(password, authConfig.SALT_ROUNDS);
+
+		await this.authRepository.create({
+			name,
+			email,
+			initialTarget,
+			password: passwordHash,
+		});
+
+		await this.emailService.sendWelcome(email, initialTarget);
 	}
 
 	async login(email: string, password: string): Promise<LoginResponseDto> {
 		const user = await this.authRepository.findByEmail(email);
 		if (!user) {
-			throw AppError.unauthorized(
-				'Netinkamas el. paštas arba slaptažodis',
-			);
+			throw AppError.unauthorized('Netinkamas el. paštas arba slaptažodis');
 		}
 
 		const isValidPassword = await bcrypt.compare(password, user.password);
 		if (!isValidPassword) {
-			throw AppError.unauthorized(
-				'Netinkamas el. paštas arba slaptažodis',
-			);
+			throw AppError.unauthorized('Netinkamas el. paštas arba slaptažodis');
 		}
 
-		const courseOrder = await this.authRepository.getUserCourseOrder(
-			user.id,
-		);
+		const courseOrder = await this.authRepository.getUserCourseOrder(user.id);
 
-		const { accessToken, refreshToken, refreshTokenHash } =
-			this.tokenService.generateTokenPair(user);
+		const { accessToken, refreshToken, refreshTokenHash } = this.tokenService.generateTokenPair(user);
 
 		await this.authRepository.updateRefreshToken(user.id, refreshTokenHash);
 
@@ -67,9 +87,7 @@ export class AuthService {
 		}
 
 		// Gauti papildomą informaciją
-		const courseOrder = await this.authRepository.getUserCourseOrder(
-			user.id,
-		);
+		const courseOrder = await this.authRepository.getUserCourseOrder(user.id);
 
 		// Token rotation - generuoti naujus tokenus
 		const {
@@ -78,9 +96,7 @@ export class AuthService {
 			refreshTokenHash,
 		} = this.tokenService.generateTokenPair(user);
 
-		// Atnaujinti hash DB
 		await this.authRepository.updateRefreshToken(user.id, refreshTokenHash);
-
 		const userInfo = this.buildUserInfo(user, courseOrder);
 
 		return {
@@ -90,33 +106,84 @@ export class AuthService {
 		};
 	}
 
-    async logout(refreshToken: string) {
-        console.log('SERVICE logout refreshToken: ', refreshToken)
-        if (!refreshToken) return;
+	async logout(refreshToken: string): Promise<void> {
+		if (!refreshToken) return;
 
-        const tokenHash = this.tokenService.hashToken(refreshToken);
-        const user = await this.authRepository.findByRefreshTokenHash(tokenHash);
+		const tokenHash = this.tokenService.hashToken(refreshToken);
+		const user = await this.authRepository.findByRefreshTokenHash(tokenHash);
 
-        if (user) {
-            await this.authRepository.clearRefreshToken(user.id);
-        }
-    }
+		if (user) {
+			await this.authRepository.clearRefreshToken(user.id);
+		}
+	}
+
+	async forgotPassword(email: string, baseUrl: string): Promise<void> {
+		const user = await this.authRepository.findByEmail(email);
+
+		if (!user) {
+			await this.delay(100);
+			return;
+		}
+
+		try {
+			const { token, hashedToken, expiresAt } = this.tokenService.generatePasswordResetToken();
+
+			await this.authRepository.setPasswordResetToken(email, hashedToken, expiresAt);
+
+			const resetUrl = `${baseUrl}/keisti-slaptazodi/${token}`;
+			console.log(resetUrl);
+			await this.emailService.sendPasswordReset(email, resetUrl);
+		} catch (err) {
+			await this.authRepository.clearPasswordResetToken(email);
+			throw err;
+		}
+	}
+
+	async validateResetToken(token: string): Promise<ForgotPasswordResponseDto> {
+		const hashedToken = this.tokenService.hashToken(token);
+		const user = await this.authRepository.findByValidPasswordResetToken(hashedToken);
+		if (!user) {
+			throw AppError.badRequest('Nuoroda neteisinga arba nebegaliojanti');
+		}
+
+		return { email: user.email };
+	}
+
+	async updatePassword(token: string, password: string): Promise<void> {
+		const hashedToken = this.tokenService.hashToken(token);
+		const user = await this.authRepository.findByValidPasswordResetToken(hashedToken);
+
+		if (!user) {
+			throw AppError.badRequest('Nuoroda neteisinga arba nebegaliojanti');
+		}
+
+		const passwordHash = await bcrypt.hash(password, authConfig.SALT_ROUNDS);
+		await this.authRepository.updatePassword(user.email, passwordHash);
+	}
 
 	private buildUserInfo(user: UserWithSubscription, courseOrder: CourseOrder | null) {
-        const today = Date.parse(new Date().toLocaleString('lt-LT', {dateStyle: 'short'}));
-        const subs_exp = Date.parse(new Date(user.subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
-        const s_subs_exp = Date.parse(new Date(user.s_subscription_expires).toLocaleString('lt-LT', {dateStyle: 'short'}));
+		const today = Date.parse(new Date().toLocaleString('lt-LT', { dateStyle: 'short' }));
+		const subs_exp = Date.parse(
+			new Date(user.subscription_expires).toLocaleString('lt-LT', { dateStyle: 'short' }),
+		);
+		const s_subs_exp = Date.parse(
+			new Date(user.s_subscription_expires).toLocaleString('lt-LT', { dateStyle: 'short' }),
+		);
 
-        return {
-            user_id: user.id,
-            user_name: user.email,
-            user_role: user.role,
-            str_cus_id: user.stripe_customer_id,
-            user_subscription: subs_exp >= today,
-            user_s_subscription: s_subs_exp >= today,
-            u_status: user.u_status,
-            s_status: user.s_status,
-            is_course: courseOrder?.is_course || false,
-        }
+		return {
+			user_id: user.id,
+			user_name: user.email,
+			user_role: user.role,
+			str_cus_id: user.stripe_customer_id,
+			user_subscription: subs_exp >= today,
+			user_s_subscription: s_subs_exp >= today,
+			u_status: user.u_status,
+			s_status: user.s_status,
+			is_course: courseOrder?.is_course || false,
+		};
+	}
+
+	private delay(ms: number): Promise<void> {
+		return new Promise((resolve) => setTimeout(resolve, ms));
 	}
 }

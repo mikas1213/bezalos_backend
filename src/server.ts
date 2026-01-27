@@ -22,9 +22,8 @@ import cors from 'cors';
 import { rateLimiter } from './common/middleware/rateLimiter';
 
 import container from './container';
-import { AuthController } from './features/auth/controller/AuthController';
 import { createAuthRouter } from './features/auth/routes/authRoutes';
-const authController = container.resolve<AuthController>('AuthController');
+const authController = container.resolve('AuthController');
 
 
 /* R-O-U-T-E-S */

@@ -1,12 +1,10 @@
 import { Database } from '../../../common/config/db';
-
-import type { 
-    UserWithSubscription,
-    CourseOrder
-} from '../types';
+import type { UserWithSubscription, CourseOrder } from '../types';
+import type { SignupRequestDto } from '../schemas';
+import type { ForgotPasswordResponseDto } from './types';
 
 export class AuthRepository {
-	constructor(private  readonly db: Database) {
+	constructor(private readonly db: Database) {
 		this.db = db;
 	}
 
@@ -29,10 +27,10 @@ export class AuthRepository {
         `;
 
 		return await this.db.queryOne<UserWithSubscription>(query, [email]);
-	} 
+	}
 
-    async findByRefreshTokenHash(tokenHash: string): Promise<UserWithSubscription | null> {
-        const query = `
+	async findByRefreshTokenHash(tokenHash: string): Promise<UserWithSubscription | null> {
+		const query = `
             SELECT 
                 u.id, 
                 u.role,
@@ -48,9 +46,9 @@ export class AuthRepository {
             LEFT JOIN subscriptions AS s ON s.user_id = u.id
             WHERE u.refresh_token_hash = $1
         `;
-        
-        return await this.db.queryOne<UserWithSubscription>(query, [tokenHash]);
-    }
+
+		return await this.db.queryOne<UserWithSubscription>(query, [tokenHash]);
+	}
 
 	async getUserCourseOrder(userId: string): Promise<CourseOrder | null> {
 		const query = `
@@ -70,86 +68,76 @@ export class AuthRepository {
             LIMIT 1
         `;
 
-		return await this.db.queryOne<CourseOrder>(query, [userId]);	
+		return await this.db.queryOne<CourseOrder>(query, [userId]);
 	}
 
 	async updateRefreshToken(userId: string, tokenHash: string | null): Promise<void> {
 		const query = `
             UPDATE users 
-            SET refresh_token_hash = $1, last_activity = NOW(), updated_at = NOW()
+            SET refresh_token_hash = $1, last_activity = $3, updated_at = $3
             WHERE id = $2
         `;
 
-		await this.db.queryOne(query, [tokenHash, userId]);
+		await this.db.queryOne(query, [tokenHash, userId, new Date().toISOString()]);
 	}
 
-    async emailExists(email: string): Promise<boolean> {
-        const query = 'SELECT 1 FROM users WHERE email = $1';
-        const { rows } = await this.db.query(query, [email]);
-        return rows.length > 0;
-    }
+	async emailExists(email: string): Promise<boolean> {
+		const query = 'SELECT 1 FROM users WHERE email = $1';
+		const rows = await this.db.query(query, [email]);
+		return rows.length > 0;
+	}
 
-    async create(userData: CreateUserData): Promise<CreateUserData> {
-        const { name, email, initialTarget, passwordHash } = userData;
-        
-        const query = `
-            INSERT INTO users (name, email, initial_target, password, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, NOW(), NOW())
-            RETURNING id, name, email, role
+	async create(userData: SignupRequestDto): Promise<void> {
+		const { name, email, initialTarget, password } = userData;
+
+		const query = `
+            INSERT INTO users (name, email, initial_target, password)
+            VALUES ($1, $2, $3, $4)
         `;
-        
-        const { rows } = await this.db.query<CreateUserData>(query, [
-            name, 
-            email, 
-            initialTarget, 
-            passwordHash
-        ]);
-        
-        return rows[0];
-    }
 
-    async clearRefreshToken(userId: string) {
-        await this.updateRefreshToken(userId, null);
-    }
+		await this.db.queryOne<SignupRequestDto>(query, [name, email, initialTarget, password]);
+	}
 
-    async setPasswordResetToken(email, tokenHash, expiresAt) {
-        const query = `
+	async clearRefreshToken(userId: string): Promise<void> {
+		await this.updateRefreshToken(userId, null);
+	}
+
+	async setPasswordResetToken(email: string, tokenHash: string, expiresAt: Date): Promise<void> {
+		const query = `
             UPDATE users 
             SET password_reset_token = $1, 
                 password_reset_expires = $2,
-                updated_at = NOW()
-            WHERE email = $3
+                updated_at = $3
+            WHERE email = $4
         `;
         
-        await this.db.query(query, [tokenHash, expiresAt.toISOString(), email]);
-    }
+		await this.db.queryOne(query, [tokenHash, expiresAt.toISOString(), new Date().toLocaleString('lt-LT'), email]);
+	}
 
-    async clearPasswordResetToken(email) {
-        const query = `
+	async clearPasswordResetToken(email: string): Promise<void> {
+		const query = `
             UPDATE users 
-            SET password_reset_token = NULL, 
-                password_reset_expires = NULL,
-                updated_at = NOW()
+            SET password_reset_token = $4, 
+                password_reset_expires = $3,
+                updated_at = $2
             WHERE email = $1
         `;
-        
-        await this.db.query(query, [email]);
-    }
+		await this.db.queryOne(query, [email, new Date().toLocaleString('lt-LT'), null, null]);
+	}
 
-    async findByValidPasswordResetToken(tokenHash) {
-        const query = `
-            SELECT id, email 
+	async findByValidPasswordResetToken(tokenHash: string): Promise<ForgotPasswordResponseDto | null> {
+		const query = `
+            SELECT email 
             FROM users 
             WHERE password_reset_token = $1 
-              AND password_reset_expires > NOW()
+              AND password_reset_expires > $2
         `;
-        
-        const { rows } = await this.db.query(query, [tokenHash]);
-        return rows[0] || null;
-    }
 
-    async updatePassword(email, passwordHash) {
-        const query = `
+		return await this.db.queryOne(query, [tokenHash, new Date(Date.now()).toISOString()]);
+	}
+ 
+	async updatePassword(email: string, passwordHash: string): Promise<void> {
+		const query = `
             UPDATE users 
             SET password = $1, 
                 password_reset_token = NULL,
@@ -157,7 +145,7 @@ export class AuthRepository {
                 updated_at = NOW()
             WHERE email = $2
         `;
-        
-        await this.db.query(query, [passwordHash, email]);
-    }
+
+		await this.db.query(query, [passwordHash, email]);
+	}
 }

@@ -2,7 +2,9 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { authConfig } from '../config';
 import { AppError } from '../../../common/errors/AppError';
-import type { PasswordResetResponseDto, UserWithSubscription, TokenPayload, TokenPair } from '../types';
+import { PasswordResetResponseDto, TokenPayload, TokenPair } from './types';
+import type { UserWithSubscription } from '../types';
+
 
 export class TokenService {
 	generateAccessToken(payload: TokenPayload): string {

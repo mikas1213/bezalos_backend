@@ -9,7 +9,10 @@ export const validate = <T extends z.ZodSchema>(schema: T) => {
             const flattened = z.flattenError(result.error);
             return res.status(400).json({
                 status: 'error',
-                errors: flattened.fieldErrors
+                errors: {
+                    ...flattened.fieldErrors, formErrors: flattened.formErrors
+                }
+                // error: flattened.fieldErrors
             });
         }
         req.body = result.data;

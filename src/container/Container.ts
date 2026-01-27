@@ -1,3 +1,4 @@
+import type { ContainerRegistry } from './types';
 type ServiceName = string;
 type Constructor<T = any> = new (...args: any[]) => T;
 type Factory<T = any> = (...args: any[]) => T;
@@ -11,9 +12,6 @@ interface ServiceEntry<T = any> {
 }
 
 class Container {
-	//   constructor() {
-	//     this.services = new Map();
-	//   }
     private services = new Map<ServiceName, ServiceEntry>();
 
 	register<T>(name: ServiceName, ServiceProvider: Provider<T>, dependencies: ServiceName[] = [], isSingleton: boolean = false): void {
@@ -29,6 +27,52 @@ class Container {
 		});
 	}
 
+
+	resolve<K extends keyof ContainerRegistry>(name: K, resolving = new Set<ServiceName>()): ContainerRegistry[K] {
+		const serviceEntry = this.services.get(name);
+
+		if (!serviceEntry) {
+			throw new Error(`Service "${name}" not found.`);
+		}
+
+		if (resolving.has(name)) {
+			throw new Error(`Circular dependency detected: ${name}`);
+		}
+		resolving.add(name);
+
+		if (serviceEntry.isSingleton && serviceEntry.instance) {
+			return serviceEntry.instance as ContainerRegistry[K];
+		}
+
+		const resolvedDependencies = serviceEntry.dependencies.map(
+			(depName) => {
+				return this.resolve(depName as keyof ContainerRegistry, resolving);
+			},
+		);
+
+		let serviceInstance: unknown;
+		if (typeof serviceEntry.provider === 'function') {
+			try {
+				serviceInstance = new (serviceEntry.provider as Constructor)(
+					...resolvedDependencies,
+				);
+			} catch (e) {
+				serviceInstance = (serviceEntry.provider as Factory)(
+					...resolvedDependencies,
+				);
+			}
+		} else {
+			serviceInstance = serviceEntry.provider;
+		}
+
+		if (serviceEntry.isSingleton) {
+			serviceEntry.instance = serviceInstance as ContainerRegistry[K];
+		}
+
+		return serviceInstance as ContainerRegistry[K];
+	}
+
+    /*
 	resolve<T>(name: ServiceName, resolving = new Set<ServiceName>()): T {
 		const serviceEntry = this.services.get(name);
 
@@ -72,6 +116,7 @@ class Container {
 
 		return serviceInstance as T;
 	}
+    */
 }
 
 export const container = new Container();

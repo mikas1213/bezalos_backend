@@ -6,6 +6,8 @@ const crypto = require('crypto');
 const Email = require('../utils/email');
 const { validationResult } = require('express-validator');
 
+// signup
+/*
 exports.signup = async (req, res) => {
     const errors = validationResult(req);
     const { name, email, initial_target, password } = req.body;
@@ -31,7 +33,7 @@ exports.signup = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        await db.query('INSERT INTO users(name, email, initial_target, password) values($1, $2, $3, $4)', [name, email, initial_target, hashedPassword/*, new Date().toISOString(), new Date().toISOString()*/]);
+        await db.query('INSERT INTO users(name, email, initial_target, password) values($1, $2, $3, $4)', [name, email, initial_target, hashedPassword]);
         await new Email(email, initial_target, '').sendWelcome();
 
         res.status(201).json({
@@ -42,7 +44,9 @@ exports.signup = async (req, res) => {
         res.status(500).json({ msg: err.message });
     }
 };
-
+*/
+// login
+/*
 exports.login = async (req, res) => {
     
     try {
@@ -103,7 +107,7 @@ exports.login = async (req, res) => {
         
         await db.query('UPDATE users SET refresh_token = $1, last_activity = $2 WHERE id = $3', [refreshToken, new Date().toISOString(), user.rows[0].id]);
         res.cookie('jwt', refreshToken, { httpOnly: true, secure: true, maxAge: 2 * 24 * 60 * 60 * 1000 });
-        
+        res.cookie(authConfig.REFRESH_TOKEN_COOKIE, token, authConfig.COOKIE_OPTIONS);
         res.status(200).json({
             accessToken
         });
@@ -112,7 +116,9 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
-
+*/
+// refresh
+/*
 exports.refresh = async (req, res) => {
     const cookies = req.cookies;    
     if(!cookies?.jwt) return res.sendStatus(401);
@@ -159,7 +165,9 @@ exports.refresh = async (req, res) => {
         }
     );
 }
-
+*/
+// logout
+/*
 exports.logout = async (req, res) => {
     const cookies = req.cookies;
     
@@ -177,7 +185,10 @@ exports.logout = async (req, res) => {
     res.clearCookie('jwt', { httpOnly: true, secure: true, sameSite: 'None' });
     res.sendStatus(204);
 }
+*/
 
+// forgotPassword
+/*
 exports.forgotPassword = async (req, res) => {
     try {
         // I - Get suer based on POSTed email
@@ -217,7 +228,7 @@ exports.forgotPassword = async (req, res) => {
         });
     }
 };
-
+*/
 exports.resetPassword = async (req, res) => {
     
     const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
