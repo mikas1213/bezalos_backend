@@ -7,6 +7,7 @@ process.on('uncaughtException', (err) => {
 });
 
 const express = require('express');
+app.set('trust proxy', true);
 const app = express();
 const logRoutes = require('./utils/listRoutes');
 const cors = require('cors');
