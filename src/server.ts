@@ -24,6 +24,7 @@ import { rateLimiter } from './common/middleware/rateLimiter';
 import container from './container';
 import { createAuthRouter } from './features/auth/routes/authRoutes';
 const authController = container.resolve('AuthController');
+const authMiddleware = container.resolve('AuthMiddleware');
 
 
 /* R-O-U-T-E-S */
@@ -64,7 +65,7 @@ app.use(cors(corsOptions));
 
 app.use('/sitemap.xml', sitemapRouter);
 app.use('/api', rateLimiter);
-app.use('/api/v1/auth', createAuthRouter(authController));
+app.use('/api/v1/auth', createAuthRouter(authController, authMiddleware));
 app.use('/api/v1/videos', videoRouter);
 app.use('/api/v1/comments', commentsRouter);
 app.use('/api/v1/profile', profileRouter);

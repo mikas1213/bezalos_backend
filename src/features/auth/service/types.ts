@@ -19,7 +19,7 @@ export interface PasswordResetResponseDto{
 	expiresAt: Date;
 }
 
-interface UserResponseDto {
+export interface UserResponseDto {
     user_id: string;
     user_name: string;
 	user_role: Role;

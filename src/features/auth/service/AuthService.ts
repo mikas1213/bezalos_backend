@@ -8,6 +8,13 @@ import type { SignupRequestDto } from '../schemas';
 import type { LoginResponseDto, RefreshResponseDto } from './types';
 import type { UserWithSubscription, CourseOrder } from '../types';
 import type { ForgotPasswordResponseDto } from '../repositories/types';
+import type { UserResponseDto } from './types';
+
+interface MeResponseDto {
+	user: UserResponseDto;
+	accessToken?: string;
+	refreshToken?: string;
+}
 
 export class AuthService {
 	private authRepository: AuthRepository;
@@ -106,6 +113,60 @@ export class AuthService {
 		};
 	}
 
+	async me(
+		requestUser: { id: string; role: number } | undefined,
+		refreshToken: string | undefined,
+	): Promise<MeResponseDto> {
+		// Scenarijus 1: accessToken buvo validus
+		if (requestUser) {
+			const user = await this.authRepository.findById(requestUser.id);
+
+			if (!user) {
+				throw AppError.unauthorized('Vartotojas nerastas');
+			}
+
+			const courseOrder = await this.authRepository.getUserCourseOrder(user.id);
+			const userInfo = this.buildUserInfo(user, courseOrder);
+
+			return { user: userInfo };
+		}
+
+		// Scenarijus 2: bandome refreshToken
+		if (!refreshToken) {
+			throw AppError.unauthorized('Prašome prisijungti');
+		}
+
+		// Verifikuojame refreshToken
+		const decoded = await this.tokenService.verifyRefreshToken(refreshToken);
+
+		// Tikriname ar refreshToken hash sutampa su DB
+		const refreshTokenHash = this.tokenService.hashToken(refreshToken);
+		const user = await this.authRepository.findByRefreshTokenHash(refreshTokenHash);
+
+		if (!user) {
+			throw AppError.unauthorized('Sesija nebegalioja');
+		}
+
+		// Generuojame naujus tokenus
+		const courseOrder = await this.authRepository.getUserCourseOrder(user.id);
+		const {
+			accessToken,
+			refreshToken: newRefreshToken,
+			refreshTokenHash: newHash,
+		} = this.tokenService.generateTokenPair(user);
+
+		// Atnaujiname refreshToken DB
+		await this.authRepository.updateRefreshToken(user.id, newHash);
+
+		const userInfo = this.buildUserInfo(user, courseOrder);
+
+		return {
+			user: userInfo,
+			accessToken,
+			refreshToken: newRefreshToken,
+		};
+	}
+
 	async logout(refreshToken: string): Promise<void> {
 		if (!refreshToken) return;
 
@@ -161,7 +222,7 @@ export class AuthService {
 		await this.authRepository.updatePassword(user.email, passwordHash);
 	}
 
-	private buildUserInfo(user: UserWithSubscription, courseOrder: CourseOrder | null) {
+	private buildUserInfo(user: UserWithSubscription, courseOrder: CourseOrder | null): UserResponseDto {
 		const today = Date.parse(new Date().toLocaleString('lt-LT', { dateStyle: 'short' }));
 		const subs_exp = Date.parse(
 			new Date(user.subscription_expires).toLocaleString('lt-LT', { dateStyle: 'short' }),

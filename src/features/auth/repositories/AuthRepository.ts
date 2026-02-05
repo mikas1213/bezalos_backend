@@ -29,6 +29,27 @@ export class AuthRepository {
 		return await this.db.queryOne<UserWithSubscription>(query, [email]);
 	}
 
+	async findById(id: string): Promise<UserWithSubscription | null> {
+		const query = `
+            SELECT 
+                u.id, 
+                u.role,
+                u.email, 
+                u.password, 
+                u.stripe_customer_id,
+                u.refresh_token_hash,
+                s.status AS s_status,
+                u.subscription_expires,
+                u.subscription_type AS u_status,
+                s.current_period_end AS s_subscription_expires
+            FROM users u
+            LEFT JOIN subscriptions s ON s.user_id = u.id
+            WHERE u.id = $1
+        `;
+
+		return await this.db.queryOne<UserWithSubscription>(query, [id]);
+	}
+
 	async findByRefreshTokenHash(tokenHash: string): Promise<UserWithSubscription | null> {
 		const query = `
             SELECT 
@@ -110,7 +131,7 @@ export class AuthRepository {
                 updated_at = $3
             WHERE email = $4
         `;
-        
+
 		await this.db.queryOne(query, [tokenHash, expiresAt.toISOString(), new Date().toLocaleString('lt-LT'), email]);
 	}
 
@@ -135,7 +156,7 @@ export class AuthRepository {
 
 		return await this.db.queryOne(query, [tokenHash, new Date(Date.now()).toISOString()]);
 	}
- 
+
 	async updatePassword(email: string, passwordHash: string): Promise<void> {
 		const query = `
             UPDATE users 
