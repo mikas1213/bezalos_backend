@@ -9,6 +9,7 @@ const options: DotenvConfigOptions = {
     path: './.env_bezalos'
 };
 dotenv.config(options);
+
 import express from 'express';
 import { logger } from './common/middleware/logger';
 import helmet from 'helmet';
@@ -25,6 +26,8 @@ import container from './container';
 import { createAuthRouter } from './features/auth/routes/authRoutes';
 const authController = container.resolve('AuthController');
 const authMiddleware = container.resolve('AuthMiddleware');
+const loginRateLimiter = container.resolve('LoginRateLimiter');
+const signupRateLimiter = container.resolve('SignupRateLimiter');
 
 
 /* R-O-U-T-E-S */
@@ -52,6 +55,7 @@ import { allowedOrigins } from './common/config/allowedOrigins';
 
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(logger);
 app.use(helmet());
 app.use(compression());
@@ -65,7 +69,7 @@ app.use(cors(corsOptions));
 
 app.use('/sitemap.xml', sitemapRouter);
 app.use('/api', rateLimiter);
-app.use('/api/v1/auth', createAuthRouter(authController, authMiddleware));
+app.use('/api/v1/auth', createAuthRouter(authController, authMiddleware, loginRateLimiter, signupRateLimiter));
 app.use('/api/v1/videos', videoRouter);
 app.use('/api/v1/comments', commentsRouter);
 app.use('/api/v1/profile', profileRouter);

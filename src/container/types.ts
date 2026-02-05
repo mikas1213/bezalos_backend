@@ -5,6 +5,9 @@ import { AuthRepository } from '../features/auth/repositories/AuthRepository';
 import { AuthService } from '../features/auth/service/AuthService';
 import { AuthController } from '../features/auth/controller/AuthController';
 import { AuthMiddleware } from '../features/auth/middleware/AuthMiddleware';
+import { LoginAttemptService } from '../features/auth/service/LoginAttemptService';
+import { LoginRateLimiter } from '../features/auth/middleware/LoginRateLimiter';
+import { SignupRateLimiter } from '../features/auth/middleware/SignupRateLimiter';
 
 export interface ContainerRegistry {
 	Database: Database;
@@ -14,4 +17,7 @@ export interface ContainerRegistry {
 	AuthService: AuthService;
 	AuthController: AuthController;
     AuthMiddleware: AuthMiddleware;
+	LoginAttemptService: LoginAttemptService;
+	LoginRateLimiter: LoginRateLimiter;
+	SignupRateLimiter: SignupRateLimiter;
 }
