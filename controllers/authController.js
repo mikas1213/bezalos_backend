@@ -44,6 +44,10 @@ exports.signup = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
+    console.log("IP:", req.ip);
+    console.log("Forwarded:", req.headers['x-forwarded-for']);
+    console.log("Real:", req.headers['x-real-ip']);
+
     
     try {
         const errors = validationResult(req);
