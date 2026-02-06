@@ -1,3 +1,4 @@
+import { Request, Response } from 'express';
 process.on('uncaughtException', (err) => {
     console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
     console.error(err.name, err.message, err.stack);
@@ -87,11 +88,11 @@ app.use('/api/v1/admin', [
     customersRouter, 
     nutritionPlansRouter
 ]);
-app.get('/api/v1/config', (req, res) => {
+app.get('/api/v1/config', (req: Request, res: Response) => {
     res.json(process.env.SOCKET_URL);
 });
 
-app.all('*', (req, res) => {
+app.all('*', (req: Request, res: Response) => {
     res.status(404).json({
         status: 'not found'
     });
