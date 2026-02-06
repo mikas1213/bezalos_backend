@@ -52,18 +52,31 @@ class Container {
 
 		let serviceInstance: unknown;
 		if (typeof serviceEntry.provider === 'function') {
-			try {
-				serviceInstance = new (serviceEntry.provider as Constructor)(
-					...resolvedDependencies,
-				);
-			} catch (e) {
-				serviceInstance = (serviceEntry.provider as Factory)(
-					...resolvedDependencies,
-				);
+			const isClass = serviceEntry.provider.prototype?.constructor === serviceEntry.provider;
+			
+			if (isClass) {
+				serviceInstance = new (serviceEntry.provider as Constructor)(...resolvedDependencies);
+			} else {
+				serviceInstance = (serviceEntry.provider as Factory)(...resolvedDependencies);
 			}
 		} else {
+			// Paruošta reikšmė - grąžinama kaip yra
 			serviceInstance = serviceEntry.provider;
 		}
+
+		// if (typeof serviceEntry.provider === 'function') {
+		// 	try {
+		// 		serviceInstance = new (serviceEntry.provider as Constructor)(
+		// 			...resolvedDependencies,
+		// 		);
+		// 	} catch (e) {
+		// 		serviceInstance = (serviceEntry.provider as Factory)(
+		// 			...resolvedDependencies,
+		// 		);
+		// 	}
+		// } else {
+		// 	serviceInstance = serviceEntry.provider;
+		// }
 
 		if (serviceEntry.isSingleton) {
 			serviceEntry.instance = serviceInstance as ContainerRegistry[K];
