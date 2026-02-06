@@ -4,7 +4,7 @@ type Sstatus = 'free' | 'Profilis' | 'Virtuvė' | 'Cancel_profilis' | 'Canceled_
 
 export interface TokenPayload {
     user_id: string;
-	role: Role;
+	user_role: Role;
 }
 
 export interface TokenPair {

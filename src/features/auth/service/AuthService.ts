@@ -179,11 +179,9 @@ export class AuthService {
 
 		try {
 			const { token, hashedToken, expiresAt } = this.tokenService.generatePasswordResetToken();
-
 			await this.authRepository.setPasswordResetToken(email, hashedToken, expiresAt);
 
 			const resetUrl = `${baseUrl}/keisti-slaptazodi/${token}`;
-			console.log(resetUrl);
 			await this.emailService.sendPasswordReset(email, resetUrl);
 		} catch (err) {
 			await this.authRepository.clearPasswordResetToken(email);

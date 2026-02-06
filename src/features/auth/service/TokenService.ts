@@ -42,7 +42,7 @@ export class TokenService {
 	generateTokenPair(user: UserWithSubscription): TokenPair {
 		const payload = {
 			user_id: user.id,
-			role: user.role,
+			user_role: user.role,
 		};
 
 		const accessToken = this.generateAccessToken(payload);

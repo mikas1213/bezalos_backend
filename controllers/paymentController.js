@@ -15,7 +15,6 @@ if(process.env.PROJECT === 'DULEVICIUS') hostname = 'https://bezalos.dulevicius.
 if(process.env.PROJECT === 'BEZALOS') hostname = 'https://bezalos.lt';
 
 exports.createCheckoutSession = async (req, res) => {
-    
     const { user_id, plan_price, plan_name, } = req.body;
     
     try {
@@ -27,7 +26,6 @@ exports.createCheckoutSession = async (req, res) => {
 };
 
 exports.createServiceSession = async (req, res) => {
-
     if (req.method !== 'POST') {
         return res.status(405).json({ message: 'Method not allowed' });
     }
