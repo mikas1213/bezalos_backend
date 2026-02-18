@@ -1,21 +1,25 @@
 export type AppErrorStatus = 'fail' | 'error';
+type Errors = Record<string, string[]>;
 
 export class AppError extends Error {
 	public readonly statusCode: number;
 	public readonly status: AppErrorStatus;
 	public readonly isOperational: boolean;
+    public readonly errors?: Errors;
 
 	constructor(
 		message: string,
 		statusCode: number = 500,
 		isOperational: boolean = true,
 		stack?: string,
+        errors?: Errors,
 	) {
 		super(message);
 
 		this.statusCode = statusCode;
 		this.isOperational = isOperational;
 		this.status = statusCode.toString().startsWith('4') ? 'fail' : 'error';
+        this.errors = errors;
 
 		if (stack) {
 			this.stack = stack;
@@ -23,6 +27,10 @@ export class AppError extends Error {
 			Error.captureStackTrace(this, this.constructor);
 		}
 	}
+
+    static validation(errors: Errors, message: string = 'Invalid data'): AppError {
+        return new AppError(message, 400, true, undefined, errors)
+    }
 
 	static badRequest(message: string = 'Bad request'): AppError {
 		return new AppError(message, 400);
