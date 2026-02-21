@@ -21,7 +21,11 @@ export class AuthService {
 	private tokenService: TokenService;
 	private emailService: EmailService;
 
-	constructor(authRepository: AuthRepository, tokenService: TokenService, emailService: EmailService) {
+	constructor(
+		authRepository: AuthRepository,
+		tokenService: TokenService,
+		emailService: EmailService,
+	) {
 		this.authRepository = authRepository;
 		this.tokenService = tokenService;
 		this.emailService = emailService;
@@ -49,18 +53,19 @@ export class AuthService {
 
 	async login(email: string, password: string): Promise<LoginResponseDto> {
 		const user = await this.authRepository.findByEmail(email);
-		if (!user) {
-			throw AppError.unauthorized('Netinkamas el. paštas arba slaptažodis');
-		}
 
-		const isValidPassword = await bcrypt.compare(password, user.password);
-		if (!isValidPassword) {
+		// Timing attack protection:
+		const dummyHash = '$2b$10$N9qo8uLOickgx2ZMRZoMye1p4HQJNLjKGJKlPXfyh0aU0v8F5P.3K';
+		const passwordHash = user ? user.password : dummyHash;
+		const isValidPassword = await bcrypt.compare(password, passwordHash);
+
+		if (!user || !isValidPassword) {
 			throw AppError.unauthorized('Netinkamas el. paštas arba slaptažodis');
 		}
 
 		const courseOrder = await this.authRepository.getUserCourseOrder(user.id);
-
-		const { accessToken, refreshToken, refreshTokenHash } = this.tokenService.generateTokenPair(user);
+		const { accessToken, refreshToken, refreshTokenHash } =
+			this.tokenService.generateTokenPair(user);
 
 		await this.authRepository.updateRefreshToken(user.id, refreshTokenHash);
 
@@ -113,57 +118,48 @@ export class AuthService {
 		};
 	}
 
-	async me(
-		requestUser: { id: string; role: number } | undefined,
-		refreshToken: string | undefined,
-	): Promise<MeResponseDto> {
-		// Scenarijus 1: accessToken buvo validus
-		if (requestUser) {
-			const user = await this.authRepository.findById(requestUser.id);
-
-			if (!user) {
-				throw AppError.unauthorized('Vartotojas nerastas');
-			}
-
-			const courseOrder = await this.authRepository.getUserCourseOrder(user.id);
-			const userInfo = this.buildUserInfo(user, courseOrder);
-
-			return { user: userInfo };
-		}
-
-		// Scenarijus 2: bandome refreshToken
-		if (!refreshToken) {
-			throw AppError.unauthorized('Prašome prisijungti');
-		}
-
-		// Verifikuojame refreshToken
-		const decoded = await this.tokenService.verifyRefreshToken(refreshToken);
-
-		// Tikriname ar refreshToken hash sutampa su DB
-		const refreshTokenHash = this.tokenService.hashToken(refreshToken);
-		const user = await this.authRepository.findByRefreshTokenHash(refreshTokenHash);
+	async me(userPayload: any, refreshToken?: string): Promise<MeResponseDto> {
+		// Get user from database to ensure latest data
+		const user = await this.authRepository.findById(userPayload.id);
 
 		if (!user) {
-			throw AppError.unauthorized('Sesija nebegalioja');
+			throw AppError.unauthorized('Vartotojas nerastas');
 		}
 
-		// Generuojame naujus tokenus
 		const courseOrder = await this.authRepository.getUserCourseOrder(user.id);
-		const {
-			accessToken,
-			refreshToken: newRefreshToken,
-			refreshTokenHash: newHash,
-		} = this.tokenService.generateTokenPair(user);
-
-		// Atnaujiname refreshToken DB
-		await this.authRepository.updateRefreshToken(user.id, newHash);
-
 		const userInfo = this.buildUserInfo(user, courseOrder);
 
+		// If refresh token provided, validate and potentially rotate
+		if (refreshToken) {
+			try {
+				await this.tokenService.verifyRefreshToken(refreshToken);
+				const tokenHash = this.tokenService.hashToken(refreshToken);
+				const tokenUser = await this.authRepository.findByRefreshTokenHash(tokenHash);
+
+				if (tokenUser && tokenUser.id === user.id) {
+					// Token is valid, rotate it
+					const {
+						accessToken,
+						refreshToken: newRefreshToken,
+						refreshTokenHash,
+					} = this.tokenService.generateTokenPair(user);
+
+					await this.authRepository.updateRefreshToken(user.id, refreshTokenHash);
+
+					return {
+						user: userInfo,
+						accessToken,
+						refreshToken: newRefreshToken,
+					};
+				}
+			} catch (err) {
+				// Token invalid or expired, just return user info
+			}
+		}
+
+		// No token rotation, just return user info
 		return {
 			user: userInfo,
-			accessToken,
-			refreshToken: newRefreshToken,
 		};
 	}
 
@@ -187,12 +183,11 @@ export class AuthService {
 		}
 
 		try {
-			const { token, hashedToken, expiresAt } = this.tokenService.generatePasswordResetToken();
-
+			const { token, hashedToken, expiresAt } =
+				this.tokenService.generatePasswordResetToken();
 			await this.authRepository.setPasswordResetToken(email, hashedToken, expiresAt);
 
 			const resetUrl = `${baseUrl}/keisti-slaptazodi/${token}`;
-			console.log(resetUrl);
 			await this.emailService.sendPasswordReset(email, resetUrl);
 		} catch (err) {
 			await this.authRepository.clearPasswordResetToken(email);
@@ -222,7 +217,10 @@ export class AuthService {
 		await this.authRepository.updatePassword(user.email, passwordHash);
 	}
 
-	private buildUserInfo(user: UserWithSubscription, courseOrder: CourseOrder | null): UserResponseDto {
+	private buildUserInfo(
+		user: UserWithSubscription,
+		courseOrder: CourseOrder | null,
+	): UserResponseDto {
 		const today = Date.parse(new Date().toLocaleString('lt-LT', { dateStyle: 'short' }));
 		const subs_exp = Date.parse(
 			new Date(user.subscription_expires).toLocaleString('lt-LT', { dateStyle: 'short' }),

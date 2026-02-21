@@ -2,6 +2,8 @@ import { authConfig } from '../config';
 import { AuthService } from '../service/AuthService';
 import { Request, Response } from 'express';
 import type { LoginRequestDto, SignupRequestDto, ForgotPasswordRequestDto, UpdatePasswordRequestDto } from '../schemas';
+import { recordLoginAttempt } from '../middleware/LoginRateLimiter';
+import { recordSignupAttempt } from '../middleware/SignupRateLimiter';
 
 export class AuthController {
 	private authService: AuthService;
@@ -12,7 +14,7 @@ export class AuthController {
 		this.signup = this.signup.bind(this);
 		this.login = this.login.bind(this);
 		this.refresh = this.refresh.bind(this);
-        this.me = this.me.bind(this);
+		this.me = this.me.bind(this);
 		this.logout = this.logout.bind(this);
 		this.forgotPassword = this.forgotPassword.bind(this);
 		this.validateResetToken = this.validateResetToken.bind(this);
@@ -22,25 +24,47 @@ export class AuthController {
 	async signup(req: Request, res: Response): Promise<void> {
 		const { name, email, initialTarget, password } = req.body as SignupRequestDto;
 
-		await this.authService.signup({ name, email, initialTarget, password });
+		try {
+			await this.authService.signup({ name, email, initialTarget, password });
 
-		res.status(201).json({
-			status: 'success',
-			message: 'Successfully registered',
-		});
+			// Record successful signup attempt
+			await recordSignupAttempt(res, true);
+
+			res.status(201).json({
+				status: 'success',
+				message: 'Successfully registered',
+			});
+		} catch (error) {
+			// Record failed signup attempt
+			await recordSignupAttempt(res, false);
+
+			// Re-throw error to be handled by global error handler
+			throw error;
+		}
 	}
 
 	async login(req: Request, res: Response): Promise<void> {
 		const { email, password } = req.body as LoginRequestDto;
-		const { accessToken, refreshToken, user } = await this.authService.login(email, password);
+		try {
+			const { accessToken, refreshToken, user } = await this.authService.login(email, password);
 
-		this.setRefreshTokenCookie(res, refreshToken);
+			// Record successful login attempt
+			await recordLoginAttempt(res, true);
 
-		res.status(200).json({
-			status: 'success',
-			accessToken,
-			user,
-		});
+			this.setRefreshTokenCookie(res, refreshToken);
+
+			res.status(200).json({
+				status: 'success',
+				accessToken,
+				user,
+			});
+		} catch (error) {
+			// Record failed login attempt
+			await recordLoginAttempt(res, false);
+
+			// Re-throw error to be handled by global error handler
+			throw error;
+		}
 	}
 
 	async refresh(req: Request, res: Response): Promise<void> {
@@ -63,7 +87,7 @@ export class AuthController {
 	}
 
 	async me(req: Request, res: Response): Promise<void> {
-		const refreshToken = req.cookies?.refreshToken;
+		const refreshToken = req.cookies[authConfig.REFRESH_TOKEN_COOKIE];
 
 		const result = await this.authService.me(req.user, refreshToken);
 

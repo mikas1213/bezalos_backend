@@ -1,7 +1,7 @@
 module.exports = {
     apps: [{
         name: "bezalos.lt",
-        script: "./server.js",
+        script: "./dist/server.js",
         log_file: "./logs/combined.log",
         out_file: "./logs/out.log",
         error_file: "./logs/error.log",
