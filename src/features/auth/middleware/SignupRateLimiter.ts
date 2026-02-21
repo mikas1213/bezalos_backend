@@ -43,16 +43,15 @@ export class SignupRateLimiter {
 					const retryAfterSeconds = await this.loginAttemptService.getRetryAfterSeconds(
 						ip,
 						null,
-						'signup'
+						'signup',
 					);
-					const retryAfterMinutes = Math.ceil(retryAfterSeconds / 60);
 
 					res.setHeader('Retry-After', retryAfterSeconds.toString());
 					res.setHeader('X-RateLimit-Limit', this.maxAttemptsPerIp.toString());
 					res.setHeader('X-RateLimit-Remaining', '0');
 
 					throw AppError.tooManyRequests(
-						`Too many signup attempts. Please try again in ${retryAfterMinutes} minutes.`
+						`Too many signup attempts. Please try again in ${retryAfterSeconds} seconds.`,
 					);
 				}
 
@@ -63,7 +62,12 @@ export class SignupRateLimiter {
 
 				// Attach helper to record attempt after signup completes
 				res.locals.recordSignupAttempt = async (success: boolean) => {
-					await this.loginAttemptService.recordAttempt(ip, email ?? null, success, 'signup');
+					await this.loginAttemptService.recordAttempt(
+						ip,
+						email ?? null,
+						success,
+						'signup',
+					);
 				};
 
 				res.locals.clientIp = ip;
