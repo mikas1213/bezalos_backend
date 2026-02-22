@@ -27,7 +27,8 @@ const sendErrorProd = (err: AppError, res: Response): Response => {
 		return res.status(err.statusCode ?? 500).json({
 			status: err.status,
 			message: err.message,
-			...(err.errors && { errors: err.errors }),
+			error: err,
+			// ...(err.errors && { errors: err.errors }),
 		});
 	}
 
