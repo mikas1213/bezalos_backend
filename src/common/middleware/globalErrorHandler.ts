@@ -7,7 +7,7 @@ interface AppError extends Error {
 	isOperational?: boolean;
 	errors?: Record<string, string[]>;
 }
-console.log('asf');
+
 const sendErrorDev = (err: AppError, res: Response): Response => {
 	console.error('ERROR 💥', err);
 	console.log('DEV-err.errors:', err.errors); // ← pridėk
@@ -27,7 +27,7 @@ const sendErrorProd = (err: AppError, res: Response): Response => {
 		return res.status(err.statusCode ?? 500).json({
 			status: err.status,
 			message: err.message,
-			error: err,
+			...(err.errors && { error: err }),
 			// ...(err.errors && { errors: err.errors }),
 		});
 	}
