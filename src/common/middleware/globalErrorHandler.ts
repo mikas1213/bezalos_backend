@@ -11,8 +11,7 @@ interface AppError extends Error {
 const sendErrorDev = (err: AppError, res: Response): Response => {
 	console.error('ERROR-dev 💥', err);
 	return res.status(err.statusCode ?? 500).json({
-		status: err.status ?? 'error',
-		error: err,
+		errors: err.errors,
 		message: err.message,
 		stack: err.stack,
 	});
@@ -21,9 +20,8 @@ const sendErrorDev = (err: AppError, res: Response): Response => {
 const sendErrorProd = (err: AppError, res: Response): Response => {
 	if (err.isOperational) {
 		return res.status(err.statusCode ?? 500).json({
-			status: err.status,
 			message: err.message,
-			...(err.errors && { error: err }),
+			...(err.errors && { errorr: err.errors }),
 		});
 	}
 
