@@ -1,7 +1,12 @@
 import { authConfig } from '../config';
 import { AuthService } from '../service/AuthService';
 import { Request, Response } from 'express';
-import type { LoginRequestDto, SignupRequestDto, ForgotPasswordRequestDto, UpdatePasswordRequestDto } from '../schemas';
+import type {
+	LoginRequestDto,
+	SignupRequestDto,
+	ForgotPasswordRequestDto,
+	UpdatePasswordRequestDto,
+} from '../schemas';
 import { recordLoginAttempt } from '../middleware/LoginRateLimiter';
 import { recordSignupAttempt } from '../middleware/SignupRateLimiter';
 
@@ -46,7 +51,10 @@ export class AuthController {
 	async login(req: Request, res: Response): Promise<void> {
 		const { email, password } = req.body as LoginRequestDto;
 		try {
-			const { accessToken, refreshToken, user } = await this.authService.login(email, password);
+			const { accessToken, refreshToken, user } = await this.authService.login(
+				email,
+				password,
+			);
 
 			// Record successful login attempt
 			await recordLoginAttempt(res, true);
@@ -119,7 +127,8 @@ export class AuthController {
 
 		res.status(200).json({
 			status: 'success',
-			message: 'Jei toks vartotojas egzistuoja, slaptažodžio atstatymo nuoroda išsiųsta į el. paštą.',
+			message:
+				'Jei toks vartotojas egzistuoja, slaptažodžio atstatymo nuoroda išsiųsta į el. paštą.',
 		});
 	}
 
