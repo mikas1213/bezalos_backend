@@ -230,108 +230,116 @@ exports.forgotPassword = async (req, res) => {
 };
 */
 exports.resetPassword = async (req, res) => {
-    
-    const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
-    const user = await db.query('SELECT email FROM users WHERE "password_reset_token" = $1 AND password_reset_expires > $2', [hashedToken, new Date(Date.now()).toISOString()]);
-    
-    if(!user.rows.length) {
-        return res.status(500).json({
-            status: 'error',
-            message: 'Nuoroda neteisinga, arba nebegaliojanti.'
-        });
-    }
+	const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+	const user = await db.query(
+		'SELECT email FROM users WHERE "password_reset_token" = $1 AND password_reset_expires > $2',
+		[hashedToken, new Date(Date.now()).toISOString()],
+	);
 
-    res.json({data: user.rows[0]});
+	if (!user.rows.length) {
+		return res.status(500).json({
+			status: 'error',
+			message: 'Nuoroda neteisinga, arba nebegaliojanti.',
+		});
+	}
+
+	res.json({ data: user.rows[0] });
 };
 
 exports.updatePassword = async (req, res, next) => {
-    const errors = validationResult(req);
-    
-    // I Get user based on the token
-    const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
-    const user = await db.query('SELECT email FROM users WHERE "password_reset_token" = $1 AND password_reset_expires > $2', [hashedToken, new Date(Date.now()).toISOString()]);
-    if(!user.rows.length) {
-        return res.status(400).json({
-            status: 'error',
-            message: 'Nuoroda neteisinga, arba nebegaliojanti.'
-        });
-    }
+	const errors = validationResult(req);
 
-    if(!errors.isEmpty() && errors.errors[0].path === 'password') {
-        return res.status(400).json({ message: errors.errors[0].msg });
-    }
+	// I Get user based on the token
+	const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+	const user = await db.query(
+		'SELECT email FROM users WHERE "password_reset_token" = $1 AND password_reset_expires > $2',
+		[hashedToken, new Date(Date.now()).toISOString()],
+	);
+	if (!user.rows.length) {
+		return res.status(400).json({
+			status: 'error',
+			message: 'Nuoroda neteisinga, arba nebegaliojanti.',
+		});
+	}
 
-    if(!errors.isEmpty() && errors.errors[0].path === 'passwordConfirmed') {
-        return res.status(400).json({ message: errors.errors[0].msg });
-    }
+	if (!errors.isEmpty() && errors.errors[0].path === 'password') {
+		return res.status(400).json({ message: errors.errors[0].msg });
+	}
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(req.body.password, salt);
-    
-    await db.query('UPDATE users SET password = $1, password_reset_token = $2, password_reset_expires = $3 WHERE email = $4', [hashedPassword, null, null, user.rows[0].email]);    
-    res.status(200).json({
-        status: 'Success',
-        message: 'Slaptažodis sėkmingai pakeistas.'
-    });
+	if (!errors.isEmpty() && errors.errors[0].path === 'passwordConfirmed') {
+		return res.status(400).json({ message: errors.errors[0].msg });
+	}
 
-    // II If token has not expired, and there is user, set the NEW password
+	const salt = await bcrypt.genSalt(10);
+	const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
-    // III Update changePasswordAt property for user in DB
+	await db.query(
+		'UPDATE users SET password = $1, password_reset_token = $2, password_reset_expires = $3 WHERE email = $4',
+		[hashedPassword, null, null, user.rows[0].email],
+	);
+	res.status(200).json({
+		status: 'Success',
+		message: 'Slaptažodis sėkmingai pakeistas.',
+	});
 
-    // IV Log the user in, setn JWT
-    
+	// II If token has not expired, and there is user, set the NEW password
+
+	// III Update changePasswordAt property for user in DB
+
+	// IV Log the user in, setn JWT
 };
 
 exports.protect = (req, res, next) => {
-    const authHeader = req.headers['authorization'] || req.headers.Authorization;
-    if(!authHeader?.startsWith('Bearer ')) return res.sendStatus(401);
-    
-    const token = authHeader.split(' ').pop();
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-        if(err) return res.sendStatus(403);
-        
-        req.user_id = decoded.user_id;
-        req.user_name = decoded.user_name;
-        req.user_role = decoded.user_role;
-        req.user_subscription = decoded.user_subscription;
-        req.is_course = decoded.is_course,
-        req.str_cus_id = decoded.str_cus_id;
-        req.user_s_subscription = decoded.user_s_subscription
-        req.s_status = decoded.s_status;
-        req.u_status = decoded.u_status;
-        next();
-    });
+	const authHeader = req.headers['authorization'] || req.headers.Authorization;
+	if (!authHeader?.startsWith('Bearer ')) return res.sendStatus(401);
+
+	const token = authHeader.split(' ').pop();
+	jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+		if (err) return res.sendStatus(403);
+
+		req.user_id = decoded.user_id;
+		req.user_name = decoded.user_name;
+		req.user_role = decoded.user_role;
+		req.user_subscription = decoded.user_subscription;
+		((req.is_course = decoded.is_course), (req.str_cus_id = decoded.str_cus_id));
+		req.user_s_subscription = decoded.user_s_subscription;
+		req.s_status = decoded.s_status;
+		req.u_status = decoded.u_status;
+		next();
+	});
 };
 
 exports.isSubscription = (...allowedSubscriptionTypes) => {
-    return (req, res, next) => {
-        const {user_subscription, user_s_subscription, u_status, s_status} = req;   
-        const u_sub = user_subscription && allowedSubscriptionTypes.includes(u_status);
-        const s_sub = user_s_subscription && allowedSubscriptionTypes.includes(s_status);
-        const is_sub = !(u_sub || s_sub);
+	return (req, res, next) => {
+		const { user_subscription, user_s_subscription, u_status, s_status } = req;
+		const u_sub = user_subscription && allowedSubscriptionTypes.includes(u_status);
+		const s_sub = user_s_subscription && allowedSubscriptionTypes.includes(s_status);
+		const is_sub = !(u_sub || s_sub);
 
-        if(is_sub) return res.status(402).json({
-            error: 'Payment Required',
-            type: 'subscription'
-        });
+		if (is_sub)
+			return res.status(402).json({
+				error: 'Payment Required',
+				type: 'subscription',
+			});
 
-        next();
-    };
-}
+		next();
+	};
+};
 
 exports.isCourse = async (req, res, next) => {
-    if(!req?.is_course) return res.status(402).json({
-        error: 'Payment Required',
-        type: 'course'
-    });
+	if (!req?.is_course)
+		return res.status(402).json({
+			error: 'Payment Required',
+			type: 'course',
+		});
 
-    next();
+	next();
 };
 
 exports.verifyRoles = (...allowedRoles) => {
-    return (req, res, next) => {
-        if(!req.user_role) return res.sendStatus(401);
-        if(!allowedRoles.includes(req.user_role)) return res.sendStatus(401);
-        next();
-    }
-}
+	return (req, res, next) => {
+		if (!req.user_role) return res.sendStatus(401);
+		if (!allowedRoles.includes(req.user_role)) return res.sendStatus(401);
+		next();
+	};
+};
