@@ -294,17 +294,70 @@ exports.protect = (req, res, next) => {
 	if (!authHeader?.startsWith('Bearer ')) return res.sendStatus(401);
 
 	const token = authHeader.split(' ').pop();
-	jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+	jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, decoded) => {
 		if (err) return res.sendStatus(403);
 
+		// req.user_id = decoded.user_id;
+		// req.user_role = decoded.user_role;
+		// req.user_name = decoded.user_name;
+		// req.user_subscription = decoded.user_subscription;
+		// ((req.is_course = decoded.is_course), (req.str_cus_id = decoded.str_cus_id));
+		// req.user_s_subscription = decoded.user_s_subscription;
+		// req.s_status = decoded.s_status;
+		// req.u_status = decoded.u_status;
+
+		/* - - - - - - - - - - - - - - - TEMPORARY CODE START - - - - - - - - - - - - - - - */
 		req.user_id = decoded.user_id;
-		req.user_name = decoded.user_name;
 		req.user_role = decoded.user_role;
-		req.user_subscription = decoded.user_subscription;
-		((req.is_course = decoded.is_course), (req.str_cus_id = decoded.str_cus_id));
-		req.user_s_subscription = decoded.user_s_subscription;
-		req.s_status = decoded.s_status;
-		req.u_status = decoded.u_status;
+
+		const { rows } = await db.query(
+			`
+            SELECT email, stripe_customer_id, subscription_expires, 
+                   subscription_type AS u_status, s.status AS s_status, 
+                   s.current_period_end AS s_subscription_expires
+            FROM users 
+            LEFT JOIN subscriptions AS s ON s.user_id = users.id 
+            WHERE users.id = $1
+        `,
+			[decoded.user_id],
+		);
+
+		if (!rows[0]) return res.sendStatus(401);
+
+		const today = Date.parse(new Date().toLocaleString('lt-LT', { dateStyle: 'short' }));
+		const subs_exp = Date.parse(
+			new Date(rows[0].subscription_expires).toLocaleString('lt-LT', { dateStyle: 'short' }),
+		);
+		const s_subs_exp = Date.parse(
+			new Date(rows[0].s_subscription_expires).toLocaleString('lt-LT', {
+				dateStyle: 'short',
+			}),
+		);
+
+		req.user_name = rows[0].email;
+		req.str_cus_id = rows[0].stripe_customer_id;
+		req.user_subscription = subs_exp >= today;
+		req.user_s_subscription = s_subs_exp >= today;
+		req.u_status = rows[0].u_status;
+		req.s_status = rows[0].s_status;
+
+		// Course check
+		const {
+			rows: [course],
+		} = await db.query(
+			`
+            SELECT CASE WHEN (CURRENT_TIMESTAMP - o.created_at) <= INTERVAL '90 days' 
+                THEN true ELSE false END AS is_course
+            FROM orders AS o
+            LEFT JOIN services AS s ON s.id = o.service_id
+            WHERE o.user_id = $1 AND s.category = 'Kursai'
+            ORDER BY o.created_at DESC LIMIT 1
+        `,
+			[decoded.user_id],
+		);
+
+		req.is_course = course?.is_course || false;
+		/* - - - - - - - - - - - - - - - TEMPORARY CODE END - - - - - - - - - - - - - - - */
 		next();
 	});
 };

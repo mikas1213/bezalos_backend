@@ -104,6 +104,7 @@ exports.paymentSuccess = async (req, res) => {
 	}
 
 	if (event_type === 'customer.subscription.updated') {
+		console.log('customer.subscription.updated', data);
 		const subs_start = new Date(data.object.current_period_start * 1000).toLocaleString(
 			'lt-LT',
 			{ dateStyle: 'short', timeStyle: 'medium' },
