@@ -233,7 +233,7 @@ export class AuthService {
 			user_id: user.id,
 			user_name: user.email,
 			user_role: user.role,
-			str_cus_id: user.stripe_customer_id,
+			// str_cus_id: user.stripe_customer_id,
 			user_subscription: subs_exp >= today,
 			user_s_subscription: s_subs_exp >= today,
 			u_status: user.u_status,
