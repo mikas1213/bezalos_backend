@@ -8,6 +8,7 @@ process.on('uncaughtException', (err) => {
 
 const express = require('express');
 const app = express();
+app.set('trust proxy', true);
 const logRoutes = require('./utils/listRoutes');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
