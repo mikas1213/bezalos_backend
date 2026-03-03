@@ -10,12 +10,6 @@ import type { UserWithSubscription, CourseOrder } from '../types';
 import type { ForgotPasswordResponseDto } from '../repositories/types';
 import type { UserResponseDto } from './types';
 
-interface MeResponseDto {
-	user: UserResponseDto;
-	accessToken?: string;
-	refreshToken?: string;
-}
-
 export class AuthService {
 	private authRepository: AuthRepository;
 	private tokenService: TokenService;
@@ -114,51 +108,6 @@ export class AuthService {
 		return {
 			accessToken,
 			newRefreshToken,
-			user: userInfo,
-		};
-	}
-
-	async me(userPayload: any, refreshToken?: string): Promise<MeResponseDto> {
-		// Get user from database to ensure latest data
-		const user = await this.authRepository.findById(userPayload.id);
-
-		if (!user) {
-			throw AppError.unauthorized('Vartotojas nerastas');
-		}
-
-		const courseOrder = await this.authRepository.getUserCourseOrder(user.id);
-		const userInfo = this.buildUserInfo(user, courseOrder);
-
-		// If refresh token provided, validate and potentially rotate
-		if (refreshToken) {
-			try {
-				await this.tokenService.verifyRefreshToken(refreshToken);
-				const tokenHash = this.tokenService.hashToken(refreshToken);
-				const tokenUser = await this.authRepository.findByRefreshTokenHash(tokenHash);
-
-				if (tokenUser && tokenUser.id === user.id) {
-					// Token is valid, rotate it
-					const {
-						accessToken,
-						refreshToken: newRefreshToken,
-						refreshTokenHash,
-					} = this.tokenService.generateTokenPair(user);
-
-					await this.authRepository.updateRefreshToken(user.id, refreshTokenHash);
-
-					return {
-						user: userInfo,
-						accessToken,
-						refreshToken: newRefreshToken,
-					};
-				}
-			} catch (err) {
-				// Token invalid or expired, just return user info
-			}
-		}
-
-		// No token rotation, just return user info
-		return {
 			user: userInfo,
 		};
 	}

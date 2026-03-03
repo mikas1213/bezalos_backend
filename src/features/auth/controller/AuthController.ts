@@ -19,7 +19,6 @@ export class AuthController {
 		this.signup = this.signup.bind(this);
 		this.login = this.login.bind(this);
 		this.refresh = this.refresh.bind(this);
-		this.me = this.me.bind(this);
 		this.logout = this.logout.bind(this);
 		this.forgotPassword = this.forgotPassword.bind(this);
 		this.validateResetToken = this.validateResetToken.bind(this);
@@ -91,22 +90,6 @@ export class AuthController {
 			status: 'success',
 			accessToken,
 			user,
-		});
-	}
-
-	async me(req: Request, res: Response): Promise<void> {
-		const refreshToken = req.cookies[authConfig.REFRESH_TOKEN_COOKIE];
-
-		const result = await this.authService.me(req.user, refreshToken);
-
-		if (result.accessToken && result.refreshToken) {
-			this.setRefreshTokenCookie(res, result.refreshToken);
-		}
-
-		res.status(200).json({
-			status: 'success',
-			accessToken: result.accessToken || undefined,
-			user: result.user,
 		});
 	}
 
