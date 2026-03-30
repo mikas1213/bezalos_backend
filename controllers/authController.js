@@ -1,10 +1,10 @@
 const db = require('../database/db');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const crypto = require('crypto');
+// const bcrypt = require('bcryptjs');
+// const crypto = require('crypto');
 
-const Email = require('../utils/email');
-const { validationResult } = require('express-validator');
+// const Email = require('../utils/email');
+// const { validationResult } = require('express-validator');
 
 // signup
 /*
@@ -190,7 +190,6 @@ exports.logout = async (req, res) => {
     res.sendStatus(204);
 }
 */
-
 // forgotPassword
 /*
 exports.forgotPassword = async (req, res) => {
@@ -233,6 +232,8 @@ exports.forgotPassword = async (req, res) => {
     }
 };
 */
+// resetPassword
+/*
 exports.resetPassword = async (req, res) => {
 	const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
 	const user = await db.query(
@@ -249,7 +250,9 @@ exports.resetPassword = async (req, res) => {
 
 	res.json({ data: user.rows[0] });
 };
-
+*/
+// updatePassword
+/*
 exports.updatePassword = async (req, res, next) => {
 	const errors = validationResult(req);
 
@@ -292,6 +295,7 @@ exports.updatePassword = async (req, res, next) => {
 
 	// IV Log the user in, setn JWT
 };
+*/
 
 exports.protect = (req, res, next) => {
 	const authHeader = req.headers['authorization'] || req.headers.Authorization;

@@ -32,7 +32,7 @@ export interface UserResponseDto {
 	user_name: string;
 	user_role: Role;
 	is_course: boolean;
-	// str_cus_id: string;
+	displayName: string;
 	user_subscription: boolean;
 	user_s_subscription: boolean;
 	u_status: Ustaus;

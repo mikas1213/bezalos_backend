@@ -39,6 +39,9 @@ export class AppError extends Error {
 	static unauthorized(message: string = 'Unauthorized'): AppError {
 		return new AppError(message, 401);
 	}
+	static paymentRequired(message: string = 'Payment required'): AppError {
+		return new AppError(message, 402);
+	}
 
 	static forbidden(message: string = 'Forbidden'): AppError {
 		return new AppError(message, 403);

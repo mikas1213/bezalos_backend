@@ -1,4 +1,5 @@
 import { Server } from 'socket.io';
+export type VideoCategory = 'Kursai' | 'Nemokamas' | 'Pokalbis' | 'Trumpai' | 'Vebinaras';
 
 declare global {
 	namespace NodeJS {
@@ -15,6 +16,11 @@ declare global {
 				id: string;
 				role: number;
 			};
+			video?: {
+				category: VideoCategory;
+			};
+			userHasCourse?: boolean;
+			userHasSubscription?: boolean;
 		}
 	}
 }

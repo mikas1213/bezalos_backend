@@ -1,13 +1,13 @@
 import { Request, Response } from 'express';
 process.on('uncaughtException', (err) => {
-    console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
-    console.error(err.name, err.message, err.stack);
-    process.exit(1);
+	console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+	console.error(err.name, err.message, err.stack);
+	process.exit(1);
 });
 
 import dotenv, { DotenvConfigOptions } from 'dotenv';
 const options: DotenvConfigOptions = {
-    path: './.env_bezalos'
+	path: './.env_bezalos',
 };
 dotenv.config(options);
 
@@ -25,15 +25,27 @@ import { rateLimiter } from './common/middleware/rateLimiter';
 
 import container from './container';
 import { createAuthRouter } from './features/auth/routes/authRoutes';
-const authController = container.resolve('AuthController');
 const loginRateLimiter = container.resolve('LoginRateLimiter');
 const signupRateLimiter = container.resolve('SignupRateLimiter');
+const authMiddleware = container.resolve('AuthMiddleware');
+const authController = container.resolve('AuthController');
 
+import { createTagsRouter } from './features/client/tags';
+const tagsController = container.resolve('TagsController');
+
+import { createVirtuveRouter } from './features/client/virtuve';
+const virtuveController = container.resolve('VirtuveController');
+
+import { createLikesRouter } from './features/client/likes';
+const likesMiddleware = container.resolve('LikesMiddleware');
+const likesController = container.resolve('LikesController');
+
+import { createCommentsRouter } from './features/client/comments';
+const commentsController = container.resolve('CommentsController');
+const commentsMiddleware = container.resolve('CommentsMiddleware');
 
 /* R-O-U-T-E-S */
 const sitemapRouter = require('../routes/sitemapRoutes');
-const videoRouter = require('../routes/videoRoutes');
-const commentsRouter = require('../routes/commentsRoutes');
 const profileRouter = require('../routes/profileRoutes');
 const mailerRouter = require('../routes/mailerRoutes');
 const paymentRouter = require('../routes/paymentRoutes');
@@ -53,7 +65,6 @@ import { listApiEndpoints } from './common/utils/listApiEndpoints';
 import { Server } from 'socket.io';
 import { allowedOrigins } from './common/config/allowedOrigins';
 
-
 const app = express();
 app.set('trust proxy', 1);
 app.use(logger);
@@ -70,8 +81,10 @@ app.use(cors(corsOptions));
 app.use('/sitemap.xml', sitemapRouter);
 app.use('/api', rateLimiter);
 app.use('/api/v1/auth', createAuthRouter(authController, loginRateLimiter, signupRateLimiter));
-app.use('/api/v1/videos', videoRouter);
-app.use('/api/v1/comments', commentsRouter);
+app.use('/api/v1/tags', createTagsRouter(tagsController));
+app.use('/api/v1/like', createLikesRouter(likesController, authMiddleware, likesMiddleware));
+app.use('/api/v1/comments', createCommentsRouter(authMiddleware, commentsMiddleware, commentsController));
+app.use('/api/v1/virtuve', createVirtuveRouter(virtuveController, authMiddleware));
 app.use('/api/v1/profile', profileRouter);
 app.use('/api/v1/mailer', mailerRouter);
 app.use('/api/v1/payments', paymentRouter);
@@ -80,84 +93,83 @@ app.use('/api/v1/promo', promotionRouter);
 app.use('/api/v1/recipes', recipesRouter);
 app.use('/api/v1/likes', likesRouter);
 app.use('/api/v1/admin', [
-    adminPromotionsRouter,
-    adminServicesRouter,
-    adminRecipesRouter,
-    adminVideosRouter,
-    customersRouter, 
-    nutritionPlansRouter
+	adminPromotionsRouter,
+	adminServicesRouter,
+	adminRecipesRouter,
+	adminVideosRouter,
+	customersRouter,
+	nutritionPlansRouter,
 ]);
 app.get('/api/v1/config', (req: Request, res: Response) => {
-    res.json(process.env.SOCKET_URL);
+	res.json(process.env.SOCKET_URL);
 });
 
 app.all('*', (req: Request, res: Response) => {
-    res.status(404).json({
-        status: 'not found'
-    });
+	res.status(404).json({
+		status: 'not found',
+	});
 });
 app.use(globalErrorHandler);
 
-const server = app.listen(process.env.PORT || 3003, function() {
-    console.log(`Server running on ${process.env.PORT }`);
-    if(process.env.NODE_ENV === 'development_') listApiEndpoints(app);
+const server = app.listen(process.env.PORT || 3003, function () {
+	console.log(`Server running on ${process.env.PORT}`);
+	if (process.env.NODE_ENV === 'development_') listApiEndpoints(app);
 });
 
-server.timeout = 1800000;           // 30.00 minutes (default: 120000 = 2 min)
-server.keepAliveTimeout = 1810000;  // 30.16 minutes
-server.headersTimeout = 1815000;    // 30.25 minutes
+server.timeout = 1800000; // 30.00 minutes (default: 120000 = 2 min)
+server.keepAliveTimeout = 1810000; // 30.16 minutes
+server.headersTimeout = 1815000; // 30.25 minutes
 
 const io = new Server(server, {
-    cors: {
-        origin: allowedOrigins.filter(Boolean),
-        methods: ['GET', 'POST'],
-        allowedHeaders: ['Content-Type', 'Authorization'],
-        credentials: true
-    },
-    allowEIO3: true,
-    transports: ['websocket', 'polling'],
+	cors: {
+		origin: allowedOrigins.filter(Boolean),
+		methods: ['GET', 'POST'],
+		allowedHeaders: ['Content-Type', 'Authorization'],
+		credentials: true,
+	},
+	allowEIO3: true,
+	transports: ['websocket', 'polling'],
 });
 
 io.on('connection', (socket) => {
-    console.log(`SERVER: Client connected: ${socket.id}`);
-    
-    socket.on('disconnect', (reason) => {
-        console.log(`Client disconnected: ${socket.id}, reason: ${reason}`);
-    });
+	console.log(`SERVER: Client connected: ${socket.id}`);
 
-    socket.on('joinRoom', (roomId) => {
-        socket.join(roomId);
-        console.log(`Socket ${socket.id} joined room: ${roomId}`);
-    });
+	socket.on('disconnect', (reason) => {
+		console.log(`Client disconnected: ${socket.id}, reason: ${reason}`);
+	});
+
+	socket.on('joinRoom', (roomId) => {
+		socket.join(roomId);
+		console.log(`Socket ${socket.id} joined room: ${roomId}`);
+	});
 });
 
 global.io = io;
 
 process.on('unhandledRejection', (err: unknown) => {
-    console.error('UNHANDLED REJECTION! 💥 Shutting down...');
-    if(err instanceof Error) {
-        console.error(err.name, err.message);
-    } else {
-        console.error('Unknown rejection:', err);
-    }
-    server.close(() => {
-        process.exit(1);
-    });
+	console.error('UNHANDLED REJECTION! 💥 Shutting down...');
+	if (err instanceof Error) {
+		console.error(err.name, err.message);
+	} else {
+		console.error('Unknown rejection:', err);
+	}
+	server.close(() => {
+		process.exit(1);
+	});
 });
 
 process.on('SIGTERM', () => {
-    console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
-    server.close(() => {
-        console.log('💥 Process terminated!');
-        process.exit(1);
-    });
+	console.log('👋 SIGTERM RECEIVED. Shutting down gracefully');
+	server.close(() => {
+		console.log('💥 Process terminated!');
+		process.exit(1);
+	});
 });
 
-
 process.on('SIGINT', () => {
-    console.log('SIGINT received. Shutting down 📉 gracefully');
-    server.close(() => {
-        console.log('Process terminated!');
-        process.exit(1);
-    });
+	console.log('SIGINT received. Shutting down 📉 gracefully');
+	server.close(() => {
+		console.log('Process terminated!');
+		process.exit(1);
+	});
 });

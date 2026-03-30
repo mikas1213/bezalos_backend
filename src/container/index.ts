@@ -9,16 +9,42 @@ import { AuthMiddleware } from '../features/auth/middleware/AuthMiddleware';
 import { LoginAttemptService } from '../features/auth/service/LoginAttemptService';
 import { LoginRateLimiter } from '../features/auth/middleware/LoginRateLimiter';
 import { SignupRateLimiter } from '../features/auth/middleware/SignupRateLimiter';
+import { VirtuveRepository, VirtuveService, VirtuveController } from '../features/client/virtuve';
+import { TagsRepository, TagsService, TagsController } from '../features/client/tags';
+import { S3Service } from '../services/S3/S3Service';
+import { LikesRepository, LikesService, LikesController, LikesMiddleware } from '../features/client/likes';
+import { CommentsMiddleware, CommentsController, CommentsService, CommentsRepository } from '../features/client/comments';
 
 container.register('Database', Database, [], true);
 container.register('EmailService', EmailService, [], true);
 container.register('TokenService', TokenService, [], true);
-container.register('AuthRepository', AuthRepository, ['Database'], true)
+
+container.register('TagsRepository', TagsRepository, ['Database'], true);
+container.register('TagsService', TagsService, ['TagsRepository'], true);
+container.register('TagsController', TagsController, ['TagsService'], true);
+
+container.register('AuthRepository', AuthRepository, ['Database'], true);
 container.register('AuthService', AuthService, ['AuthRepository', 'TokenService', 'EmailService'], true);
 container.register('AuthController', AuthController, ['AuthService'], true);
-container.register('AuthMiddleware', AuthMiddleware, ['TokenService'], true);
+container.register('AuthMiddleware', AuthMiddleware, ['TokenService', 'Database'], true);
+
 container.register('LoginAttemptService', LoginAttemptService, ['Database'], true);
 container.register('LoginRateLimiter', LoginRateLimiter, ['LoginAttemptService'], true);
 container.register('SignupRateLimiter', SignupRateLimiter, ['LoginAttemptService'], true);
+
+container.register('S3Service', S3Service, [], true);
+container.register('VirtuveRepository', VirtuveRepository, ['Database'], true);
+container.register('VirtuveService', VirtuveService, ['VirtuveRepository', 'S3Service'], true);
+container.register('VirtuveController', VirtuveController, ['VirtuveService'], true);
+
+container.register('LikesMiddleware', LikesMiddleware, ['Database'], true);
+container.register('LikesRepository', LikesRepository, ['Database'], true);
+container.register('LikesService', LikesService, ['LikesRepository'], true);
+container.register('LikesController', LikesController, ['LikesService'], true);
+
+container.register('CommentsMiddleware', CommentsMiddleware, ['Database'], true);
+container.register('CommentsRepository', CommentsRepository, ['Database'], true);
+container.register('CommentsService', CommentsService, ['CommentsRepository'], true);
+container.register('CommentsController', CommentsController, ['CommentsService'], true);
 
 export default container;
