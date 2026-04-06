@@ -27,7 +27,8 @@ export class VirtuveRepository {
 			conditions.push(`v.title ILIKE $${params.length}`);
 		}
 
-		const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+		const where =
+			conditions.length > 0 ? `WHERE v.is_active = TRUE AND ${conditions.join(' AND ')}` : `WHERE v.is_active = TRUE`;
 
 		const offset = (page - 1) * limit;
 		params.push(limit);

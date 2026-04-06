@@ -26,7 +26,6 @@ export class AdminVirtuveRepository {
             AND l.entity_type = 'videos'
         LEFT JOIN comments AS c
             ON c.video_id = v.id
-        WHERE v.is_active = TRUE
         GROUP BY v.id`;
 
 		return await this.db.query(query);
