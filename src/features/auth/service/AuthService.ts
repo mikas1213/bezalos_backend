@@ -15,11 +15,7 @@ export class AuthService {
 	private tokenService: TokenService;
 	private emailService: EmailService;
 
-	constructor(
-		authRepository: AuthRepository,
-		tokenService: TokenService,
-		emailService: EmailService,
-	) {
+	constructor(authRepository: AuthRepository, tokenService: TokenService, emailService: EmailService) {
 		this.authRepository = authRepository;
 		this.tokenService = tokenService;
 		this.emailService = emailService;
@@ -58,8 +54,7 @@ export class AuthService {
 		}
 
 		const courseOrder = await this.authRepository.getUserCourseOrder(user.id);
-		const { accessToken, refreshToken, refreshTokenHash } =
-			this.tokenService.generateTokenPair(user);
+		const { accessToken, refreshToken, refreshTokenHash } = this.tokenService.generateTokenPair(user);
 
 		await this.authRepository.updateRefreshToken(user.id, refreshTokenHash);
 
@@ -96,11 +91,7 @@ export class AuthService {
 		const courseOrder = await this.authRepository.getUserCourseOrder(user.id);
 
 		// Token rotation - generuoti naujus tokenus
-		const {
-			accessToken,
-			refreshToken: newRefreshToken,
-			refreshTokenHash,
-		} = this.tokenService.generateTokenPair(user);
+		const { accessToken, refreshToken: newRefreshToken, refreshTokenHash } = this.tokenService.generateTokenPair(user);
 
 		await this.authRepository.updateRefreshToken(user.id, refreshTokenHash);
 		const userInfo = this.buildUserInfo(user, courseOrder);
@@ -132,8 +123,7 @@ export class AuthService {
 		}
 
 		try {
-			const { token, hashedToken, expiresAt } =
-				this.tokenService.generatePasswordResetToken();
+			const { token, hashedToken, expiresAt } = this.tokenService.generatePasswordResetToken();
 			await this.authRepository.setPasswordResetToken(email, hashedToken, expiresAt);
 
 			const resetUrl = `${baseUrl}/keisti-slaptazodi/${token}`;
@@ -166,23 +156,16 @@ export class AuthService {
 		await this.authRepository.updatePassword(user.email, passwordHash);
 	}
 
-	private buildUserInfo(
-		user: UserWithSubscription,
-		courseOrder: CourseOrder | null,
-	): UserResponseDto {
+	private buildUserInfo(user: UserWithSubscription, courseOrder: CourseOrder | null): UserResponseDto {
 		const today = Date.parse(new Date().toLocaleString('lt-LT', { dateStyle: 'short' }));
-		const subs_exp = Date.parse(
-			new Date(user.subscription_expires).toLocaleString('lt-LT', { dateStyle: 'short' }),
-		);
-		const s_subs_exp = Date.parse(
-			new Date(user.s_subscription_expires).toLocaleString('lt-LT', { dateStyle: 'short' }),
-		);
+		const subs_exp = Date.parse(new Date(user.subscription_expires).toLocaleString('lt-LT', { dateStyle: 'short' }));
+		const s_subs_exp = Date.parse(new Date(user.s_subscription_expires).toLocaleString('lt-LT', { dateStyle: 'short' }));
 
 		return {
 			user_id: user.id,
 			user_name: user.email,
 			user_role: user.role,
-			// str_cus_id: user.stripe_customer_id,
+			displayName: user.displayName,
 			user_subscription: subs_exp >= today,
 			user_s_subscription: s_subs_exp >= today,
 			u_status: user.u_status,

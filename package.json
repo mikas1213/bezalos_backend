@@ -54,6 +54,7 @@
 		"@types/express": "^5.0.6",
 		"@types/express-handlebars": "^5.3.1",
 		"@types/jsonwebtoken": "^9.0.10",
+		"@types/multer": "^2.1.0",
 		"@types/node": "^25.2.1",
 		"@types/pg": "^8.16.0",
 		"@types/uuid": "^10.0.0",

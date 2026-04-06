@@ -25,9 +25,7 @@ export class Database {
 			host: process.env.DB_HOST,
 			database: process.env.DB_NAME,
 			password: process.env.DB_PASSWORD,
-			port: process.env.DB_PORT
-				? parseInt(process.env.DB_PORT, 10)
-				: undefined,
+			port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : undefined,
 		});
 
 		this.pool.on('error', (err: Error) => {
@@ -59,9 +57,7 @@ export class Database {
 		return rows[0] ?? null;
 	}
 
-	async transaction<T>(
-		callback: (client: TransactionClient) => Promise<T>,
-	): Promise<T> {
+	async transaction<T>(callback: (client: TransactionClient) => Promise<T>): Promise<T> {
 		const client = await this.pool.connect();
 
 		try {
@@ -72,10 +68,7 @@ export class Database {
 					query: string,
 					params?: QueryParams,
 				): Promise<QueryResultRows<T>> {
-					const res: QueryResult<T> = await client.query(
-						query,
-						params,
-					);
+					const res: QueryResult<T> = await client.query(query, params);
 					return res.rows;
 				},
 
@@ -83,10 +76,7 @@ export class Database {
 					query: string,
 					params?: QueryParams,
 				): Promise<T | null> {
-					const res: QueryResult<T> = await client.query(
-						query,
-						params,
-					);
+					const res: QueryResult<T> = await client.query(query, params);
 					return res.rows[0] ?? null;
 				},
 			};
