@@ -12,39 +12,39 @@ class VideoRepository extends BaseRepository {
 		super(db, 'videos', mappings);
 	}
 
-	async findAllAdmin() {
-		const query = `SELECT 
-            v.*,
-            COALESCE(l.likes_count, 0)::FLOAT AS likes_count,
-            COALESCE(c.comments_count, 0)::FLOAT AS comments_count
-        FROM videos v
-        LEFT JOIN (
-            SELECT 
-                entity_id,
-                COUNT(*) AS likes_count
-            FROM likes
-            WHERE category_id = (
-                SELECT id 
-                FROM like_categories 
-                WHERE category_name = 'video'
-            )
-            GROUP BY entity_id
-        ) l ON v.id = l.entity_id
-        LEFT JOIN (
-            SELECT 
-                video_id,
-                COUNT(*) AS comments_count
-            FROM comments
-            GROUP BY video_id
-        ) c ON v.id = c.video_id ORDER BY v.created_at DESC;`;
+	// async findAllAdmin() {
+	// 	const query = `SELECT
+	//         v.*,
+	//         COALESCE(l.likes_count, 0)::FLOAT AS likes_count,
+	//         COALESCE(c.comments_count, 0)::FLOAT AS comments_count
+	//     FROM videos v
+	//     LEFT JOIN (
+	//         SELECT
+	//             entity_id,
+	//             COUNT(*) AS likes_count
+	//         FROM likes
+	//         WHERE category_id = (
+	//             SELECT id
+	//             FROM like_categories
+	//             WHERE category_name = 'video'
+	//         )
+	//         GROUP BY entity_id
+	//     ) l ON v.id = l.entity_id
+	//     LEFT JOIN (
+	//         SELECT
+	//             video_id,
+	//             COUNT(*) AS comments_count
+	//         FROM comments
+	//         GROUP BY video_id
+	//     ) c ON v.id = c.video_id ORDER BY v.created_at DESC;`;
 
-		try {
-			const data = await this.db.query(query);
-			return data.length ? data : null;
-		} catch (err) {
-			throw new DatabaseError(err.message, err);
-		}
-	}
+	// 	try {
+	// 		const data = await this.db.query(query);
+	// 		return data.length ? data : null;
+	// 	} catch (err) {
+	// 		throw new DatabaseError(err.message, err);
+	// 	}
+	// }
 
 	// async findById(userId, videoUrl) {
 	// 	const query = `

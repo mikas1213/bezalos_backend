@@ -19,6 +19,10 @@ declare global {
 			video?: {
 				category: VideoCategory;
 			};
+			// files: {
+			// 	video?: File;
+			// 	photo?: File;
+			// };
 			userHasCourse?: boolean;
 			userHasSubscription?: boolean;
 		}

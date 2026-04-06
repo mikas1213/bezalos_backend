@@ -28,34 +28,31 @@ const VideoDTO = require('../dto/video-create.dto');
 // });
 
 /* - - - A D M I N   C O N T R O L L E R S - - - */
-exports.getVideosAdmin = catchAsync(async (req, res) => {
-	const data = await videoService.getAllVideosAdmin();
-	res.status(200).json(data);
-});
+// exports.getVideosAdmin = catchAsync(async (req, res) => {
+// 	const data = await videoService.getAllVideosAdmin();
+// 	res.status(200).json(data);
+// });
 
-exports.addVideo = catchAsync(async (req, res) => {
-	const socketId = req.headers['x-socket-id'];
-	const videoDTO = new VideoDTO(req.body);
+// exports.addVideo = catchAsync(async (req, res) => {
+// 	const socketId = req.headers['x-socket-id'];
+// 	const videoDTO = new VideoDTO(req.body);
 
-	// await videoService.addOneVideo(videoDTO, req.files, socketId);
-	// res.sendStatus(201);
+// 	res.status(201).json({ success: true, message: 'Upload started' });
 
-	res.status(201).json({ success: true, message: 'Upload started' });
-
-	(async () => {
-		try {
-			await videoService.addOneVideo(videoDTO, req.files, socketId);
-			console.log('✅ Video upload completed');
-		} catch (err) {
-			console.error('❌ Background upload error:', err);
-			if (socketId && global.io) {
-				global.io.to(socketId).emit('uploadError', {
-					message: err.message || 'Video įkėlimas nepavyko',
-				});
-			}
-		}
-	})();
-});
+// 	(async () => {
+// 		try {
+// 			await videoService.addOneVideo(videoDTO, req.files, socketId);
+// 			console.log('✅ Video upload completed');
+// 		} catch (err) {
+// 			console.error('❌ Background upload error:', err);
+// 			if (socketId && global.io) {
+// 				global.io.to(socketId).emit('uploadError', {
+// 					message: err.message || 'Video įkėlimas nepavyko',
+// 				});
+// 			}
+// 		}
+// 	})();
+// });
 
 exports.updateVideo = catchAsync(async (req, res) => {
 	const { id: video_id } = req.params;

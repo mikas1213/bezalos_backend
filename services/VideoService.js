@@ -20,9 +20,9 @@ class VideoService {
 	 * @returns {Promise<Array>} Grąžina gautų duomenų masyvą.
 	 * @throws {DatabaseError} Jei įvyksta klaida vykdant užklausą.
 	 */
-	async getAllVideosAdmin() {
-		return await this.videoRepository.findAllAdmin();
-	}
+	// async getAllVideosAdmin() {
+	// 	return await this.videoRepository.findAllAdmin();
+	// }
 
 	// async getAllVideos(filters) {
 	// 	const data = await this.videoRepository.findAll(filters, undefined, {
@@ -130,12 +130,7 @@ class VideoService {
 					Bucket: process.env.AWS_BUCKET_NAME,
 					Key: videoDTO.video_s3_key,
 				});
-				await this.s3Service.uploadVideo(
-					video[0],
-					updatedData.video_s3_key,
-					video_id,
-					socketId,
-				);
+				await this.s3Service.uploadVideo(video[0], updatedData.video_s3_key, video_id, socketId);
 			}
 
 			if (!photo) {
@@ -158,12 +153,7 @@ class VideoService {
 					Bucket: process.env.AWS_BUCKET_NAME,
 					Key: videoDTO.video_s3_key,
 				});
-				await this.s3Service.uploadVideo(
-					video[0],
-					updatedData.video_s3_key,
-					video_id,
-					socketId,
-				);
+				await this.s3Service.uploadVideo(video[0], updatedData.video_s3_key, video_id, socketId);
 			}
 
 			if (photo) {

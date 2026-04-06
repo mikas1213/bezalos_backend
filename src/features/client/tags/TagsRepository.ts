@@ -1,4 +1,4 @@
-import { Database } from '../../../common/config/db';
+import type { Database } from '../../../common/config/db';
 import type { Feature, TagsFilterResult } from './types';
 
 export class TagsRepository {

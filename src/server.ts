@@ -44,6 +44,9 @@ import { createCommentsRouter } from './features/client/comments';
 const commentsController = container.resolve('CommentsController');
 const commentsMiddleware = container.resolve('CommentsMiddleware');
 
+import { adminCreateVirtuveRouter } from './features/admin/virtuve';
+const adminVirtuveController = container.resolve('AdminVirtuveController');
+
 /* R-O-U-T-E-S */
 const sitemapRouter = require('../routes/sitemapRoutes');
 const profileRouter = require('../routes/profileRoutes');
@@ -56,7 +59,6 @@ const likesRouter = require('../routes/likesRoutes');
 const adminPromotionsRouter = require('../routes/adminRoutes/adminPromotionsRoutes');
 const adminServicesRouter = require('../routes/adminRoutes/adminServicesRoutes');
 const adminRecipesRouter = require('../routes/adminRoutes/adminRecipesRoutes');
-const adminVideosRouter = require('../routes/adminRoutes/adminVideoRoutes');
 const customersRouter = require('../routes/adminRoutes/customersRoutes');
 const nutritionPlansRouter = require('../routes/adminRoutes/nutritionPlansRoutes');
 
@@ -92,19 +94,13 @@ app.use('/api/v1/services', servicesRouter);
 app.use('/api/v1/promo', promotionRouter);
 app.use('/api/v1/recipes', recipesRouter);
 app.use('/api/v1/likes', likesRouter);
-app.use('/api/v1/admin', [
-	adminPromotionsRouter,
-	adminServicesRouter,
-	adminRecipesRouter,
-	adminVideosRouter,
-	customersRouter,
-	nutritionPlansRouter,
-]);
-app.get('/api/v1/config', (req: Request, res: Response) => {
+app.use('/api/v1/admin/virtuve', adminCreateVirtuveRouter(authMiddleware, adminVirtuveController));
+app.use('/api/v1/admin', [adminPromotionsRouter, adminServicesRouter, adminRecipesRouter, customersRouter, nutritionPlansRouter]);
+app.get('/api/v1/config', (_req: Request, res: Response) => {
 	res.json(process.env.SOCKET_URL);
 });
 
-app.all('*', (req: Request, res: Response) => {
+app.all('*', (_req: Request, res: Response) => {
 	res.status(404).json({
 		status: 'not found',
 	});

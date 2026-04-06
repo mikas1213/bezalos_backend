@@ -19,13 +19,7 @@ const allow_fields = [
 	'video_s3_key',
 	'action',
 ];
-const allow_filters = [
-	'vebinaras',
-	'emocinis valgymas',
-	'mityba',
-	'trumpai',
-	'valgymo psichologija',
-];
+const allow_filters = ['vebinaras', 'emocinis valgymas', 'mityba', 'trumpai', 'valgymo psichologija'];
 
 exports.addVideoFormValidator = catchAsync(async (req, res, next) => {
 	const videoFile = req.files.video;
@@ -57,24 +51,18 @@ exports.addVideoFormValidator = catchAsync(async (req, res, next) => {
 
 		/* T I T L E */
 		if (!req.body.title) throw new ValidationError('Pavadinimas❗️');
-		if (req.body.title.length > 255)
-			throw new ValidationError('Pavadinimas per ilgas.\nMax 255 simboliai❗️');
+		if (req.body.title.length > 255) throw new ValidationError('Pavadinimas per ilgas.\nMax 255 simboliai❗️');
 
 		/* S L U G */
-		const slug_exists = await db.query(
-			queries[req.body.action]?.query,
-			queries[req.body.action]?.values,
-		);
-		if (slug_exists.rowCount && req.method === 'POST')
-			throw new ValidationError('Toks pavadinimas jau yra 🎬');
+		const slug_exists = await db.query(queries[req.body.action]?.query, queries[req.body.action]?.values);
+		if (slug_exists.rowCount && req.method === 'POST') throw new ValidationError('Toks pavadinimas jau yra 🎬');
 
 		/* D E S C R I P T I O N */
 		if (!req.body.description) throw new ValidationError('Aprašymas! 📄');
 
 		/* V I D E O   T Y P E */
 		if (!req.body.video_type) throw new ValidationError('Video tipas! 🎬');
-		if (!['kursai', 'virtuve'].includes(req.body.video_type))
-			throw new ValidationError('Neteisingas video tipas! 🎬');
+		if (!['kursai', 'virtuve'].includes(req.body.video_type)) throw new ValidationError('Neteisingas video tipas! 🎬');
 
 		/* C A T E G O R Y */
 		if (!req.body.category) throw new ValidationError('Video kategorija! 🎬');
@@ -85,13 +73,11 @@ exports.addVideoFormValidator = catchAsync(async (req, res, next) => {
 		if (!req.body.duration.trim()) throw new ValidationError('Video trukmė! 🎬');
 		if (req.body.duration.trim() === '00:00:00') throw new ValidationError('Video trukmė! 🎬');
 		const duration_regexp = new RegExp(/^(?!00:00:00)(?:\d{1,3}):[0-5]\d:[0-5]\d$/);
-		if (!duration_regexp.test(req.body.duration))
-			throw new ValidationError('Netinkamas formatas! 🎬\nFormatas: (hh:mm:ss)');
+		if (!duration_regexp.test(req.body.duration)) throw new ValidationError('Netinkamas formatas! 🎬\nFormatas: (hh:mm:ss)');
 
 		/* I S   A C T I V E */
 		if (!req.body.is_active) throw new ValidationError('Nenurodyta ar video yra aktyvus! 🎬');
-		if (!['true', 'false'].includes(req.body.is_active))
-			throw new ValidationError('Neteisingas aktyvumo statusas! 🎬');
+		if (!['true', 'false'].includes(req.body.is_active)) throw new ValidationError('Neteisingas aktyvumo statusas! 🎬');
 
 		/* F I L T E R S */
 		if (!req.body.search_tag) throw new ValidationError('Filtrai 🔖');
