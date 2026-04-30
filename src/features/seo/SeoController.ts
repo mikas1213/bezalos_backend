@@ -4,13 +4,18 @@ import { AppError } from '../../common/errors/AppError';
 
 const S3_BASE = 'https://bezalos.s3.us-east-1.amazonaws.com/';
 
+const toIsoDuration = (hms: string): string => {
+	const [h, m, s] = hms.split(':').map(Number);
+	return `PT${h ? h + 'H' : ''}${m ? m + 'M' : ''}${s ? s + 'S' : ''}`;
+};
+
 const buildVideoMetaHtml = (video: Awaited<ReturnType<VirtuveService['getOneVideo']>>) => {
 	if (!video) return '';
 
 	const pageUrl = `https://www.bezalos.lt/virtuve/${video.slug}`;
 	const thumbnailUrl = `${S3_BASE}${video.imageS3Key}`;
 	const description = video.description.slice(0, 160);
-	const uploadDate = new Date(video.createdAt).toISOString().split('T')[0];
+	const uploadDate = new Date(video.createdAt).toISOString();
 
 	const schema = JSON.stringify({
 		'@context': 'https://schema.org',
@@ -20,7 +25,7 @@ const buildVideoMetaHtml = (video: Awaited<ReturnType<VirtuveService['getOneVide
 		thumbnailUrl,
 		uploadDate,
 		...(video.contentUrl && { contentUrl: video.contentUrl }),
-		duration: video.duration,
+		duration: toIsoDuration(video.duration),
 		keywords: [video.title, 'virtuvė', 'be žalos', 'sveikas maistas', ...video.videoTags].join(', '),
 		author: { '@type': 'Person', name: 'Be žalos' },
 	});
