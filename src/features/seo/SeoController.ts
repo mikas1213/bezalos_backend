@@ -46,7 +46,6 @@ const buildVideoMetaHtml = (video: Awaited<ReturnType<VirtuveService['getOneVide
   <meta name="twitter:image" content="${thumbnailUrl}">
   ${video.contentUrl ? `<meta name="twitter:player" content="${video.contentUrl}">` : ''}
   <script type="application/ld+json">${schema}</script>
-  <script>window.location.replace("${pageUrl}");</script>
 </head>
 <body></body>
 </html>`;
