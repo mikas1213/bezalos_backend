@@ -15,6 +15,8 @@ import { TagsRepository, TagsService, TagsController } from '../features/client/
 import { S3Service } from '../services/S3/S3Service';
 import { LikesRepository, LikesService, LikesController, LikesMiddleware } from '../features/client/likes';
 import { CommentsMiddleware, CommentsController, CommentsService, CommentsRepository } from '../features/client/comments';
+import { SitemapController, SitemapService, SitemapRepository } from '../features/sitemap';
+import { SeoController } from '../features/seo/SeoController';
 
 container.register('Database', Database, [], true);
 container.register('S3Service', S3Service, [], true);
@@ -51,5 +53,11 @@ container.register('SignupRateLimiter', SignupRateLimiter, ['LoginAttemptService
 container.register('VirtuveRepository', VirtuveRepository, ['Database'], true);
 container.register('VirtuveService', VirtuveService, ['VirtuveRepository', 'S3Service'], true);
 container.register('VirtuveController', VirtuveController, ['VirtuveService'], true);
+
+container.register('SitemapRepository', SitemapRepository, ['Database'], true);
+container.register('SitemapService', SitemapService, ['SitemapRepository'], true);
+container.register('SitemapController', SitemapController, ['SitemapService'], true);
+
+container.register('SeoController', SeoController, ['VirtuveService'], true);
 
 export default container;

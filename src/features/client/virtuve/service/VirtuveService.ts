@@ -37,6 +37,7 @@ export class VirtuveService {
 
 		const videoS3Key = canWatchFull ? video.video_s3_key : video.video_s3_snippet_key;
 		const embedUrl = this.s3Service.generateSignedUrl(videoS3Key);
+		const contentUrl = this.s3Service.generateSignedUrl(video.video_s3_snippet_key);
 
 		return {
 			id: video.id,
@@ -49,6 +50,7 @@ export class VirtuveService {
 			slug: video.slug,
 			viewsTotal: video.views_total,
 			embedUrl,
+			contentUrl,
 			imageS3Key: video.image_s3_key,
 			videoTags: video.video_tags,
 			participants: video.participants,

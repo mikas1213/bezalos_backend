@@ -9,6 +9,7 @@ export interface VideoDto {
 	slug: string;
 	viewsTotal: number;
 	embedUrl: string | null;
+	contentUrl: string | null;
 	imageS3Key: string;
 	videoTags: [];
 	participants: string;

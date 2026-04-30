@@ -47,8 +47,13 @@ const commentsMiddleware = container.resolve('CommentsMiddleware');
 import { adminCreateVirtuveRouter } from './features/admin/virtuve';
 const adminVirtuveController = container.resolve('AdminVirtuveController');
 
+import { createSitemapRouter } from './features/sitemap';
+const sitemapController = container.resolve('SitemapController');
+
+import { createSeoRouter } from './features/seo/seoRoutes';
+const seoController = container.resolve('SeoController');
+
 /* R-O-U-T-E-S */
-const sitemapRouter = require('../routes/sitemapRoutes');
 const profileRouter = require('../routes/profileRoutes');
 const mailerRouter = require('../routes/mailerRoutes');
 const paymentRouter = require('../routes/paymentRoutes');
@@ -80,7 +85,8 @@ app.use(xss());
 app.use(credentials);
 app.use(cors(corsOptions));
 
-app.use('/sitemap.xml', sitemapRouter);
+app.use('/sitemap.xml', createSitemapRouter(sitemapController));
+app.use('/seo', createSeoRouter(seoController));
 app.use('/api', rateLimiter);
 app.use('/api/v1/auth', createAuthRouter(authController, loginRateLimiter, signupRateLimiter));
 app.use('/api/v1/tags', createTagsRouter(tagsController));

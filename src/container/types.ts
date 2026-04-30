@@ -14,6 +14,8 @@ import { VirtuveController, VirtuveService, VirtuveRepository } from '../feature
 import { TagsController, TagsService, TagsRepository } from '../features/client/tags';
 import { LikesMiddleware, LikesController, LikesService, LikesRepository } from '../features/client/likes';
 import { CommentsMiddleware, CommentsController, CommentsService, CommentsRepository } from '../features/client/comments';
+import { SitemapController, SitemapService, SitemapRepository } from '../features/sitemap';
+import { SeoController } from '../features/seo/SeoController';
 
 export interface ContainerRegistry {
 	Database: Database;
@@ -44,4 +46,8 @@ export interface ContainerRegistry {
 	CommentsController: CommentsController;
 	CommentsService: CommentsService;
 	CommentsRepository: CommentsRepository;
+	SitemapRepository: SitemapRepository;
+	SitemapService: SitemapService;
+	SitemapController: SitemapController;
+	SeoController: SeoController;
 }
