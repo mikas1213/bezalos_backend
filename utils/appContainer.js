@@ -37,7 +37,11 @@ container.register(LIKES_REPOSITORY, new LikesRepository(db));
 container.register(LIKES_SERVICE, new LikesService(container.resolve(LIKES_REPOSITORY)));
 container.register(
 	SITEMAP_SERVICE,
-	new SitemapService(container.resolve(RECIPES_REPOSITORY), container.resolve(SERVICES_REPOSITORY)),
+	new SitemapService(
+		container.resolve(RECIPES_REPOSITORY),
+		container.resolve(SERVICES_REPOSITORY),
+		container.resolve(VIDEO_REPOSITORY),
+	),
 );
 
 module.exports = container;
