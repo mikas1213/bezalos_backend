@@ -6,129 +6,122 @@ const { ValidationError } = require('../utils/errors');
 const RecipeDTO = require('../dto/recipe-create.dto');
 const catchAsync = require('../utils/catchAsync');
 const slugify = require('slugify');
-const AWS_PATH_TO_IMAGES =  'images/recipes/';
+const AWS_PATH_TO_IMAGES = 'images/recipes/';
 
 exports.getFavoriteRecipes = catchAsync(async (req, res) => {
-    const data = await recipesService.getFavoriteRecipes();
-    res.status(200).json(data);
+	const data = await recipesService.getFavoriteRecipes();
+	res.status(200).json(data);
 });
 
 exports.getRecipe = catchAsync(async (req, res) => {
-    const { slug } = req.params;
-    const data = await recipesService.getRecipeWithProducts(slug);
-    res.status(200).json(data);
+	const { slug } = req.params;
+	const data = await recipesService.getRecipeWithProducts(slug);
+	res.status(200).json(data);
 });
 
 exports.getRecipes = catchAsync(async (req, res) => {
-    const user_id = req.body.id;
-    const filters = {...req.query};
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit);
-    
-    if (page < 1 || limit < 1 || page > 1000 || limit > 50) {
-        throw new ValidationError('Invalid pagination parameters');
-    } 
-    const data = await recipesService.getAllRecipes(filters, page, limit, user_id);
-    res.status(200).json(data);
+	const user_id = req.body.id;
+	const filters = { ...req.query };
+	const page = parseInt(req.query.page) || 1;
+	const limit = parseInt(req.query.limit);
+
+	if (page < 1 || limit < 1 || page > 1000 || limit > 50) {
+		throw new ValidationError('Invalid pagination parameters');
+	}
+	const data = await recipesService.getAllRecipes(filters, page, limit, user_id);
+	res.status(200).json(data);
 });
 
 exports.addRecipe = catchAsync(async (req, res) => {
-    const slug = slugify(req.body.title, {replacement: '-', lower: true, trim: true, strict: true });
-    const aws_key = `${process.env.AWS_FOLDER_NAME}/${AWS_PATH_TO_IMAGES}${slug}.webp`;
-    
-    req.body.slug = slug;
-    req.body.image_s3 = `${process.env.AWS_URL}/${aws_key}`;
-    
-    const recipeDTO = new RecipeDTO(req.body);
-    const { products } = req.body;
+	const slug = slugify(req.body.title, { replacement: '-', lower: true, trim: true, strict: true });
+	const aws_key = `${process.env.AWS_FOLDER_NAME}/${AWS_PATH_TO_IMAGES}${slug}.webp`;
 
-    if (!recipeDTO.title) throw new ValidationError('Recepto pavadinimas');
-    if (!recipeDTO.title_short) throw new ValidationError('Trumpas (SEO) pavadinimas');
-    if (!req.file) throw new ValidationError('Nope, reik fotkės! 🏞');
-    if(JSON.parse(products).length === 0) throw new ValidationError('O produktai? 🍔🌭🌮');
+	req.body.slug = slug;
+	req.body.image_s3 = `${process.env.AWS_URL}/${aws_key}`;
 
-    JSON.parse(products).forEach((product) => {
-        if(isNaN(product.grams)) throw new ValidationError('Gramai turi būti skaičius 1️⃣ 2️⃣ 3️⃣');
-    });
+	const recipeDTO = new RecipeDTO(req.body);
+	const { products } = req.body;
 
-    const { recipe_id, recipe_slug } = await recipesService.addOneRecipe(recipeDTO, products);
-    await s3Service.uploadFile({
-        Bucket: process.env.AWS_BUCKET_NAME, 
-        Key: aws_key, 
-        Body: req.body_data, 
-        ContentType: 'image/webp',
-        Metadata: {recipe_id, host: process.env.PROJECT}
-    });
+	if (!recipeDTO.title) throw new ValidationError('Recepto pavadinimas');
+	if (!recipeDTO.title_short) throw new ValidationError('Trumpas (SEO) pavadinimas');
+	if (!req.file) throw new ValidationError('Nope, reik fotkės! 🏞');
+	if (JSON.parse(products).length === 0) throw new ValidationError('O produktai? 🍔🌭🌮');
 
-    res.status(200).json({recipe_id, recipe_slug});
+	JSON.parse(products).forEach((product) => {
+		if (isNaN(product.grams)) throw new ValidationError('Gramai turi būti skaičius 1️⃣ 2️⃣ 3️⃣');
+	});
+
+	const { recipe_id, recipe_slug } = await recipesService.addOneRecipe(recipeDTO, products);
+	await s3Service.uploadFile({
+		Bucket: process.env.AWS_BUCKET_NAME,
+		Key: aws_key,
+		Body: req.body_data,
+		ContentType: 'image/webp',
+		Metadata: { recipe_id, host: process.env.PROJECT },
+	});
+
+	res.status(200).json({ recipe_id, recipe_slug });
 });
 
 exports.editRecipe = catchAsync(async (req, res) => {
-    
-    const { id: recipe_id } = req.params;
-    const recipeDTO = new RecipeDTO(req.body);
-    const { products } = req.body;
-    
+	const { id: recipe_id } = req.params;
+	const recipeDTO = new RecipeDTO(req.body);
+	const { products } = req.body;
 
-    if (!recipeDTO.title) throw new ValidationError('Recepto pavadinimas');
-    if (!recipeDTO.title_short) throw new ValidationError('Trumpas (SEO) pavadinimas');
-    if(JSON.parse(products).length === 0) throw new ValidationError('O produktai? 🍔🌭🌮');
+	if (!recipeDTO.title) throw new ValidationError('Recepto pavadinimas');
+	if (!recipeDTO.title_short) throw new ValidationError('Trumpas (SEO) pavadinimas');
+	if (JSON.parse(products).length === 0) throw new ValidationError('O produktai? 🍔🌭🌮');
 
-    const old_row = await recipesService.getOneRecipe(recipe_id);
-    const new_slug = slugify(recipeDTO.title, {replacement: '-', lower: true, trim: true, strict: true });
+	const old_row = await recipesService.getOneRecipe(recipe_id);
+	const new_slug = slugify(recipeDTO.title, { replacement: '-', lower: true, trim: true, strict: true });
 
-    const new_s3_key = `${process.env.AWS_FOLDER_NAME}/${AWS_PATH_TO_IMAGES}${new_slug}.webp`;
-    const old_s3_key = `${process.env.AWS_FOLDER_NAME}/${AWS_PATH_TO_IMAGES}${old_row.slug}.webp`;
+	const new_s3_key = `${process.env.AWS_FOLDER_NAME}/${AWS_PATH_TO_IMAGES}${new_slug}.webp`;
+	const old_s3_key = `${process.env.AWS_FOLDER_NAME}/${AWS_PATH_TO_IMAGES}${old_row.slug}.webp`;
 
-    recipeDTO.slug = new_slug;
-    recipeDTO.image_s3 = `${process.env.AWS_URL}/${new_s3_key}`;
-    
-    await recipesService.updateOneRecipe(recipe_id, recipeDTO, products);
-    
+	recipeDTO.slug = new_slug;
+	recipeDTO.image_s3 = `${process.env.AWS_URL}/${new_s3_key}`;
 
-    /* - - - AWS OPERATIONS - - - */
+	await recipesService.updateOneRecipe(recipe_id, recipeDTO, products);
 
-    const params = {
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `${process.env.AWS_FOLDER_NAME}/${AWS_PATH_TO_IMAGES}${old_row.slug}.webp`
-    };
-    const isFileExist = await s3Service.isFileExist(params);
+	/* - - - AWS OPERATIONS - - - */
 
-    if(!req.body_data && isFileExist && old_s3_key !== new_s3_key) {
-        
-        await s3Service.renameFile({
-            Bucket: process.env.AWS_BUCKET_NAME,
-            CopySource: `${process.env.AWS_BUCKET_NAME}/${old_s3_key}`,
-            Key: new_s3_key,
-            Old_Key: old_s3_key
-        });
+	const params = {
+		Bucket: process.env.AWS_BUCKET_NAME,
+		Key: `${process.env.AWS_FOLDER_NAME}/${AWS_PATH_TO_IMAGES}${old_row.slug}.webp`,
+	};
+	const isFileExist = await s3Service.isFileExist(params);
 
-    } else if(req.body_data) {
-  
-        await s3Service.deleteFile(params);
-        await s3Service.uploadFile({
-            Bucket: process.env.AWS_BUCKET_NAME, 
-            Key: new_s3_key, 
-            Body: req.body_data, 
-            ContentType: 'image/webp',
-            Metadata: {recipe_id, host: process.env.PROJECT}
-        });
-    }
-    
-    res.status(200).json({isFileExist, slug: new_slug});
+	if (!req.body_data && isFileExist && old_s3_key !== new_s3_key) {
+		await s3Service.renameFile({
+			Bucket: process.env.AWS_BUCKET_NAME,
+			CopySource: `${process.env.AWS_BUCKET_NAME}/${old_s3_key}`,
+			Key: new_s3_key,
+			Old_Key: old_s3_key,
+		});
+	} else if (req.body_data) {
+		await s3Service.deleteFile(params);
+		await s3Service.uploadFile({
+			Bucket: process.env.AWS_BUCKET_NAME,
+			Key: new_s3_key,
+			Body: req.body_data,
+			ContentType: 'image/webp',
+			Metadata: { recipe_id, host: process.env.PROJECT },
+		});
+	}
+
+	res.status(200).json({ isFileExist, slug: new_slug });
 });
 
 exports.deleteRecipe = catchAsync(async (req, res) => {
-    
-    const { id } = req.params;
-    const params = {
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `${process.env.AWS_FOLDER_NAME}/${AWS_PATH_TO_IMAGES}${req.body.slug}.webp`
-    };
+	const { id } = req.params;
+	const params = {
+		Bucket: process.env.AWS_BUCKET_NAME,
+		Key: `${process.env.AWS_FOLDER_NAME}/${AWS_PATH_TO_IMAGES}${req.body.slug}.webp`,
+	};
 
-    await recipesService.deleteOneRecipe(id);
-    const isFileExist = await s3Service.isFileExist(params);
-    await s3Service.deleteFile(params);
+	await recipesService.deleteOneRecipe(id);
+	const isFileExist = await s3Service.isFileExist(params);
+	await s3Service.deleteFile(params);
 
-    res.status(200).json(isFileExist);
+	res.status(200).json(isFileExist);
 });
