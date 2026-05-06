@@ -28,8 +28,7 @@ export class AuthMiddleware {
 
 		return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 			try {
-				const authHeader =
-					req.headers.authorization || (req.headers['Authorization'] as string);
+				const authHeader = req.headers.authorization || (req.headers['Authorization'] as string);
 
 				if (!authHeader?.startsWith('Bearer ')) {
 					if (required) {
@@ -88,10 +87,7 @@ export class AuthMiddleware {
 		};
 	};
 
-	isSubscription = (
-		options: AuthMiddlewareOptions,
-		...allowedSubscriptionTypes: SubscriptionTypes[]
-	) => {
+	isSubscription = (options: AuthMiddlewareOptions, ...allowedSubscriptionTypes: SubscriptionTypes[]) => {
 		return async (req: Request, res: Response, next: NextFunction) => {
 			const { required = true } = options;
 

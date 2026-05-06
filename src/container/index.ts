@@ -33,7 +33,7 @@ container.register('AuthController', AuthController, ['AuthService'], true);
 container.register('AuthMiddleware', AuthMiddleware, ['TokenService', 'Database'], true);
 
 container.register('AdminVirtuveRepository', AdminVirtuveRepository, ['Database'], true);
-container.register('AdminVirtuveService', AdminVirtuveService, ['AdminVirtuveRepository'], true);
+container.register('AdminVirtuveService', AdminVirtuveService, ['AdminVirtuveRepository', 'S3Service'], true);
 container.register('AdminVirtuveController', AdminVirtuveController, ['AdminVirtuveService'], true);
 
 container.register('CommentsMiddleware', CommentsMiddleware, ['Database'], true);

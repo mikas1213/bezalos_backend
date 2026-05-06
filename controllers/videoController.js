@@ -33,26 +33,26 @@ const VideoDTO = require('../dto/video-create.dto');
 // 	res.status(200).json(data);
 // });
 
-// exports.addVideo = catchAsync(async (req, res) => {
-// 	const socketId = req.headers['x-socket-id'];
-// 	const videoDTO = new VideoDTO(req.body);
+exports.addVideo = catchAsync(async (req, res) => {
+	const socketId = req.headers['x-socket-id'];
+	const videoDTO = new VideoDTO(req.body);
 
-// 	res.status(201).json({ success: true, message: 'Upload started' });
+	res.status(201).json({ success: true, message: 'Upload started' });
 
-// 	(async () => {
-// 		try {
-// 			await videoService.addOneVideo(videoDTO, req.files, socketId);
-// 			console.log('✅ Video upload completed');
-// 		} catch (err) {
-// 			console.error('❌ Background upload error:', err);
-// 			if (socketId && global.io) {
-// 				global.io.to(socketId).emit('uploadError', {
-// 					message: err.message || 'Video įkėlimas nepavyko',
-// 				});
-// 			}
-// 		}
-// 	})();
-// });
+	(async () => {
+		try {
+			await videoService.addOneVideo(videoDTO, req.files, socketId);
+			console.log('✅ Video upload completed');
+		} catch (err) {
+			console.error('❌ Background upload error:', err);
+			if (socketId && global.io) {
+				global.io.to(socketId).emit('uploadError', {
+					message: err.message || 'Video įkėlimas nepavyko',
+				});
+			}
+		}
+	})();
+});
 
 exports.updateVideo = catchAsync(async (req, res) => {
 	const { id: video_id } = req.params;
@@ -62,9 +62,9 @@ exports.updateVideo = catchAsync(async (req, res) => {
 	res.sendStatus(201);
 });
 
-exports.deleteVideo = catchAsync(async (req, res) => {
-	const { video_s3_key, image_s3_key } = req.body;
-	const { id } = req.params;
-	await videoService.deleteOneVideo(id, video_s3_key, image_s3_key);
-	res.sendStatus(204);
-});
+// exports.deleteVideo = catchAsync(async (req, res) => {
+// 	const { video_s3_key, image_s3_key } = req.body;
+// 	const { id } = req.params;
+// 	await videoService.deleteOneVideo(id, video_s3_key, image_s3_key);
+// 	res.sendStatus(204);
+// });

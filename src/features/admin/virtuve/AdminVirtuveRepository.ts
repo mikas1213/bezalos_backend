@@ -30,4 +30,9 @@ export class AdminVirtuveRepository {
 
 		return await this.db.query(query);
 	}
+
+	async deleteById(video_id: string): Promise<void> {
+		console.log('AdminVirtuveRepository: ', video_id);
+		await this.db.query(`DELETE FROM videos WHERE id = $1`, [video_id]);
+	}
 }
