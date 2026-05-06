@@ -34,9 +34,9 @@ export class AdminVirtuveController {
 	// }
 
 	async deleteVideo(req: Request, res: Response) {
-		const { videoS3Key, imageS3Key } = req.body;
-		const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-		await this.adminVirtuveService.deleteOneVideo(id, videoS3Key, imageS3Key);
+		const { imageS3Key, videoS3Key, videoS3SnippetKey } = req.body;
+		const videoId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+		await this.adminVirtuveService.deleteOneVideo({ videoId, videoS3Key, imageS3Key, videoS3SnippetKey });
 		res.sendStatus(204);
 	}
 }
