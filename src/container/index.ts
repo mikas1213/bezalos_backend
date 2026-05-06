@@ -11,7 +11,7 @@ import { LoginAttemptService } from '../features/auth/service/LoginAttemptServic
 import { LoginRateLimiter } from '../features/auth/middleware/LoginRateLimiter';
 import { SignupRateLimiter } from '../features/auth/middleware/SignupRateLimiter';
 import { VirtuveRepository, VirtuveService, VirtuveController } from '../features/client/virtuve';
-import { TagsRepository, TagsService, TagsController } from '../features/client/tags';
+import { TagsRepository, TagsService, TagsController } from '../features/tags';
 import { S3Service } from '../services/S3/S3Service';
 import { LikesRepository, LikesService, LikesController, LikesMiddleware } from '../features/client/likes';
 import { CommentsMiddleware, CommentsController, CommentsService, CommentsRepository } from '../features/client/comments';

@@ -30,7 +30,7 @@ const signupRateLimiter = container.resolve('SignupRateLimiter');
 const authMiddleware = container.resolve('AuthMiddleware');
 const authController = container.resolve('AuthController');
 
-import { createTagsRouter } from './features/client/tags';
+import { createTagsRouter } from './features/tags';
 const tagsController = container.resolve('TagsController');
 
 import { createVirtuveRouter } from './features/client/virtuve';
