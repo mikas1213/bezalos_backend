@@ -1,9 +1,23 @@
 import { getSignedUrl } from '@aws-sdk/cloudfront-signer';
-
+import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import type { S3Object, S3CommandConstructor } from './tyeps';
+import { AppError } from '../../common/errors/AppError';
 import fs from 'fs';
 import path from 'path';
 
 export class S3Service {
+	private s3Client: S3Client;
+
+	constructor() {
+		this.s3Client = new S3Client({
+			region: process.env.AWS_REGION,
+			credentials: {
+				accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+				secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+			},
+		});
+	}
+
 	generateSignedUrl(videoS3Key: string) {
 		if (!videoS3Key) return null;
 
@@ -17,5 +31,19 @@ export class S3Service {
 			dateLessThan: new Date(Date.now() + 1000 * 60 * 60 * 24 * 1),
 			privateKey,
 		});
+	}
+
+	async sendCommand(CommandClass: S3CommandConstructor, params: S3Object) {
+		try {
+			return await this.s3Client.send(new CommandClass(params));
+		} catch (err: unknown) {
+			const message = err instanceof Error ? err.message : 'Unknown error';
+			throw AppError.internal(message);
+		}
+	}
+
+	async deleteFile(params: S3Object) {
+		if (!params.Key) throw AppError.notFound('Key is required for S3 deletion');
+		await this.sendCommand(DeleteObjectCommand, params);
 	}
 }

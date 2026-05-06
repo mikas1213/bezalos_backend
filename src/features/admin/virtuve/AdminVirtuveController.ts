@@ -4,6 +4,7 @@ import type { AdminVirtuveService } from './AdminVirtuveService';
 export class AdminVirtuveController {
 	constructor(private readonly adminVirtuveService: AdminVirtuveService) {
 		this.getAllVideos = this.getAllVideos.bind(this);
+		this.deleteVideo = this.deleteVideo.bind(this);
 	}
 	async getAllVideos(_req: Request, res: Response) {
 		const data = await this.adminVirtuveService.getAllVideos();
@@ -31,4 +32,11 @@ export class AdminVirtuveController {
 	// 		}
 	// 	})();
 	// }
+
+	async deleteVideo(req: Request, res: Response) {
+		const { videoS3Key, imageS3Key } = req.body;
+		const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+		await this.adminVirtuveService.deleteOneVideo(id, videoS3Key, imageS3Key);
+		res.sendStatus(204);
+	}
 }

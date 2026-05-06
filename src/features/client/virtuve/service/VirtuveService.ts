@@ -20,20 +20,13 @@ export class VirtuveService {
 		return await this.virtuveRepository.findAll(params);
 	}
 
-	async getOneVideo(
-		slug: string | string[],
-		userId: string | undefined,
-	): Promise<VideoDto | null> {
+	async getOneVideo(slug: string | string[], userId: string | undefined): Promise<VideoDto | null> {
 		const video = await this.virtuveRepository.findById(userId, slug);
 		if (!video) throw AppError.notFound('Video nerastas');
 
-		const access = userId
-			? await this.getUserAccess(userId)
-			: { hasSubscription: false, hasCourse: false };
+		const access = userId ? await this.getUserAccess(userId) : { hasSubscription: false, hasCourse: false };
 
-		const canWatchFull =
-			video.category === 'Nemokamas' ||
-			this.canAccessFullVideo(access, video.category === 'Kursai');
+		const canWatchFull = video.category === 'Nemokamas' || this.canAccessFullVideo(access, video.category === 'Kursai');
 
 		const videoS3Key = canWatchFull ? video.video_s3_key : video.video_s3_snippet_key;
 		const embedUrl = this.s3Service.generateSignedUrl(videoS3Key);
