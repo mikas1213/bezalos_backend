@@ -16,6 +16,7 @@ export class AdminVirtuveRepository {
             v.is_active AS "isActive",
             v.image_s3_key AS "imageS3Key",
             v.video_s3_key AS "videoS3Key",
+            v.video_s3_snippet_key AS "videoS3SnippetKey",
             v.video_tags AS "videoTags",
             v.participants,
             COUNT(DISTINCT(l.id))::INT AS "likesCount",
@@ -32,7 +33,6 @@ export class AdminVirtuveRepository {
 	}
 
 	async deleteById(video_id: string): Promise<void> {
-		console.log('AdminVirtuveRepository: ', video_id);
 		await this.db.query(`DELETE FROM videos WHERE id = $1`, [video_id]);
 	}
 }
