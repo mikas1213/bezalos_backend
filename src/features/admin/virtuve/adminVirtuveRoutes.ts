@@ -15,8 +15,17 @@ export const adminCreateVirtuveRouter = (
 	const router = express.Router();
 	router.use(authMiddleware.protect({ required: true }), authMiddleware.restrictTo(roles.admin));
 
-	router.get('/', catchAsync(adminVirtuveController.getAllVideos));
 	router.delete('/:id', validateUUID, catchAsync(adminVirtuveController.deleteVideo));
+	router.post(
+		'/:id',
+		uploadFiles,
+		resizePhotoDisk,
+		validateUUID,
+		catchAsync(adminVideoMiddleware.addVideoFormValidator),
+		catchAsync(adminVirtuveController.updateVideo),
+	);
+	router.get('/', catchAsync(adminVirtuveController.getAllVideos));
+
 	router.post(
 		'/',
 		uploadFiles,
@@ -26,13 +35,5 @@ export const adminCreateVirtuveRouter = (
 		catchAsync(adminVirtuveController.addVideo),
 	);
 
-	// router.post(
-	// 	'/',
-	// 	uploadFiles,
-	// 	resizePhotoDisk,
-	// 	addVideoValidator.addVideoFormValidator,
-	// 	addVideoValidator.addVideoFilesValidator,
-	// 	videoController.addVideo,
-	// );
 	return router;
 };

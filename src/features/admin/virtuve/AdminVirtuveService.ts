@@ -65,6 +65,76 @@ export class AdminVirtuveService {
 		}
 	}
 
+	async updateOneVideo(videoDto: VideoDto, files: MulterFiles, videoId: string, socketId: string | string[] | undefined) {
+		const { video, photo } = files;
+		const updatedData = { ...videoDto };
+		const old_slug = updatedData.videoS3Key?.split('/').pop()?.split('.').shift();
+
+		let video_extention = videoDto.videoS3Key?.split('.').pop();
+		let image_extention = videoDto.imageS3Key?.split('.').pop();
+
+		if (video) video_extention = video[0].originalname.split('.').pop();
+		if (photo) image_extention = photo[0].originalname.split('.').pop();
+
+		updatedData.imageS3Key = `${process.env.AWS_FOLDER_NAME}/images/virtuve-video-covers/${updatedData.slug}.${image_extention}`;
+		updatedData.videoS3Key = `${process.env.AWS_FOLDER_NAME}/videos/virtuve/full/${updatedData.slug}.${video_extention}`;
+		updatedData.videoS3SnippetKey = `${process.env.AWS_FOLDER_NAME}/videos/virtuve/snippet/${updatedData.slug}.${video_extention}`;
+		const normalizedSocketId = Array.isArray(socketId) ? socketId[0] : (socketId ?? null);
+
+		// IF THE NAME HAS NOT BEEN CHANGED
+
+		if (old_slug !== updatedData.slug) {
+			if (!video) {
+				await this.s3Service.renameFile({
+					Bucket: process.env.AWS_BUCKET_NAME,
+					CopySource: `${process.env.AWS_BUCKET_NAME}/${videoDto.videoS3Key}`,
+					Key: updatedData.videoS3Key,
+					Old_Key: videoDto.videoS3Key,
+				});
+			} else {
+				await this.s3Service.deleteFile({
+					Bucket: process.env.AWS_BUCKET_NAME!,
+					Key: videoDto.videoS3Key!,
+				});
+				await this.s3Service.uploadVideo(video[0], updatedData.videoS3Key, videoId, normalizedSocketId);
+			}
+
+			if (!photo) {
+				await this.s3Service.renameFile({
+					Bucket: process.env.AWS_BUCKET_NAME,
+					CopySource: `${process.env.AWS_BUCKET_NAME}/${videoDto.imageS3Key}`,
+					Key: updatedData.imageS3Key,
+					Old_Key: videoDto.imageS3Key,
+				});
+			} else {
+				await this.s3Service.deleteFile({
+					Bucket: process.env.AWS_BUCKET_NAME!,
+					Key: videoDto.imageS3Key!,
+				});
+				await this.s3Service.uploadFileDisk(photo[0], updatedData.imageS3Key, videoId);
+			}
+			// IF THE NAME WAS CHANGED
+		} else if (video || photo) {
+			if (video) {
+				await this.s3Service.deleteFile({
+					Bucket: process.env.AWS_BUCKET_NAME!,
+					Key: videoDto.videoS3Key!,
+				});
+				await this.s3Service.uploadVideo(video[0], updatedData.videoS3Key, videoId, normalizedSocketId);
+			}
+
+			if (photo) {
+				await this.s3Service.deleteFile({
+					Bucket: process.env.AWS_BUCKET_NAME!,
+					Key: videoDto.imageS3Key!,
+				});
+				await this.s3Service.uploadFileDisk(photo[0], updatedData.imageS3Key, videoId);
+			}
+		}
+
+		await this.adminVirtuveRepository.updateById(videoId, updatedData);
+	}
+
 	async deleteOneVideo({ videoId, videoS3Key, imageS3Key, videoS3SnippetKey }: DeleteRequestDto) {
 		await this.s3Service.deleteFile({
 			Bucket: process.env.AWS_BUCKET_NAME!,

@@ -82,6 +82,53 @@ export class AdminVirtuveRepository {
 		return await this.db.queryOne(query, params);
 	}
 
+	async updateById(id: string, data: VideoDto): Promise<void> {
+		const {
+			title,
+			slug,
+			participants,
+			description,
+			category,
+			duration,
+			isActive,
+			videoTags,
+			imageS3Key,
+			videoS3Key,
+			videoS3SnippetKey,
+		} = data;
+		const query = `
+            UPDATE videos SET
+                title = $1,
+                slug = $2,
+                participants = $3,
+                description = $4,
+                category = $5,
+                duration = $6,
+                is_active = $7,
+                video_tags = $8,
+                image_s3_key = $9,
+                video_s3_key = $10,
+                video_s3_snippet_key = $11,
+                updated_at = NOW()
+            WHERE id = $12
+        `;
+		const params: unknown[] = [
+			title,
+			slug,
+			participants,
+			description,
+			category,
+			duration,
+			isActive,
+			typeof videoTags === 'string' ? JSON.parse(videoTags) : (videoTags ?? []),
+			imageS3Key,
+			videoS3Key,
+			videoS3SnippetKey,
+			id,
+		];
+		await this.db.query(query, params);
+	}
+
 	async deleteById(video_id: string): Promise<void> {
 		await this.db.query(`DELETE FROM videos WHERE id = $1`, [video_id]);
 	}

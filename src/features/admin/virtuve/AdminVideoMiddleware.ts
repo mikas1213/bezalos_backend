@@ -20,8 +20,6 @@ const allow_fields = [
 	'action',
 ];
 
-// const allow_filters = ['vebinaras', 'emocinis valgymas', 'mityba', 'trumpai', 'valgymo psichologija'];
-
 export class AdminVideoMiddleware {
 	constructor(private readonly db: Database) {}
 
@@ -51,10 +49,6 @@ export class AdminVideoMiddleware {
 			const invalideFields = bodyKeys.filter((field) => !allow_fields.includes(field));
 			if (invalideFields.length > 0) throw AppError.badRequest('There are unsupported fields');
 
-			/* F I L T E R   V A L I D A T I O N */
-			// const filters = req.body.search_tag.split(', ');
-			// const invalidFilter = !filters.every((filter: string) => allow_filters.includes(filter));
-
 			/* T I T L E */
 			if (!req.body.title) throw AppError.badRequest('Pavadinimas❗️');
 			if (req.body.title.length > 255) throw AppError.badRequest('Pavadinimas per ilgas.\nMax 255 simboliai❗️');
@@ -67,15 +61,6 @@ export class AdminVideoMiddleware {
 			/* D E S C R I P T I O N */
 			if (!req.body.description) throw AppError.badRequest('Aprašymas! 📄');
 
-			/* V I D E O   T Y P E */
-			// if (!req.body.video_type) throw AppError.badRequest('Video tipas! 🎬');
-			// if (!['kursai', 'virtuve'].includes(req.body.video_type)) throw AppError.badRequest('Neteisingas video tipas! 🎬');
-
-			/* C A T E G O R Y */
-			if (!req.body.category) throw AppError.badRequest('Video kategorija! 🎬');
-			if (!['Kursai', 'Vebinaras', 'Trumpai'].includes(req.body.category))
-				throw AppError.badRequest('Neteisinga video kategorija! 🎬');
-
 			/* D U R A T I O N */
 			if (!req.body.duration.trim()) throw AppError.badRequest('Video trukmė! 🎬');
 			if (req.body.duration.trim() === '00:00:00') throw AppError.badRequest('Video trukmė! 🎬');
@@ -86,10 +71,6 @@ export class AdminVideoMiddleware {
 			/* I S   A C T I V E */
 			if (!req.body.isActive) throw AppError.badRequest('Nenurodyta ar video yra aktyvus! 🎬');
 			if (!['true', 'false'].includes(req.body.isActive)) throw AppError.badRequest('Neteisingas aktyvumo statusas! 🎬');
-
-			/* F I L T E R S */
-			// if (!req.body.search_tag) throw AppError.badRequest('Filtrai 🔖');
-			// if (invalidFilter) throw AppError.badRequest('There are unsupported filters 🔖');
 
 			req.body.title = req.body.title.trim();
 			req.body.slug = slug;

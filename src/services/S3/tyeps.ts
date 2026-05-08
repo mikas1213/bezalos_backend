@@ -10,3 +10,9 @@ export interface S3Object {
 	CacheControl?: string;
 	ACL?: ObjectCannedACL;
 }
+export interface S3RenameObject {
+	Bucket: string | undefined;
+	CopySource: string | undefined;
+	Key: string;
+	Old_Key: string | undefined;
+}

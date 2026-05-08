@@ -1,7 +1,7 @@
 const db = require('../config/db');
 const Container = require('./Container');
-const VideoRepository = require('../repositories/VideoRepository');
-const VideoService = require('../services/VideoService');
+// const VideoRepository = require('../repositories/VideoRepository');
+// const VideoService = require('../services/VideoService');
 const RecipesRepository = require('../repositories/RecipesRepository');
 const RecipesServices = require('../services/RecipesService');
 const ServicesRepository = require('../repositories/ServicesReposotory');
@@ -11,8 +11,8 @@ const LikesService = require('../services/LikesService');
 const S3Service = require('../services/S3Service');
 
 const {
-	VIDEO_REPOSITORY,
-	VIDEO_SERVICE,
+	// VIDEO_REPOSITORY,
+	// VIDEO_SERVICE,
 	RECIPES_REPOSITORY,
 	RECIPES_SERVICE,
 	SERVICES_REPOSITORY,
@@ -25,8 +25,8 @@ const {
 const container = new Container();
 
 container.register(S3_SERVICE, new S3Service());
-container.register(VIDEO_REPOSITORY, new VideoRepository(db));
-container.register(VIDEO_SERVICE, new VideoService(container.resolve(VIDEO_REPOSITORY), container.resolve(S3_SERVICE)));
+// container.register(VIDEO_REPOSITORY, new VideoRepository(db));
+// container.register(VIDEO_SERVICE, new VideoService(container.resolve(VIDEO_REPOSITORY), container.resolve(S3_SERVICE)));
 container.register(RECIPES_REPOSITORY, new RecipesRepository(db));
 container.register(RECIPES_SERVICE, new RecipesServices(container.resolve(RECIPES_REPOSITORY)));
 container.register(SERVICES_REPOSITORY, new ServicesRepository(db));
