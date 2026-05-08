@@ -6,7 +6,12 @@ import { AuthRepository } from '../features/auth/repositories/AuthRepository';
 import { AuthService } from '../features/auth/service/AuthService';
 import { AuthController } from '../features/auth/controller/AuthController';
 import { AuthMiddleware } from '../features/auth/middleware/AuthMiddleware';
-import { AdminVirtuveController, AdminVirtuveService, AdminVirtuveRepository } from '../features/admin/virtuve';
+import {
+	AdminVideoMiddleware,
+	AdminVirtuveController,
+	AdminVirtuveService,
+	AdminVirtuveRepository,
+} from '../features/admin/virtuve';
 import { LoginAttemptService } from '../features/auth/service/LoginAttemptService';
 import { LoginRateLimiter } from '../features/auth/middleware/LoginRateLimiter';
 import { SignupRateLimiter } from '../features/auth/middleware/SignupRateLimiter';
@@ -32,6 +37,7 @@ container.register('AuthService', AuthService, ['AuthRepository', 'TokenService'
 container.register('AuthController', AuthController, ['AuthService'], true);
 container.register('AuthMiddleware', AuthMiddleware, ['TokenService', 'Database'], true);
 
+container.register('AdminVideoMiddleware', AdminVideoMiddleware, ['Database'], true);
 container.register('AdminVirtuveRepository', AdminVirtuveRepository, ['Database'], true);
 container.register('AdminVirtuveService', AdminVirtuveService, ['AdminVirtuveRepository', 'S3Service'], true);
 container.register('AdminVirtuveController', AdminVirtuveController, ['AdminVirtuveService'], true);

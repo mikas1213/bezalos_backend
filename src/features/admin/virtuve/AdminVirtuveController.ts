@@ -1,37 +1,38 @@
 import { Request, Response } from 'express';
 import type { AdminVirtuveService } from './AdminVirtuveService';
+import { VideoDto } from './VideoDto';
+type MulterFiles = { [fieldname: string]: Express.Multer.File[] };
 
 export class AdminVirtuveController {
 	constructor(private readonly adminVirtuveService: AdminVirtuveService) {
 		this.getAllVideos = this.getAllVideos.bind(this);
+		this.addVideo = this.addVideo.bind(this);
 		this.deleteVideo = this.deleteVideo.bind(this);
 	}
+
 	async getAllVideos(_req: Request, res: Response) {
 		const data = await this.adminVirtuveService.getAllVideos();
 		res.status(200).json(data);
 	}
 
-	// async addVideo(req: Response, res: Request) {
-	// 	const socketId = req.headers['x-socket-id'] as string | undefined;
-	// 	const videoDTO = new VideoDTO(req.body);
+	async addVideo(req: Request, res: Response) {
+		const socketId = req.headers['x-socket-id'];
+		const videoDto = new VideoDto(req.body);
+		res.status(201).json({ success: true, message: 'Upload started' });
 
-	// 	res.status(201).json({ success: true, message: 'Upload started' });
-
-	// 	(async () => {
-	// 		try {
-	// 			await videoService.addOneVideo(videoDTO, req.files, socketId);
-	// 			console.log('✅ Video upload completed');
-	// 		} catch (err) {
-	// 			const error = err as Error;
-	// 			console.error('❌ Background upload error:', err);
-	// 			if (socketId && global.io) {
-	// 				global.io.to(socketId).emit('uploadError', {
-	// 					message: error.message || 'Video įkėlimas nepavyko',
-	// 				});
-	// 			}
-	// 		}
-	// 	})();
-	// }
+		(async () => {
+			try {
+				await this.adminVirtuveService.addOneVideo(videoDto, req.files as MulterFiles, socketId);
+				console.log('✅ Video upload completed');
+			} catch (err) {
+				console.error('❌ Background upload error:', err);
+				if (socketId && global.io) {
+					const message = err instanceof Error ? err.message : 'Video įkėlimas nepavyko';
+					global.io.to(socketId).emit('uploadError', { message });
+				}
+			}
+		})();
+	}
 
 	async deleteVideo(req: Request, res: Response) {
 		const { imageS3Key, videoS3Key, videoS3SnippetKey } = req.body;

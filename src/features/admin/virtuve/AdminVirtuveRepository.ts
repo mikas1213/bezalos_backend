@@ -1,5 +1,6 @@
 import type { Database } from '../../../common/config/db';
 import type { AdmninVirtuveDto } from './types';
+import type { VideoDto } from './VideoDto';
 export class AdminVirtuveRepository {
 	constructor(private readonly db: Database) {}
 
@@ -30,6 +31,55 @@ export class AdminVirtuveRepository {
         GROUP BY v.id`;
 
 		return await this.db.query(query);
+	}
+	async create(videoData: VideoDto): Promise<{ id: string } | null> {
+		const {
+			id,
+			title,
+			slug,
+			participants,
+			description,
+			category,
+			duration,
+			isActive,
+			videoTags,
+			imageS3Key,
+			videoS3Key,
+			videoS3SnippetKey,
+		} = videoData;
+		const query = `
+            INSERT INTO videos(
+                id,
+                title,
+                slug,
+                participants,
+                description,
+                category,
+                duration,
+                is_active,
+                video_tags,
+                image_s3_key,
+                video_s3_key,
+                video_s3_snippet_key
+            )
+            VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id;
+        `;
+		const params: unknown[] = [
+			id,
+			title,
+			slug,
+			participants,
+			description,
+			category,
+			duration,
+			isActive,
+			typeof videoTags === 'string' ? JSON.parse(videoTags) : (videoTags ?? []),
+			imageS3Key,
+			videoS3Key,
+			videoS3SnippetKey,
+		];
+
+		return await this.db.queryOne(query, params);
 	}
 
 	async deleteById(video_id: string): Promise<void> {

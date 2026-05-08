@@ -1,8 +1,7 @@
 import type { TagsRepository } from './TagsRepository';
 import type { Feature, TagsResult } from './types';
 import { AppError } from '../../common/errors/AppError';
-
-const allowFeatures: Feature[] = ['virtuve', 'receptai'];
+import { allowFeatures } from './types';
 
 export class TagsService {
 	private tagsRepository: TagsRepository;
