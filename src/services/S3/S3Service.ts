@@ -1,6 +1,6 @@
 import { getSignedUrl } from '@aws-sdk/cloudfront-signer';
-import { S3Client, DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
-import type { S3Object, S3CommandConstructor } from './tyeps';
+import { S3Client, DeleteObjectCommand, PutObjectCommand, CopyObjectCommand } from '@aws-sdk/client-s3';
+import type { S3Object, S3CommandConstructor, S3RenameObject } from './tyeps';
 import { AppError } from '../../common/errors/AppError';
 import fs from 'fs';
 import path from 'path';
@@ -46,6 +46,21 @@ export class S3Service {
 	async deleteFile(params: S3Object) {
 		if (!params.Key) throw AppError.notFound('Key is required for S3 deletion');
 		await this.sendCommand(DeleteObjectCommand, params);
+	}
+
+	async renameFile(params: S3RenameObject) {
+		const { Bucket, CopySource, Key, Old_Key } = params;
+
+		const copyCommand = new CopyObjectCommand({
+			Bucket,
+			CopySource,
+			Key,
+			ACL: 'public-read' as const,
+			MetadataDirective: 'COPY' as const,
+		});
+
+		await this.s3Client.send(copyCommand);
+		await this.deleteFile({ Bucket: Bucket!, Key: Old_Key! });
 	}
 
 	async uploadVideo(

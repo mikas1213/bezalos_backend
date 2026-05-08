@@ -7,6 +7,7 @@ export class AdminVirtuveController {
 	constructor(private readonly adminVirtuveService: AdminVirtuveService) {
 		this.getAllVideos = this.getAllVideos.bind(this);
 		this.addVideo = this.addVideo.bind(this);
+		this.updateVideo = this.updateVideo.bind(this);
 		this.deleteVideo = this.deleteVideo.bind(this);
 	}
 
@@ -32,6 +33,15 @@ export class AdminVirtuveController {
 				}
 			}
 		})();
+	}
+	async updateVideo(req: Request, res: Response) {
+		const videoId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+		const rawSocketId = req.headers['x-socket-id'];
+		const socketId = Array.isArray(rawSocketId) ? rawSocketId[0] : rawSocketId;
+		const videoDto = new VideoDto(req.body);
+
+		await this.adminVirtuveService.updateOneVideo(videoDto, req.files as MulterFiles, videoId, socketId);
+		res.sendStatus(201);
 	}
 
 	async deleteVideo(req: Request, res: Response) {
