@@ -30,7 +30,7 @@ const signupRateLimiter = container.resolve('SignupRateLimiter');
 const authMiddleware = container.resolve('AuthMiddleware');
 const authController = container.resolve('AuthController');
 
-import { createTagsRouter } from './features/client/tags';
+import { createTagsRouter } from './features/tags';
 const tagsController = container.resolve('TagsController');
 
 import { createVirtuveRouter } from './features/client/virtuve';
@@ -46,6 +46,7 @@ const commentsMiddleware = container.resolve('CommentsMiddleware');
 
 import { adminCreateVirtuveRouter } from './features/admin/virtuve';
 const adminVirtuveController = container.resolve('AdminVirtuveController');
+const adminVideoMiddleware = container.resolve('AdminVideoMiddleware');
 
 import { createSitemapRouter } from './features/sitemap';
 const sitemapController = container.resolve('SitemapController');
@@ -100,7 +101,7 @@ app.use('/api/v1/services', servicesRouter);
 app.use('/api/v1/promo', promotionRouter);
 app.use('/api/v1/recipes', recipesRouter);
 app.use('/api/v1/likes', likesRouter);
-app.use('/api/v1/admin/virtuve', adminCreateVirtuveRouter(authMiddleware, adminVirtuveController));
+app.use('/api/v1/admin/virtuve', adminCreateVirtuveRouter(authMiddleware, adminVideoMiddleware, adminVirtuveController));
 app.use('/api/v1/admin', [adminPromotionsRouter, adminServicesRouter, adminRecipesRouter, customersRouter, nutritionPlansRouter]);
 app.get('/api/v1/config', (_req: Request, res: Response) => {
 	res.json(process.env.SOCKET_URL);

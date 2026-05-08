@@ -20,15 +20,15 @@ router
 	);
 // .delete(validateUUID, videoController.deleteVideo);
 
-router
-	.route('/videos')
-	.get(videoController.getVideosAdmin)
-	.post(
-		multerController.uploadFiles,
-		multerController.resizePhotoDisk,
-		addVideoValidator.addVideoFormValidator,
-		addVideoValidator.addVideoFilesValidator,
-		videoController.addVideo,
-	);
+// router
+// 	.route('/videos')
+// 	.get(videoController.getVideosAdmin)
+// 	.post(
+// 		multerController.uploadFiles,
+// 		multerController.resizePhotoDisk,
+// 		addVideoValidator.addVideoFormValidator,
+// 		addVideoValidator.addVideoFilesValidator,
+// 		videoController.addVideo,
+// 	);
 
 module.exports = router;
