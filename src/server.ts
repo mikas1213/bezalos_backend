@@ -90,7 +90,7 @@ app.use('/sitemap.xml', createSitemapRouter(sitemapController));
 app.use('/seo', createSeoRouter(seoController));
 app.use('/api', rateLimiter);
 app.use('/api/v1/auth', createAuthRouter(authController, loginRateLimiter, signupRateLimiter));
-app.use('/api/v1/tags', createTagsRouter(tagsController));
+app.use('/api/v1/tags', createTagsRouter(tagsController, authMiddleware));
 app.use('/api/v1/like', createLikesRouter(likesController, authMiddleware, likesMiddleware));
 app.use('/api/v1/comments', createCommentsRouter(authMiddleware, commentsMiddleware, commentsController));
 app.use('/api/v1/virtuve', createVirtuveRouter(virtuveController, authMiddleware));
