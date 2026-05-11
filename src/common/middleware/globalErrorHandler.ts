@@ -32,12 +32,7 @@ const sendErrorProd = (err: AppError, res: Response): Response => {
 	});
 };
 
-export const globalErrorHandler = (
-	err: AppError,
-	req: Request,
-	res: Response,
-	next: NextFunction,
-) => {
+export const globalErrorHandler = (err: AppError, req: Request, res: Response, next: NextFunction) => {
 	err.statusCode = err.statusCode ?? 500;
 	err.status = err.status ?? 'error';
 	logEvents(`${err.name}: ${err.message}`, 'errors_log.txt');
