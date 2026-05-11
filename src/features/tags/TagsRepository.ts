@@ -1,5 +1,5 @@
 import type { Database } from '../../common/config/db';
-import type { Category, Feature, TagsResult } from './types';
+import type { Category, Feature, TagType, TagsResult } from './types';
 
 export class TagsRepository {
 	constructor(private readonly db: Database) {
@@ -28,5 +28,16 @@ export class TagsRepository {
 		const tags = rows.find((r) => r.category === 'tag')?.tags ?? [];
 
 		return { categories, tags };
+	}
+
+	async addTag(feature: Feature, tag: string, type: TagType = 'tag'): Promise<void> {
+		await this.db.query(
+			`INSERT INTO tags (feature, category, tag) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
+			[feature, type, tag],
+		);
+	}
+
+	async deleteTag(feature: Feature, tag: string, type: TagType = 'tag'): Promise<void> {
+		await this.db.query(`DELETE FROM tags WHERE feature = $1 AND category = $2 AND tag = $3`, [feature, type, tag]);
 	}
 }
