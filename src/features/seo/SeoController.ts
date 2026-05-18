@@ -4,9 +4,13 @@ import { AppError } from '../../common/errors/AppError';
 
 const S3_BASE = 'https://bezalos.s3.us-east-1.amazonaws.com/';
 
-const toIsoDuration = (hms: string): string => {
-	const [h, m, s] = hms.split(':').map(Number);
-	return `PT${h ? h + 'H' : ''}${m ? m + 'M' : ''}${s ? s + 'S' : ''}`;
+const toIsoDuration = (hms: string | null | undefined): string | null => {
+	if (!hms) return null;
+	const parts = hms.split(':').map(Number);
+	if (parts.length !== 3 || parts.some(isNaN)) return null;
+	const [h, m, s] = parts;
+	const result = `PT${h ? h + 'H' : ''}${m ? m + 'M' : ''}${s ? s + 'S' : ''}`;
+	return result === 'PT' ? null : result;
 };
 
 const buildVideoMetaHtml = (video: Awaited<ReturnType<VirtuveService['getOneVideo']>>) => {
@@ -17,6 +21,8 @@ const buildVideoMetaHtml = (video: Awaited<ReturnType<VirtuveService['getOneVide
 	const description = video.description.slice(0, 160);
 	const uploadDate = new Date(video.createdAt).toISOString();
 
+	const duration = toIsoDuration(video.duration);
+
 	const schema = JSON.stringify({
 		'@context': 'https://schema.org',
 		'@type': 'VideoObject',
@@ -25,7 +31,7 @@ const buildVideoMetaHtml = (video: Awaited<ReturnType<VirtuveService['getOneVide
 		thumbnailUrl,
 		uploadDate,
 		...(video.contentUrl && { contentUrl: video.contentUrl }),
-		duration: toIsoDuration(video.duration),
+		...(duration && { duration }),
 		keywords: [video.title, 'virtuvė', 'be žalos', 'sveikas maistas', ...video.videoTags].join(', '),
 		author: { '@type': 'Person', name: 'Be žalos' },
 	});
