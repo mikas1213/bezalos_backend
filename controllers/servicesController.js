@@ -5,38 +5,37 @@ const catchAsync = require('../utils/catchAsync');
 const ServiceDTO = require('../dto/service-create.dto');
 
 exports.getServices = catchAsync(async (req, res) => {
-    const data = await servicesService.getAllServices();
-    res.status(200).json(data);
+	const data = await servicesService.getAllServices();
+	res.status(200).json(data);
 });
 
 exports.getService = catchAsync(async (req, res) => {
-    const { slug } = req.params;
-    const data = await servicesService.getOneService(slug);
-    res.status(200).json(data);
+	const { slug } = req.params;
+	const data = await servicesService.getOneService(slug);
+	res.status(200).json(data);
 });
 
 exports.getServicesAdmin = catchAsync(async (req, res) => {
-    const data = await servicesService.getAllServicesAdmin();
-    res.status(200).json(data);
+	const data = await servicesService.getAllServicesAdmin();
+	res.status(200).json(data);
 });
 
 exports.deleteService = catchAsync(async (req, res) => {
-    const { id } = req.params;
-    await servicesService.deleteOneServiceAdmin(id);
-    res.sendStatus(204);
+	const { id } = req.params;
+	await servicesService.deleteOneServiceAdmin(id);
+	res.sendStatus(204);
 });
 
 exports.addService = catchAsync(async (req, res) => {
-    const serviceDTO = new ServiceDTO(req.body);
-    await servicesService.addOneService(serviceDTO);
-    res.sendStatus(200);
+	const serviceDTO = new ServiceDTO(req.body);
+	await servicesService.addOneService(serviceDTO);
+	res.sendStatus(200);
 });
 
-exports.updateService = catchAsync(async (req, res) => {  
-    const { id } = req.params;
-    const serviceDTO = new ServiceDTO(req.body);
+exports.updateService = catchAsync(async (req, res) => {
+	const { id } = req.params;
+	const serviceDTO = new ServiceDTO(req.body);
 
-    await servicesService.updateOneService(id, serviceDTO);
-    res.sendStatus(200);
+	await servicesService.updateOneService(id, serviceDTO);
+	res.sendStatus(200);
 });
-
