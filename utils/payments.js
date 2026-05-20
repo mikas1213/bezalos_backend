@@ -79,7 +79,7 @@ exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_na
 			],
 
 			success_url: `${hostname}/apmoketa-sekmingai?plan=${plan_name}&session_id={CHECKOUT_SESSION_ID}`,
-			cancel_url: `${hostname}/paslaugos`,
+			cancel_url: `${hostname}/naryste`,
 		});
 		return session;
 	} catch (err) {
@@ -87,14 +87,7 @@ exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_na
 	}
 };
 
-exports.stripeServiceSession = async (
-	user_role,
-	user_id,
-	user_name,
-	service,
-	code,
-	isCodeApproved,
-) => {
+exports.stripeServiceSession = async (user_role, user_id, user_name, service, code, isCodeApproved) => {
 	const service_category = service?.category === 'Kursai' ? 'course' : 'regular';
 	try {
 		let customerId = await isExistStripeCustomer(user_id, user_name);
@@ -139,7 +132,7 @@ exports.stripeServiceSession = async (
 			],
 
 			success_url: `${hostname}/paslauga-apmoketa?service=${service_category}&session_id={CHECKOUT_SESSION_ID}`,
-			cancel_url: `${hostname}/paslaugos?tab=paslaugos`,
+			cancel_url: `${hostname}/paslaugos/${service.slug}`,
 		});
 
 		return session;
