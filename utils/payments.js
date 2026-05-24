@@ -4,6 +4,12 @@ let = hostname = 'http://localhost:5173';
 if (process.env.PROJECT === 'DULEVICIUS') hostname = 'https://bezalos.dulevicius.dev';
 if (process.env.PROJECT === 'BEZALOS') hostname = 'https://bezalos.lt';
 
+const prices_ids = {
+	profilis_month: process.env.STRIPE_PRICE_PROFILIS_MONTH,
+	profilis_year: process.env.STRIPE_PRICE_PROFILIS_YEAR,
+	virtuve_month: process.env.STRIPE_PRICE_VIRTUVE_MONTH,
+	virtuve_year: process.env.STRIPE_PRICE_VIRTUVE_YEAR,
+};
 const findCustomerById = async (customer_id) => {
 	if (!customer_id) {
 		throw new Error('Customer ID is required');
@@ -20,21 +26,6 @@ const findCustomerById = async (customer_id) => {
 		throw err;
 	}
 };
-
-// const findCustomerByEmail = async email => {
-//     if (!email) {
-//         throw new Error('Email is required');
-//     }
-//     try {
-//         const customers = await stripe.customers.list({
-//             email,
-//             limit: 1
-//         });
-//         return customers.data[0]?.id || null;
-//     } catch (err) {
-//         throw err;
-//     }
-// }
 
 const isExistStripeCustomer = async (user_id, email) => {
 	let data = await db.query('SELECT stripe_customer_id from users WHERE id = $1', [user_id]);
@@ -60,10 +51,28 @@ const isExistStripeCustomer = async (user_id, email) => {
 };
 
 exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_name) => {
-	const is_customer_exist = await isExistStripeCustomer(user_id, user_email);
-
 	try {
-		const session = await stripe.checkout.sessions.create({
+		let lineItems = [
+			{
+				price: prices_ids[priceId],
+				quantity: 1,
+			},
+		];
+
+		if (plan_name === 'virtuve_plus') {
+			lineItems = [
+				{
+					price: process.env.STRIPE_PRICE_VIRTUVE_PHASE_1,
+					quantity: 1,
+				},
+				{
+					price: process.env.STRIPE_PRICE_VIRTUVE_PHASE_2,
+					quantity: 1,
+				},
+			];
+		}
+		const is_customer_exist = await isExistStripeCustomer(user_id, user_email);
+		const sessionParams = {
 			locale: 'lt',
 			mode: 'subscription',
 			allow_promotion_codes: true,
@@ -71,16 +80,18 @@ exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_na
 			customer: is_customer_exist,
 			customer_email: !is_customer_exist ? user_email : undefined,
 			metadata: { user_id, subscription_status: plan_name },
-			line_items: [
-				{
-					price: priceId,
-					quantity: 1,
-				},
-			],
+			line_items: lineItems,
 
 			success_url: `${hostname}/apmoketa-sekmingai?plan=${plan_name}&session_id={CHECKOUT_SESSION_ID}`,
 			cancel_url: `${hostname}/naryste`,
-		});
+		};
+		if (plan_name === 'virtuve_plus') {
+			sessionParams.subscription_data = {
+				trial_period_days: 90,
+			};
+		}
+
+		const session = await stripe.checkout.sessions.create(sessionParams);
 		return session;
 	} catch (err) {
 		return err;
@@ -119,7 +130,6 @@ exports.stripeServiceSession = async (user_role, user_id, user_name, service, co
 			},
 			line_items: [
 				{
-					// price: priceId,
 					price_data: {
 						currency: 'eur',
 						product_data: {

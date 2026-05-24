@@ -35,6 +35,7 @@ export interface UserResponseDto {
 	displayName: string;
 	user_subscription: boolean;
 	user_s_subscription: boolean;
+	current_period_end: Date;
 	u_status: Ustaus;
 	s_status: Sstatus;
 }

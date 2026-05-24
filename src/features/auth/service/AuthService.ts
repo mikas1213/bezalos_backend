@@ -170,6 +170,7 @@ export class AuthService {
 			user_s_subscription: s_subs_exp >= today,
 			u_status: user.u_status,
 			s_status: user.s_status,
+			current_period_end: user.s_subscription_expires,
 			is_course: courseOrder?.is_course || false,
 		};
 	}
