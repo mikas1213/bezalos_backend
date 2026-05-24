@@ -25,13 +25,13 @@ export class SitemapService {
 					: 'https://www.bezalos.lt';
 
 		const staticPages: StaticPage[] = [
-			{ path: '/',                   lastmod: '2025-03-07', priority: '1.0', changefreq: 'weekly'  },
-			{ path: '/virtuve',            lastmod: '2025-03-07', priority: '0.8', changefreq: 'weekly'  },
-			{ path: '/receptai',           lastmod: '2025-03-07', priority: '0.8', changefreq: 'weekly'  },
-			{ path: '/paslaugos',          lastmod: '2025-03-07', priority: '0.8', changefreq: 'weekly'  },
-			{ path: '/atlik-testa',        lastmod: '2025-03-07', priority: '0.6', changefreq: 'monthly' },
-			{ path: '/pirkimo-taisykles',  lastmod: '2025-03-07', priority: '0.5', changefreq: 'yearly'  },
-			{ path: '/privatumo-politika', lastmod: '2025-03-07', priority: '0.5', changefreq: 'yearly'  },
+			{ path: '/', lastmod: '2025-03-07', priority: '1.0', changefreq: 'weekly' },
+			{ path: '/virtuve', lastmod: '2025-03-07', priority: '0.8', changefreq: 'weekly' },
+			{ path: '/receptai', lastmod: '2025-03-07', priority: '0.8', changefreq: 'weekly' },
+			{ path: '/paslaugos', lastmod: '2025-03-07', priority: '0.8', changefreq: 'weekly' },
+			{ path: '/atlik-testa', lastmod: '2025-03-07', priority: '0.6', changefreq: 'monthly' },
+			{ path: '/pirkimo-taisykles', lastmod: '2025-03-07', priority: '0.5', changefreq: 'yearly' },
+			{ path: '/privatumo-politika', lastmod: '2025-03-07', priority: '0.5', changefreq: 'yearly' },
 		];
 
 		const urlEntry = (loc: string, lastmod: string, priority: string, changefreq: string) =>

@@ -3,22 +3,16 @@ const db = require('../database/db');
 const Email = require('../utils/email');
 const { stripeSubscriptionSession, stripeServiceSession } = require('../utils/payments');
 
-const prices_ids = {
-	profilis_month: process.env.STRIPE_PROFILIS_PRICE_MONTH,
-	profilis_year: process.env.STRIPE_PROFILIS_PRICE_YEAR,
-	virtuve_month: process.env.STRIPE_VIRTUVE_PRICE_MONTH,
-	virtuve_year: process.env.STRIPE_VIRTUVE_PRICE_YEAR,
-};
-
 let = hostname = 'http://localhost:5173';
 if (process.env.PROJECT === 'DULEVICIUS') hostname = 'https://bezalos.dulevicius.dev';
 if (process.env.PROJECT === 'BEZALOS') hostname = 'https://bezalos.lt';
 
-exports.createCheckoutSession = async (req, res) => {
+exports.createSubcsriptionSession = async (req, res) => {
 	const { user_id, plan_price, plan_name } = req.body;
 
 	try {
-		const session = await stripeSubscriptionSession(user_id, req.user_name, prices_ids[plan_price], plan_name);
+		// const session = await stripeSubscriptionSession(user_id, req.user_name, prices_ids[plan_price], plan_name);
+		const session = await stripeSubscriptionSession(user_id, req.user_name, plan_price, plan_name);
 		res.status(200).json({ session });
 	} catch (err) {
 		console.log(err.message);
@@ -48,13 +42,14 @@ exports.paymentSuccess = async (req, res) => {
 		data.object.mode === 'subscription' &&
 		data.object.payment_status === 'paid'
 	) {
-		// const for_success_subs_page = data.object.metadata.subscription_status;
 		const userId = data.object.metadata.user_id;
 		let type = 'free';
 		let stripe_username = data.object?.customer_details?.name;
-
-		if (data.object.metadata.subscription_status === 'virtuve') type = 'Virtuvė';
+		console.log('data.object.metadata.subscription_status: ', data.object.metadata.subscription_status);
 		if (data.object.metadata.subscription_status === 'profilis') type = 'Profilis';
+		if (data.object.metadata.subscription_status === 'virtuve') type = 'Virtuvė';
+		if (data.object.metadata.subscription_status === 'virtuve_plus') type = 'Virtuvė Plus';
+
 		await db.query(
 			'UPDATE users SET subscription = $2, stripe_customer_id = $3, subscription_type = $4, stripe_username = $5, updated_at = $6 WHERE id = $1',
 			[userId, true, data.object.customer, type, stripe_username, new Date().toLocaleString('lt-LT')],
@@ -88,6 +83,9 @@ exports.paymentSuccess = async (req, res) => {
 			timeStyle: 'medium',
 		});
 		const price = await stripe.prices.retrieve(data.object.plan.id);
+		console.log('price.metadata.s_plan: ', price.metadata.s_plan);
+		console.log('price.schedule: ', data.object.schedule);
+		console.log('price.metadata.phased: ', price.metadata.phased === 'true');
 		const stripe_customer = await stripe.customers.retrieve(data.object.customer);
 
 		const prod = await stripe.products.retrieve(data.object.plan.product);
@@ -154,7 +152,7 @@ exports.customerPortal = async (req, res) => {
 		const session = await stripe.billingPortal.sessions.create({
 			customer: req.str_cus_id,
 			locale: 'lt',
-			return_url: `${hostname}/paslaugos`,
+			return_url: `${hostname}/naryste`,
 		});
 
 		res.status(200).json({ session });

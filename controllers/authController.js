@@ -319,8 +319,7 @@ exports.protect = (req, res, next) => {
 		req.user_role = decoded.user_role;
 
 		const { rows } = await db.query(
-			`
-            SELECT email, stripe_customer_id, subscription_expires, 
+			`SELECT email, stripe_customer_id, subscription_expires, 
                    subscription_type AS u_status, s.status AS s_status, 
                    s.current_period_end AS s_subscription_expires
             FROM users 
@@ -333,9 +332,7 @@ exports.protect = (req, res, next) => {
 		if (!rows[0]) return res.sendStatus(401);
 
 		const today = Date.parse(new Date().toLocaleString('lt-LT', { dateStyle: 'short' }));
-		const subs_exp = Date.parse(
-			new Date(rows[0].subscription_expires).toLocaleString('lt-LT', { dateStyle: 'short' }),
-		);
+		const subs_exp = Date.parse(new Date(rows[0].subscription_expires).toLocaleString('lt-LT', { dateStyle: 'short' }));
 		const s_subs_exp = Date.parse(
 			new Date(rows[0].s_subscription_expires).toLocaleString('lt-LT', {
 				dateStyle: 'short',
