@@ -45,7 +45,7 @@ exports.paymentSuccess = async (req, res) => {
 		const userId = data.object.metadata.user_id;
 		let type = 'free';
 		let stripe_username = data.object?.customer_details?.name;
-		console.log('data.object.metadata.subscription_status: ', data.object.metadata.subscription_status);
+
 		if (data.object.metadata.subscription_status === 'profilis') type = 'Profilis';
 		if (data.object.metadata.subscription_status === 'virtuve') type = 'Virtuvė';
 		if (data.object.metadata.subscription_status === 'virtuve_plus') type = 'Virtuvė Plus';
@@ -83,9 +83,6 @@ exports.paymentSuccess = async (req, res) => {
 			timeStyle: 'medium',
 		});
 		const price = await stripe.prices.retrieve(data.object.plan.id);
-		console.log('price.metadata.s_plan: ', price.metadata.s_plan);
-		console.log('price.schedule: ', data.object.schedule);
-		console.log('price.metadata.phased: ', price.metadata.phased === 'true');
 		const stripe_customer = await stripe.customers.retrieve(data.object.customer);
 
 		const prod = await stripe.products.retrieve(data.object.plan.product);
