@@ -1,50 +1,52 @@
 # Bezalos — Backend API
 
-REST API serveris skirtas **bezalos.lt** platformai. Sukurtas su Node.js + Express + TypeScript, naudoja PostgreSQL duomenų bazę, AWS S3 medijų saugojimui ir Stripe mokėjimams.
+REST API server for the **bezalos.lt** platform. Built with Node.js, Express, and TypeScript, using PostgreSQL for data persistence, AWS S3 for media storage, and Stripe for payments.
+
+> **Note:** This project is currently being migrated from JavaScript to TypeScript. New features and modules are written in TypeScript (`src/`), while older parts of the codebase (`routes/`, `controllers/`, `services/`) are still in JavaScript and will be gradually refactored.
 
 ---
 
-## Technologijų stack'as
+## Tech Stack
 
-| Kategorija | Technologija |
-|---|---|
-| Runtime | Node.js |
-| Framework | Express 4 |
-| Kalba | TypeScript |
-| Duomenų bazė | PostgreSQL (`pg`) |
-| Autentikacija | JWT (access + refresh token) |
-| Failų saugojimas | AWS S3 + CloudFront (signed URLs) |
-| Mokėjimai | Stripe |
-| El. paštas | SendGrid |
-| AI | Anthropic SDK (Claude) |
-| Real-time | Socket.IO |
-| Process manager | PM2 (cluster mode) |
+| Category        | Technology                        |
+| --------------- | --------------------------------- |
+| Runtime         | Node.js                           |
+| Framework       | Express 4                         |
+| Language        | TypeScript                        |
+| Database        | PostgreSQL (`pg`)                 |
+| Authentication  | JWT (access + refresh token)      |
+| File Storage    | AWS S3 + CloudFront (signed URLs) |
+| Payments        | Stripe                            |
+| Email           | SendGrid                          |
+| AI              | Anthropic SDK (Claude)            |
+| Real-time       | Socket.IO                         |
+| Process Manager | PM2 (cluster mode)                |
 
 ---
 
-## Projekto struktūra
+## Project Structure
 
 ```
 backend/
 ├── src/
 │   ├── server.ts                  # Entry point
-│   ├── container/                 # DI konteineris
+│   ├── container/                 # DI container
 │   ├── common/
-│   │   ├── config/                # CORS, leistini origins
+│   │   ├── config/                # CORS, allowed origins
 │   │   ├── middleware/            # Logger, rate limiter, error handler
-│   │   └── utils/                 # Pagalbinės funkcijos
-│   └── features/                  # Feature-based moduliai
-│       ├── auth/                  # Autentikacija ir autorizacija
-│       ├── tags/                  # Žymos
-│       ├── seo/                   # SEO meta duomenys
-│       ├── sitemap/               # Sitemap generavimas
+│   │   └── utils/                 # Utility functions
+│   └── features/                  # Feature-based modules
+│       ├── auth/                  # Authentication & authorization
+│       ├── tags/                  # Tags
+│       ├── seo/                   # SEO metadata
+│       ├── sitemap/               # Sitemap generation
 │       ├── admin/
-│       │   └── virtuve/           # Admin: vaizdo įrašų valdymas
+│       │   └── virtuve/           # Admin: video management
 │       └── client/
-│           ├── virtuve/           # Vaizdo įrašai (klientui)
-│           ├── likes/             # Patikimai
-│           └── comments/          # Komentarai
-├── routes/                        # Legacy JS maršrutai
+│           ├── virtuve/           # Videos (client-facing)
+│           ├── likes/             # Likes
+│           └── comments/          # Comments
+├── routes/                        # Legacy JS routes
 │   ├── profileRoutes.js
 │   ├── mailerRoutes.js
 │   ├── paymentRoutes.js
@@ -58,150 +60,129 @@ backend/
 │       ├── adminRecipesRoutes.js
 │       ├── customersRoutes.js
 │       └── nutritionPlansRoutes.js
-├── controllers/                   # Legacy JS kontroleriai
-├── services/                      # Legacy JS servisai
-├── repositories/                  # Duomenų bazės sluoksnis
+├── controllers/                   # Legacy JS controllers
+├── services/                      # Legacy JS services
+├── repositories/                  # Database layer
 ├── middleware/                    # Validators, rate limiter
 ├── config/                        # Roles, CORS options
 ├── utils/                         # Helpers, email, payments
-├── ecosystem.config.js            # PM2 konfigūracija
+├── ecosystem.config.js            # PM2 configuration
 ├── tsconfig.json
 └── package.json
 ```
 
 ---
 
-## API maršrutai
+## API Routes
 
-### Autentikacija — `/api/v1/auth`
-| Metodas | Kelias | Aprašymas |
-|---|---|---|
-| POST | `/register` | Naujo vartotojo registracija |
-| POST | `/login` | Prisijungimas (JWT) |
-| POST | `/logout` | Atsijungimas |
-| GET | `/refresh` | Access token atnaujinimas |
+### Authentication — `/api/v1/auth`
 
-### Vartotojo profilis — `/api/v1/profile`
-| Metodas | Kelias | Aprašymas |
-|---|---|---|
-| GET | `/` | Profilio duomenys |
-| PATCH | `/` | Profilio atnaujinimas |
+| Method | Path        | Description          |
+| ------ | ----------- | -------------------- |
+| POST   | `/register` | Register a new user  |
+| POST   | `/login`    | Login (JWT)          |
+| POST   | `/logout`   | Logout               |
+| GET    | `/refresh`  | Refresh access token |
 
-### Receiptai — `/api/v1/recipes`
-| Metodas | Kelias | Aprašymas |
-|---|---|---|
-| GET | `/` | Visų receptų sąrašas |
-| GET | `/:id` | Konkretus receptas |
-| POST | `/` | Naujas receptas |
+### User Profile — `/api/v1/profile`
 
-### Paslaugos — `/api/v1/services`
-| Metodas | Kelias | Aprašymas |
-|---|---|---|
-| GET | `/` | Paslaugų sąrašas |
-| POST | `/` | Nauja paslauga |
+| Method | Path | Description      |
+| ------ | ---- | ---------------- |
+| GET    | `/`  | Get profile data |
+| PATCH  | `/`  | Update profile   |
 
-### Mokėjimai — `/api/v1/payments`
-Stripe integracij — prenumeratų ir vienkartinių mokėjimų apdorojimas.
+### Recipes — `/api/v1/recipes`
 
-### El. paštas — `/api/v1/mailer`
-SendGrid pagrindu — automatiniai pranešimai, patvirtinimai.
+| Method | Path   | Description         |
+| ------ | ------ | ------------------- |
+| GET    | `/`    | List all recipes    |
+| GET    | `/:id` | Get a single recipe |
+| POST   | `/`    | Create a recipe     |
 
-### Vaizdo įrašai — `/api/v1/virtuve`
-Vaizdo pamokų srautas per CloudFront signed URLs.
+### Services — `/api/v1/services`
 
-### Patikimai — `/api/v1/like` ir `/api/v1/likes`
-Receptų ir turinio patikimų sistema.
+| Method | Path | Description      |
+| ------ | ---- | ---------------- |
+| GET    | `/`  | List services    |
+| POST   | `/`  | Create a service |
 
-### Komentarai — `/api/v1/comments`
-Komentarų kūrimas, skaitymas.
+### Payments — `/api/v1/payments`
 
-### Žymos — `/api/v1/tags`
-Turinio žymėjimo sistema.
+Stripe integration — handles subscriptions and one-time payments.
 
-### Akcijos — `/api/v1/promo`
-Reklamų ir nuolaidų valdymas.
+### Email — `/api/v1/mailer`
+
+SendGrid-based — automated notifications and confirmations.
+
+### Videos — `/api/v1/virtuve`
+
+Video lesson streaming via CloudFront signed URLs.
+
+### Likes — `/api/v1/like` and `/api/v1/likes`
+
+Like system for recipes and content.
+
+### Comments — `/api/v1/comments`
+
+Create and read comments.
+
+### Tags — `/api/v1/tags`
+
+Content tagging system.
+
+### Promotions — `/api/v1/promo`
+
+Promotional offers and discount management.
 
 ### Admin — `/api/v1/admin`
-Apsaugotas admin skydelis: vartotojai, paslaugos, receptai, akcijos, mitybos planai, vaizdo įrašai.
 
-### Kita
-| Kelias | Aprašymas |
-|---|---|
-| `GET /sitemap.xml` | SEO sitemap |
-| `GET /seo` | Meta duomenys |
-| `GET /api/v1/config` | Socket.IO URL konfigūracija |
+Protected admin panel: users, services, recipes, promotions, nutrition plans, videos.
 
----
+### Other
 
-## Saugumas
-
-- **Helmet** — HTTP antraščių apsauga
-- **CORS** — tik leistini origins
-- **Rate limiting** — 375 req / 15 min (auth/refresh: 1000), admin maršrutai neribojami
-- **HPP** — HTTP parameter pollution prevencija
-- **XSS sanitizer** — įvesties valymas
-- **bcrypt** — slaptažodžių hash'avimas
-- **JWT** — access + refresh token schema
-- **Zod** — schemų validacija
+| Path                 | Description          |
+| -------------------- | -------------------- |
+| `GET /sitemap.xml`   | SEO sitemap          |
+| `GET /seo`           | Meta data            |
+| `GET /api/v1/config` | Socket.IO URL config |
 
 ---
 
-## Aplinkos kintamieji
+## Security
 
-Konfigūracija saugoma `.env_bezalos` faile. Reikalingi kintamieji:
-
-```env
-PORT=3003
-NODE_ENV=production
-
-# Duomenų bazė
-DATABASE_URL=
-
-# JWT
-ACCESS_TOKEN_SECRET=
-REFRESH_TOKEN_SECRET=
-
-# AWS
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-AWS_REGION=
-S3_BUCKET_NAME=
-CLOUDFRONT_DOMAIN=
-
-# Stripe
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
-
-# SendGrid
-SENDGRID_API_KEY=
-
-# Socket
-SOCKET_URL=
-```
+- **Helmet** — HTTP header protection
+- **CORS** — restricted to allowed origins only
+- **Rate limiting** — per-route request throttling
+- **HPP** — HTTP parameter pollution prevention
+- **XSS sanitizer** — input sanitization
+- **bcrypt** — password hashing
+- **JWT** — access + refresh token scheme
+- **Zod** — schema validation
 
 ---
 
-## Paleidimas
+## Getting Started
 
-### Reikalavimai
+### Requirements
+
 - Node.js 18+
 - PostgreSQL
-- AWS S3 bucket + CloudFront distribucija
+- AWS S3 bucket + CloudFront distribution
 
-### Įdiegimas
+### Install
 
 ```bash
 npm install
 ```
 
-### Kūrimo režimas
+### Development
 
 ```bash
-npm run build    # Sukompiliuoja TypeScript → dist/
-npm start        # Paleidžia dist/server.js su nodemon
+npm run build    # Compile TypeScript → dist/
+npm start        # Run dist/server.js with nodemon
 ```
 
-### Produkcinė aplinka (PM2)
+### Production (PM2)
 
 ```bash
 npm run build
@@ -210,35 +191,26 @@ pm2 logs bezalos.lt
 pm2 monit
 ```
 
-PM2 paleidžia serverį **cluster** režimu (visais CPU branduoliais), su automatiniais restartais ir logų rinkimu.
+PM2 runs the server in **cluster mode** (all CPU cores), with automatic restarts and log aggregation.
 
 ---
 
 ## Real-time (Socket.IO)
 
-Serveris palaiko WebSocket ryšius per Socket.IO:
+The server supports WebSocket connections via Socket.IO:
 
-- Klientai prisijungia per `websocket` arba `polling` transportą
-- Palaikoma kambarių (`room`) sistema — naudojama real-time pranešimams
-- CORS konfigūruotas pagal `allowedOrigins` sąrašą
-
----
-
-## Rolės
-
-| Rolė | Kodas |
-|---|---|
-| `user` | `2324` |
-| `admin` | `1213` |
+- Clients connect via `websocket` or `polling` transport
+- Room-based system for real-time notifications
+- CORS configured against the `allowedOrigins` list
 
 ---
 
-## Logai
+## Logs
 
-PM2 surinks logus į:
+PM2 writes logs to:
 
 ```
-logs/combined.log   # Visi logai
+logs/combined.log   # All logs
 logs/out.log        # stdout
-logs/error.log      # Klaidos
+logs/error.log      # Errors
 ```
