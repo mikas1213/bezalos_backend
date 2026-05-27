@@ -41,7 +41,14 @@ export interface VideoDto {
 	is_liked: boolean;
 }
 
-export const ACTIVE_SUBSCRIPTION_STATUSES = ['Virtuvė', 'virtuve', 'Cancel_virtuve'] as const;
+export const ACTIVE_SUBSCRIPTION_STATUSES = [
+	'Virtuvė',
+	'virtuve',
+	'Cancel_virtuve',
+	'Virtuvė Plus',
+	'virtuve_plus',
+	'Cancel_virtuve_plus',
+] as const;
 type Status = (typeof ACTIVE_SUBSCRIPTION_STATUSES)[number];
 
 export interface UserSubscriptionRow {
