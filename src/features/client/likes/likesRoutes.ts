@@ -15,7 +15,15 @@ export const createLikesRouter = (
 		authMiddleware.protect({ required: true }),
 		likesMiddleware.getVideoContext,
 		authMiddleware.isCourse({ required: false }),
-		authMiddleware.isSubscription({ required: false }, 'virtuve', 'Virtuvė', 'Cancel_virtuve'),
+		authMiddleware.isSubscription(
+			{ required: false },
+			'virtuve',
+			'Virtuvė',
+			'Cancel_virtuve',
+			'Virtuvė Plus',
+			'virtuve_plus',
+			'Cancel_virtuve_plus',
+		),
 		likesMiddleware.canLikeVideo,
 		catchAsync(likesController.likesToggle),
 	);
@@ -25,7 +33,15 @@ export const createLikesRouter = (
 		authMiddleware.protect({ required: true }),
 		likesMiddleware.getVideoContext,
 		authMiddleware.isCourse({ required: false }),
-		authMiddleware.isSubscription({ required: false }, 'virtuve', 'Virtuvė', 'Cancel_virtuve'),
+		authMiddleware.isSubscription(
+			{ required: false },
+			'virtuve',
+			'Virtuvė',
+			'Cancel_virtuve',
+			'Virtuvė Plus',
+			'virtuve_plus',
+			'Cancel_virtuve_plus',
+		),
 		likesMiddleware.canLikeVideo,
 		catchAsync(likesController.likesToggle),
 	);

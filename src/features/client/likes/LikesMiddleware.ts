@@ -36,7 +36,6 @@ export class LikesMiddleware {
 		if (!req.video) {
 			return next(AppError.internal('Toks video neegzistuoja'));
 		}
-
 		const videoCategoriesForSubscription = ['Pokalbis', 'Trumpai', 'Vebinaras'];
 		const { category } = req?.video;
 		const isCourse = req.video.category === 'Kursai';
