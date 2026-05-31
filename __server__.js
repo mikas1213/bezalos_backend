@@ -1,3 +1,4 @@
+/*
 require('dotenv').config({ path: './.env_bezalos' });
 
 process.on('uncaughtException', (err) => {
@@ -26,7 +27,7 @@ const credentials = require('./middleware/credentials');
 const sitemapRouter = require('./routes/sitemapRoutes');
 const authRouter = require('./routes/authRoutes');
 const videoRouter = require('./routes/videoRoutes');
-// const commentsRouter = require('./routes/commentsRoutes');
+const commentsRouter = require('./routes/commentsRoutes');
 const profileRouter = require('./routes/profileRoutes');
 const mailerRouter = require('./routes/mailerRoutes');
 const paymentRouter = require('./routes/paymentRoutes');
@@ -60,7 +61,7 @@ app.use('/api', rateLimiter);
 app.use('/sitemap.xml', sitemapRouter);
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/videos', videoRouter);
-// app.use('/api/v1/comments', commentsRouter);
+app.use('/api/v1/comments', commentsRouter);
 app.use('/api/v1/profile', profileRouter);
 app.use('/api/v1/mailer', mailerRouter);
 app.use('/api/v1/payments', paymentRouter);
@@ -89,14 +90,13 @@ app.all('*', (req, res) => {
 app.use(errorHandler);
 const server = app.listen(process.env.PORT || 3003, function () {
 	console.log(`Server running on ${process.env.PORT}`);
-	// logRoutes(app);
 });
 
-server.timeout = 1800000; // 30.00 minutes (default: 120000 = 2 min)
-server.keepAliveTimeout = 1810000; // 30.16 minutes
-server.headersTimeout = 1815000; // 30.25 minutes
+server.timeout = 1800000;
+server.keepAliveTimeout = 1810000;
+server.headersTimeout = 1815000;
 
-// Socket.io Setup
+
 const io = new Server(server, {
 	cors: {
 		origin: [
@@ -111,7 +111,7 @@ const io = new Server(server, {
 			'https://www.bezalos.lt',
 			'https://bezalos.dulevicius.dev',
 			'https://www.bezalos.dulevicius.dev',
-		].filter(Boolean), // Pašalinti undefined values
+		].filter(Boolean),
 		methods: ['GET', 'POST'],
 		allowedHeaders: ['Content-Type', 'Authorization'],
 		credentials: true,
@@ -161,3 +161,5 @@ process.on('SIGINT', () => {
 		process.exit(1);
 	});
 });
+
+*/
