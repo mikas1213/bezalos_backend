@@ -45,5 +45,7 @@ export const createLikesRouter = (
 		likesMiddleware.canLikeVideo,
 		catchAsync(likesController.likesToggle),
 	);
+
+	router.post('/recipes', authMiddleware.protect({ required: true }), catchAsync(likesController.likesToggle));
 	return router;
 };

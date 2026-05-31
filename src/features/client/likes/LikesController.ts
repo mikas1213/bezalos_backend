@@ -9,11 +9,7 @@ export class LikesController {
 	async likesToggle(req: Request, res: Response): Promise<void> {
 		const userId = req.user?.id;
 		const { entityId, entityType } = req.body;
-		const { isLiked, likesCount } = await this.likesService.toggleLikes(
-			userId,
-			entityType,
-			entityId,
-		);
+		const { isLiked, likesCount } = await this.likesService.toggleLikes(userId, entityType, entityId);
 
 		res.status(200).json({ isLiked, likesCount });
 	}

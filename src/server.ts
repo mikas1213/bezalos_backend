@@ -61,7 +61,6 @@ const paymentRouter = require('../routes/paymentRoutes');
 const servicesRouter = require('../routes/servicesRoutes');
 const promotionRouter = require('../routes/promotionRoutes');
 const recipesRouter = require('../routes/recipesRoutes');
-const likesRouter = require('../routes/likesRoutes');
 const adminPromotionsRouter = require('../routes/adminRoutes/adminPromotionsRoutes');
 const adminServicesRouter = require('../routes/adminRoutes/adminServicesRoutes');
 const adminRecipesRouter = require('../routes/adminRoutes/adminRecipesRoutes');
@@ -100,7 +99,6 @@ app.use('/api/v1/payments', paymentRouter);
 app.use('/api/v1/services', servicesRouter);
 app.use('/api/v1/promo', promotionRouter);
 app.use('/api/v1/recipes', recipesRouter);
-app.use('/api/v1/likes', likesRouter);
 app.use('/api/v1/admin/virtuve', adminCreateVirtuveRouter(authMiddleware, adminVideoMiddleware, adminVirtuveController));
 app.use('/api/v1/admin', [adminPromotionsRouter, adminServicesRouter, adminRecipesRouter, customersRouter, nutritionPlansRouter]);
 app.get('/api/v1/config', (_req: Request, res: Response) => {

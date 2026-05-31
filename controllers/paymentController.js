@@ -11,7 +11,6 @@ exports.createSubcsriptionSession = async (req, res) => {
 	const { user_id, plan_price, plan_name } = req.body;
 
 	try {
-		// const session = await stripeSubscriptionSession(user_id, req.user_name, prices_ids[plan_price], plan_name);
 		const session = await stripeSubscriptionSession(user_id, req.user_name, plan_price, plan_name);
 		res.status(200).json({ session });
 	} catch (err) {
