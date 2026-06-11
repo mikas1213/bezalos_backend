@@ -130,6 +130,21 @@ export class AdminVirtuveRepository {
 	}
 
 	async deleteById(video_id: string): Promise<void> {
-		await this.db.query(`DELETE FROM videos WHERE id = $1`, [video_id]);
+		await this.db.transaction(async (client) => {
+			// 1. Šio video komentarų likes (komentarai cascade išsitrins kartu su video,
+			//    bet jų likes - ne, todėl valom rankiniu būdu PRIEŠ trinant video)
+			await client.query(
+				`DELETE FROM likes
+				 WHERE entity_type = 'comments'
+				 AND entity_id IN (SELECT id FROM comments WHERE video_id = $1)`,
+				[video_id],
+			);
+
+			// 2. Paties video likes
+			await client.query(`DELETE FROM likes WHERE entity_type = 'videos' AND entity_id = $1`, [video_id]);
+
+			// 3. Video (komentarai išsitrins per ON DELETE CASCADE)
+			await client.query(`DELETE FROM videos WHERE id = $1`, [video_id]);
+		});
 	}
 }

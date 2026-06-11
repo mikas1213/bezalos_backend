@@ -1,10 +1,11 @@
+CLAUDE.md
 .env_bezalos
 logs
 pm2_logs
 logs_pm2
 node_modules
-database/SQL
 database/queries.sql
 *_key.pem
+bezalos-db-schema.sql
 temp/*
 dist
