@@ -34,7 +34,18 @@ export class CommentsRepository {
 
 	async deleteById(commentId: string): Promise<void> {
 		try {
-			await this.db.queryOne(`DELETE FROM comments WHERE id = $1`, [commentId]);
+			await this.db.transaction(async (client) => {
+				// 1. Komentaro IR jo atsakymų likes (PRIEŠ trinant komentarą, kol atsakymų id dar egzistuoja)
+				await client.query(
+					`DELETE FROM likes
+					 WHERE entity_type = 'comments'
+					 AND (entity_id = $1 OR entity_id IN (SELECT id FROM comments WHERE parent_id = $1))`,
+					[commentId],
+				);
+
+				// 2. Komentaras (atsakymai išsitrina per parent_id ON DELETE CASCADE)
+				await client.query(`DELETE FROM comments WHERE id = $1`, [commentId]);
+			});
 		} catch (err) {
 			let message = 'unknown error';
 			if (err instanceof Error) message = err.message;
