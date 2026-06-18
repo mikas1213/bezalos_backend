@@ -21,4 +21,12 @@ export class LikesService {
 			likesCount: result?.likes_toggle.likesCount,
 		};
 	}
+
+	async getLikesCount(userId: string | undefined, entity_id: string): Promise<LikesToggleDto> {
+		const [likesCount, like] = await Promise.all([
+			this.likesRepository.getLikesCount(entity_id),
+			userId ? this.likesRepository.findLike(userId, entity_id) : Promise.resolve(null),
+		]);
+		return { likesCount, isLiked: !!like };
+	}
 }
