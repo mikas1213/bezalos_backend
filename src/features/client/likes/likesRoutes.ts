@@ -46,6 +46,6 @@ export const createLikesRouter = (
 		catchAsync(likesController.likesToggle),
 	);
 
-	router.post('/recipes', authMiddleware.protect({ required: true }), catchAsync(likesController.likesToggle));
+	router.post('/', authMiddleware.protect({ required: true }), catchAsync(likesController.likesToggle));
 	return router;
 };
