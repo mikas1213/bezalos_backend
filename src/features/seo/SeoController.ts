@@ -1,8 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import { VirtuveService } from '../client/virtuve/service/VirtuveService';
 import { AppError } from '../../common/errors/AppError';
+import { ArticleSeo, getArticleSeoBySlug } from './articlesSeoData';
 
 const S3_BASE = 'https://bezalos.s3.us-east-1.amazonaws.com/';
+const SITE_BASE = 'https://www.bezalos.lt';
+
+/** Escape user-visible text before interpolating it into HTML attributes. */
+const escapeHtml = (value: string): string =>
+	value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 const toIsoDuration = (hms: string | null | undefined): string | null => {
 	if (!hms) return null;
@@ -62,6 +68,52 @@ const buildVideoMetaHtml = (video: Awaited<ReturnType<VirtuveService['getOneVide
 </html>`;
 };
 
+const buildArticleMetaHtml = (article: ArticleSeo): string => {
+	const pageUrl = `${SITE_BASE}/straipsniai/${article.slug}`;
+	const imageUrl = `${SITE_BASE}/og-articles/${article.image}`;
+	const title = escapeHtml(article.title);
+	const description = escapeHtml(article.description.slice(0, 200));
+
+	const schema = JSON.stringify({
+		'@context': 'https://schema.org',
+		'@type': 'Article',
+		headline: article.title,
+		description: article.description,
+		image: imageUrl,
+		url: pageUrl,
+		mainEntityOfPage: pageUrl,
+		author: { '@type': 'Person', name: 'Sandra Jatulytė' },
+		publisher: {
+			'@type': 'Organization',
+			name: 'Be žalos',
+			logo: { '@type': 'ImageObject', url: `${SITE_BASE}/be-zalos.png` },
+		},
+	});
+
+	return `<!DOCTYPE html>
+<html lang="lt">
+<head>
+  <meta charset="UTF-8">
+  <title>${title} | Be žalos</title>
+  <meta name="description" content="${description}">
+  <link rel="canonical" href="${pageUrl}">
+  <meta property="og:site_name" content="Be žalos">
+  <meta property="og:locale" content="lt_LT">
+  <meta property="og:title" content="${title}">
+  <meta property="og:description" content="${description}">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="${pageUrl}">
+  <meta property="og:image" content="${imageUrl}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${title}">
+  <meta name="twitter:description" content="${description}">
+  <meta name="twitter:image" content="${imageUrl}">
+  <script type="application/ld+json">${schema}</script>
+</head>
+<body></body>
+</html>`;
+};
+
 export class SeoController {
 	constructor(private readonly virtuveService: VirtuveService) {}
 
@@ -77,6 +129,22 @@ export class SeoController {
 				res.status(404).send('<html><body>Not found</body></html>');
 				return;
 			}
+			next(err);
+		}
+	};
+
+	getArticleMeta = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+		try {
+			const slug = Array.isArray(req.params.slug) ? req.params.slug[0] : req.params.slug;
+			const article = getArticleSeoBySlug(slug);
+			if (!article) {
+				res.status(404).send('<html><body>Not found</body></html>');
+				return;
+			}
+			const html = buildArticleMetaHtml(article);
+			res.setHeader('Content-Type', 'text/html; charset=utf-8');
+			res.send(html);
+		} catch (err) {
 			next(err);
 		}
 	};

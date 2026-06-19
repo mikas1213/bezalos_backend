@@ -1,10 +1,9 @@
 import type { SitemapRepository } from './SitemapRepository';
+import { articlesSeo } from '../seo/articlesSeoData';
 
 interface StaticPage {
 	path: string;
 	lastmod: string;
-	priority: string;
-	changefreq: string;
 }
 
 export class SitemapService {
@@ -25,36 +24,42 @@ export class SitemapService {
 					: 'https://www.bezalos.lt';
 
 		const staticPages: StaticPage[] = [
-			{ path: '/', lastmod: '2025-03-07', priority: '1.0', changefreq: 'weekly' },
-			{ path: '/virtuve', lastmod: '2025-03-07', priority: '0.8', changefreq: 'weekly' },
-			{ path: '/receptai', lastmod: '2025-03-07', priority: '0.8', changefreq: 'weekly' },
-			{ path: '/paslaugos', lastmod: '2025-03-07', priority: '0.8', changefreq: 'weekly' },
-			{ path: '/atlik-testa', lastmod: '2025-03-07', priority: '0.6', changefreq: 'monthly' },
-			{ path: '/pirkimo-taisykles', lastmod: '2025-03-07', priority: '0.5', changefreq: 'yearly' },
-			{ path: '/privatumo-politika', lastmod: '2025-03-07', priority: '0.5', changefreq: 'yearly' },
+			{ path: '/', lastmod: '2025-03-07' },
+			{ path: '/atlik-testa', lastmod: '2026-01-01' },
+			{ path: '/virtuve', lastmod: '2026-04-01' },
+			{ path: '/receptai', lastmod: '2026-04-01' },
+			{ path: '/paslaugos', lastmod: '2026-04-01' },
+			{ path: '/naryste', lastmod: '2026-04-01' },
+			{ path: '/straipsniai', lastmod: '2026-06-15' },
+			{ path: '/pirkimo-taisykles', lastmod: '2025-03-07' },
+			{ path: '/privatumo-politika', lastmod: '2025-03-07' },
 		];
 
-		const urlEntry = (loc: string, lastmod: string, priority: string, changefreq: string) =>
-			`\t<url>\n\t\t<loc>${loc}</loc>\n\t\t<lastmod>${lastmod}</lastmod>\n\t\t<changefreq>${changefreq}</changefreq>\n\t\t<priority>${priority}</priority>\n\t</url>\n`;
+		const urlEntry = (loc: string, lastmod: string) =>
+			`\t<url>\n\t\t<loc>${loc}</loc>\n\t\t<lastmod>${lastmod}</lastmod>\n\t</url>\n`;
 
 		let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
 		xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
 
-		staticPages.forEach(({ path, lastmod, priority, changefreq }) => {
-			xml += urlEntry(`${baseUrl}${path}`, lastmod, priority, changefreq);
+		staticPages.forEach(({ path, lastmod }) => {
+			xml += urlEntry(`${baseUrl}${path}`, lastmod);
 		});
 
 		recipes.forEach(({ slug, updated_at }) => {
-			xml += urlEntry(`${baseUrl}/receptai/${slug}`, updated_at.toISOString().split('T')[0], '0.7', 'monthly');
+			xml += urlEntry(`${baseUrl}/receptai/${slug}`, updated_at.toISOString().split('T')[0]);
 		});
 
 		services.forEach(({ slug, updated_at }) => {
-			xml += urlEntry(`${baseUrl}/paslaugos/${slug}`, updated_at.toISOString().split('T')[0], '0.7', 'monthly');
+			xml += urlEntry(`${baseUrl}/paslaugos/${slug}`, updated_at.toISOString().split('T')[0]);
 		});
 
 		videos.forEach(({ slug, updated_at, created_at }) => {
 			const lastmod = (updated_at ?? created_at).toISOString().split('T')[0];
-			xml += urlEntry(`${baseUrl}/virtuve/${slug}`, lastmod, '0.6', 'monthly');
+			xml += urlEntry(`${baseUrl}/virtuve/${slug}`, lastmod);
+		});
+
+		articlesSeo.forEach(({ slug, lastmod }) => {
+			xml += urlEntry(`${baseUrl}/straipsniai/${slug}`, lastmod);
 		});
 
 		xml += `</urlset>`;
