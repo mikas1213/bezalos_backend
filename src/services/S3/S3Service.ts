@@ -34,6 +34,17 @@ export class S3Service {
 		});
 	}
 
+	/**
+	 * Stable, unsigned CloudFront URL. Use ONLY for objects served via a public
+	 * (no "Restrict viewer access") cache behavior — currently video snippets under
+	 * `/videos/virtuve/snippet/*`. Needed so Google can fetch the video for indexing;
+	 * a signed URL expires in 24h and changes every request, breaking video rich results.
+	 */
+	getPublicUrl(key: string | null | undefined): string | null {
+		if (!key) return null;
+		return `${process.env.CLOUD_FRONT_DOMAIN_NAME}/${key}`;
+	}
+
 	async sendCommand(CommandClass: S3CommandConstructor, params: S3Object) {
 		try {
 			return await this.s3Client.send(new CommandClass(params));

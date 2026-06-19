@@ -30,8 +30,10 @@ export class VirtuveService {
 
 		const videoS3Key = canWatchFull ? video.video_s3_key : video.video_s3_snippet_key;
 		const embedUrl = this.s3Service.generateSignedUrl(videoS3Key);
-		const contentUrl = this.s3Service.generateSignedUrl(video.video_s3_snippet_key);
-
+		// Snippet is free/public (served via an unsigned CloudFront behavior), so emit a
+		// stable, unsigned URL — Google must be able to fetch it for video rich results.
+		const contentUrl = this.s3Service.getPublicUrl(video.video_s3_snippet_key);
+		console.log('VirtuveService -> getOneVideo: ', contentUrl);
 		return {
 			id: video.id,
 			category: video.category,

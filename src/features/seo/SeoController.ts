@@ -37,6 +37,7 @@ const buildVideoMetaHtml = (video: Awaited<ReturnType<VirtuveService['getOneVide
 		thumbnailUrl,
 		uploadDate,
 		...(video.contentUrl && { contentUrl: video.contentUrl }),
+		embedUrl: pageUrl,
 		...(duration && { duration }),
 		keywords: [video.title, 'virtuvė', 'be žalos', 'sveikas maistas', ...video.videoTags].join(', '),
 		author: { '@type': 'Person', name: 'Be žalos' },
