@@ -16,6 +16,20 @@ export class LikesRepository {
 		}
 	}
 
+	async getLikesCount(entity_id: string): Promise<number> {
+		try {
+			const result = await this.db.queryOne<{ count: string }>(
+				`SELECT COUNT(*)::int AS count FROM likes WHERE entity_id = $1`,
+				[entity_id],
+			);
+			return Number(result?.count ?? 0);
+		} catch (err) {
+			let message = 'unknown error';
+			if (err instanceof Error) message = err.message;
+			throw AppError.internal(message);
+		}
+	}
+
 	async likesToggle(userId: string | undefined, entityType: string, entity_id: string) {
 		try {
 			return await this.db.queryOne('SELECT likes_toggle($1, $2, $3)', [userId, entityType, entity_id]);

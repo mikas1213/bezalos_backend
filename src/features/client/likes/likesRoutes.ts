@@ -47,5 +47,6 @@ export const createLikesRouter = (
 	);
 
 	router.post('/', authMiddleware.protect({ required: true }), catchAsync(likesController.likesToggle));
+	router.get('/:entityId', authMiddleware.protect({ required: false }), catchAsync(likesController.getLikesCount));
 	return router;
 };
