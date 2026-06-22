@@ -21,7 +21,7 @@ export const articlesSeo: ArticleSeo[] = [
 		description:
 			'Vaikystėje suformuoti scenarijai atveda mus prie šaldytuvo vidury nakties - net kai esame visiškai sotūs. Apie tai, kaip šiuos scenarijus atpažinti ir pradėti perrašyti.',
 		image: 'schemos-kurios-kalba-prie-stalo.webp',
-		lastmod: '2026 06 21',
+		lastmod: '2026-06-21',
 	},
 	{
 		slug: 'visos-problemos-kyla-is-nesaugumo',
@@ -29,7 +29,7 @@ export const articlesSeo: ArticleSeo[] = [
 		description:
 			'Prieš keletą dienų su drauge turėjome diskusiją, kurios esmė, kad visos problemos kyla iš nesaugumo. Saugumas nėra vien apie stogą virš galvos ar tam tikrą pinigų sumą banko sąskaitoje.',
 		image: 'visos-problemos-kyla-is-nesaugumo.webp',
-		lastmod: '2026 06 21',
+		lastmod: '2026-06-21',
 	},
 ];
 
