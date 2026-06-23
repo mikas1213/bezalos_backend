@@ -14,31 +14,6 @@ class RecipesRepository extends BaseRepository {
 		super(db, 'recipes', mapping);
 	}
 
-	async findAllFavorites() {
-		const query = `SELECT 
-            r.id, 
-            r.title, 
-            r.slug, 
-            r.duration, 
-            r.food_logic, 
-            r.image_s, 
-            COUNT(l.id) AS like_count
-        FROM recipes AS r
-        LEFT JOIN likes AS l 
-            ON r.id = l.entity_id 
-            AND l.entity_type = 'recipes'
-        GROUP BY 
-            r.id, r.title, r.slug, r.duration, r.food_logic, r.image_s
-        ORDER BY like_count DESC
-        LIMIT 10;
-        `;
-		try {
-			return await this.db.query(query);
-		} catch (err) {
-			throw new DatabaseError(err.message, err);
-		}
-	}
-
 	async findRecipeWithProductsBySlug(slug) {
 		const query_string = `
             SELECT 
