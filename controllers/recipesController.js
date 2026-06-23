@@ -8,11 +8,6 @@ const catchAsync = require('../utils/catchAsync');
 const slugify = require('slugify');
 const AWS_PATH_TO_IMAGES = 'images/recipes/';
 
-exports.getFavoriteRecipes = catchAsync(async (req, res) => {
-	const data = await recipesService.getFavoriteRecipes();
-	res.status(200).json(data);
-});
-
 exports.getRecipe = catchAsync(async (req, res) => {
 	const { slug } = req.params;
 	const data = await recipesService.getRecipeWithProducts(slug);
