@@ -115,10 +115,8 @@ exports.stripeServiceSession = async (user_role, user_id, user_name, service, co
 			locale: 'lt',
 			mode: 'payment',
 			allow_promotion_codes: user_role === 1213,
-			// receipt_email: user_name,
 			payment_method_types: ['card'],
 			customer: customerId,
-			// customer_email: !is_customer_exist ? user_name : undefined,
 			metadata: {
 				user_id,
 				email: user_name,
