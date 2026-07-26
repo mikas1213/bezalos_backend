@@ -148,6 +148,7 @@ exports.stripeServiceSession = async (user_role, user_id, user_name, service, co
 
 		return session;
 	} catch (err) {
+        console.log(err)
 		return err;
 	}
 };
