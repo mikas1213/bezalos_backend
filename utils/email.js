@@ -1,8 +1,4 @@
-// const fs = require('fs');
-// const path = require('path');
-// const { PDFDocument } = require('pdf-lib');
 const sgMail = require('@sendgrid/mail');
-const { text } = require('express');
 
 const messages = {
     profilis: {
@@ -28,16 +24,12 @@ const messages = {
     course: {
         text: 'Sveikiname prisijungus prie kurso',
         btn: 'Į kursą'
+    },
+    lekstes: {
+        text: '',
+        btn: '',
     }
-
 }
-
-
-    // if (fs.existsSync(path_to_pdf)) {
-    //     console.log('Failas egzistuoja:', path_to_pdf);
-    // } else {
-    //     console.log('Failas neegzistuoja:', path_to_pdf);
-    // }
 
 module.exports = class Email {
     constructor(email, initial_target, token) {
@@ -47,21 +39,6 @@ module.exports = class Email {
     }
 
     async sendEmail(template, subject) {    
-        // const path_to_pdf = path.join(__dirname, '..', 'test.pdf');
-        // const pdf_doc = await PDFDocument.load(path_to_pdf);
-        // const encryptedBytes = await pdf_doc.save({
-        //     password: 1234,
-        //     permissions: {
-        //         printing: 'highResolution',
-        //         modifying: false,
-        //         copying: false,
-        //         annotating: false,
-        //         fillingForms: false,
-        //         contentAccessibility: true,
-        //         documentAssembly: false,
-        //     }
-        // });
-        // const pdf_content = Buffer.from(encryptedBytes).toString('base64');
 
         sgMail.setApiKey(process.env.SENDGRID_API_KEY);
         
@@ -73,7 +50,6 @@ module.exports = class Email {
             personalizations: [{ 
                 to: [
                     { email: this.email },
-                    // { email: 'mikas1213@yahoo.com', name: 'Grybas' }
                 ],
                 dynamic_template_data: {
                     'token': this.token,
@@ -83,14 +59,6 @@ module.exports = class Email {
                 }
             }],
             template_id: template,
-            // attachments: [
-            //     {
-            //         content: pdf_content,
-            //         filename: 'dokumentas.pdf',
-            //         type: 'application/pdf',
-            //         disposition: 'attachment'
-            //     }
-            // ]
         };
         await sgMail.send(message);
     }
@@ -113,5 +81,9 @@ module.exports = class Email {
 
     async sendCourse() {
         await this.sendEmail(process.env.SENDGRID_TEMPLATE_COURSE || 'd-bae566213d914f589bf0e376b024fcb9', '📩 Tavo kursas jau paruoštas!');
+    }
+
+    async send25Lekstes() {
+        await this.sendEmail(process.env.SENDGRID_TEMPLATE_25LEKSTES, 'Valgau be žalos | 25 lėkštės be kaltės');
     }
 }
