@@ -1,4 +1,5 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const { secondsToMilliseconds } = require('date-fns');
 const db = require('../database/db');
 let = hostname = 'http://localhost:5173';
 if (process.env.PROJECT === 'DULEVICIUS') hostname = 'https://bezalos.dulevicius.dev';
@@ -99,7 +100,6 @@ exports.stripeSubscriptionSession = async (user_id, user_email, priceId, plan_na
 };
 
 exports.stripeServiceSession = async (user_role, user_id, user_name, service, code, isCodeApproved) => {
-    console.log('SERVICE: ', service)
 	const service_category = service?.category === 'Kursai' ? 'course' : 'regular';
 	try {
 		let customerId = await isExistStripeCustomer(user_id, user_name);
@@ -143,10 +143,8 @@ exports.stripeServiceSession = async (user_role, user_id, user_name, service, co
 			success_url: `${hostname}/paslauga-apmoketa?service=${service_category}&session_id={CHECKOUT_SESSION_ID}`,
 			cancel_url: `${hostname}/paslaugos/${service.slug}`,
 		});
-
 		return session;
 	} catch (err) {
-        console.log(err)
 		return err;
 	}
 };
