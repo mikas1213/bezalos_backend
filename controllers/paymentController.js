@@ -139,6 +139,9 @@ exports.paymentSuccess = async (req, res) => {
 		if (category === 'Kursai') {
 			await new Email(email, 'course', 'https://bezalos.lt/virtuve?cat=kursai').sendCourse();
 		}
+        if(title == '25 lėkštės be kaltės') {
+            await new Email(email, 'lekstes').send25Lekstes();
+        }
 	}
 	res.sendStatus(200);
 };

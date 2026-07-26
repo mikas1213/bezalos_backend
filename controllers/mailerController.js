@@ -99,8 +99,6 @@ exports.sendOfferMail = async (req, res) => {
     today.setDate(today.getDate() + 30);
 
     try {
-        
-
         if(!errors.isEmpty() && errors.errors[0].path === 'email') {
             return res.status(400).json({ errors: errors.errors });
         }
