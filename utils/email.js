@@ -83,7 +83,7 @@ module.exports = class Email {
         await this.sendEmail(process.env.SENDGRID_TEMPLATE_COURSE || 'd-bae566213d914f589bf0e376b024fcb9', '📩 Tavo kursas jau paruoštas!');
     }
 
-    async send25Lekstes() {
-        await this.sendEmail(process.env.SENDGRID_TEMPLATE_25LEKSTES, 'Valgau be žalos | 25 lėkštės be kaltės');
+    async send100Leksciu() {
+        await this.sendEmail(process.env.SENDGRID_TEMPLATE_25LEKSTES, 'Valgau be žalos | 100 lėkščių be kaltės');
     }
 }
