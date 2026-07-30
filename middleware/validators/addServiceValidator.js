@@ -75,7 +75,7 @@ const fillFormValidator = async (req, res, next) => {
 	req.body.quantity = quantity;
 	req.body.sort = sort;
 	req.body.discount = discount;
-	req.body.status = ['-', 'Populiarus', 'Naujas'].includes(status) ? status : '-';
+	req.body.status = ['-', 'Populiarus', 'Naujas', 'Išpardavimas'].includes(status) ? status : '-';
 	req.body.category = ['Planas', 'Kursai'].includes(category) ? category : null;
 	req.body.is_active = is_active === 'On';
 	req.body.slug = slug;
