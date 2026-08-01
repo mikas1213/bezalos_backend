@@ -5,6 +5,7 @@ export class AdminVirtuveRepository {
 	constructor(private readonly db: Database) {}
 
 	async findAll(): Promise<AdmninVirtuveDto[]> {
+        
 		const query = `SELECT 
             v.id,
             v.title,
@@ -28,7 +29,7 @@ export class AdminVirtuveRepository {
             AND l.entity_type = 'videos'
         LEFT JOIN comments AS c
             ON c.video_id = v.id
-        GROUP BY v.id`;
+        GROUP BY v.id ORDER BY v.created_at DESC`;
 
 		return await this.db.query(query);
 	}
