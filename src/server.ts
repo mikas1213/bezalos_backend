@@ -130,6 +130,8 @@ const io = new Server(server, {
 	},
 	allowEIO3: true,
 	transports: ['websocket', 'polling'],
+    pingTimeout: 300000,  // Padidiname nuo numatytojo (dažniausiai 20000ms) iki 60 sekundžių
+    pingInterval: 25000, // Kas kiek laiko siunčiamas ping signalas
 });
 
 io.on('connection', (socket) => {
